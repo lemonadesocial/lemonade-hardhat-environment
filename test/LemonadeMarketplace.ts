@@ -12,6 +12,7 @@ const FEE_MAKER = '0x951292004e8a18955Cb1095CB72Ca6B01d68336E';
 const FEE_RATIO = ethers.utils.parseEther('0.05');
 const MINT_ROYALTY = ethers.utils.parseEther('0.1');
 const MINT_TOKEN_URI = 'ipfs://QmcjpRmXZQsnnusxhWwWqDMgxe9dSbLRTo1WbxAzMTy2NM';
+const ORDER_OPEN_TO =  (Math.floor(Date.now() / 1000) + 24 * 60).toString();
 const ORDER_PRICE = ethers.utils.parseEther('0.5');
 
 enum OrderKind {
@@ -58,13 +59,14 @@ describe('LemonadeMarketplace', () => {
 
   const createOrder = async (
     kind: OrderKind,
+    openTo: string,
     tokenId: BigNumberish,
     signer: SignerWithAddress,
   ) => {
     const args = { // ordered
       kind,
       openFrom: '0',
-      openTo: '0',
+      openTo,
       currency: erc20Mint.address,
       price: ORDER_PRICE,
       tokenContract: erc721Lemonade.address,
@@ -95,7 +97,7 @@ describe('LemonadeMarketplace', () => {
   };
 
   it('should create direct order and then cancel', async () => {
-    const { orderId, tokenId } = await createOrder(OrderKind.Direct, await mintToCaller(signers[0]), signers[0]);
+    const { orderId, tokenId } = await createOrder(OrderKind.Direct, '0', await mintToCaller(signers[0]), signers[0]);
 
     const before = await lemonadeMarketplace.order(orderId);
     expect(before[1], 'order must be open before cancel')
@@ -111,7 +113,7 @@ describe('LemonadeMarketplace', () => {
   });
 
   it('should create direct order and then fill', async () => {
-    const { orderId, price, tokenId } = await createOrder(OrderKind.Direct, await mintToCaller(signers[0]), signers[0]);
+    const { orderId, price, tokenId } = await createOrder(OrderKind.Direct, '0', await mintToCaller(signers[0]), signers[0]);
     const feeAmount = price.mul(FEE_RATIO).div(ethers.constants.WeiPerEther);
 
     await erc20Mint.connect(signers[1]).approve(lemonadeMarketplace.address, price);
@@ -128,7 +130,7 @@ describe('LemonadeMarketplace', () => {
 
     await erc721Lemonade.connect(signers[0]).transferFrom(signers[0].address, signers[1].address, tokenId);
 
-    const { orderId, price } = await createOrder(OrderKind.Direct, tokenId, signers[1]);
+    const { orderId, price } = await createOrder(OrderKind.Direct, '0', tokenId, signers[1]);
     const feeAmount = price.mul(FEE_RATIO).div(ethers.constants.WeiPerEther);
     const royaltyAmount = price.mul(MINT_ROYALTY).div(ethers.constants.WeiPerEther);
 
@@ -143,14 +145,21 @@ describe('LemonadeMarketplace', () => {
   });
 
   it('should create direct order and then fail to fill due to unmet price', async () => {
-    const { orderId } = await createOrder(OrderKind.Direct, await mintToCaller(signers[0]), signers[0]);
+    const { orderId } = await createOrder(OrderKind.Direct, '0', await mintToCaller(signers[0]), signers[0]);
 
     await expect(lemonadeMarketplace.connect(signers[1]).fillOrder(orderId, '0'))
       .to.revertedWith('LemonadeMarketplace: must match price to fill direct order');
   });
 
+  it('should fail to create auction order due to open for more than 7 days', async () => {
+    const openTo = (Math.floor(Date.now() / 1000) + 8 * 24 * 60).toString();
+
+    await expect(createOrder(OrderKind.Auction, openTo, await mintToCaller(signers[0]), signers[0]))
+      .to.revertedWith('LemonadeMarketplace: order of kind auction must not be open for more than 7 days');
+  });
+
   it('should create auction order and then fail to fill due to missing bid', async () => {
-    const { orderId } = await createOrder(OrderKind.Auction, await mintToCaller(signers[0]), signers[0]);
+    const { orderId } = await createOrder(OrderKind.Auction, ORDER_OPEN_TO, await mintToCaller(signers[0]), signers[0]);
 
     await expect(lemonadeMarketplace.connect(signers[0]).fillOrder(orderId, '0'))
       .to.revertedWith('LemonadeMarketplace: order must have bid to fill auction order');
@@ -192,13 +201,13 @@ describe('LemonadeMarketplace', () => {
   };
 
   it('should create auction order and then bid 5 times', async () => {
-    const { orderId } = await createOrder(OrderKind.Auction, await mintToCaller(signers[0]), signers[0]);
+    const { orderId } = await createOrder(OrderKind.Auction, ORDER_OPEN_TO, await mintToCaller(signers[0]), signers[0]);
 
     await createBids(orderId, 5);
   });
 
   it('should create auction order and then bid 1 time and then fail to cancel due to a bid', async () => {
-    const { orderId } = await createOrder(OrderKind.Auction, await mintToCaller(signers[0]), signers[0]);
+    const { orderId } = await createOrder(OrderKind.Auction, ORDER_OPEN_TO, await mintToCaller(signers[0]), signers[0]);
 
     await createBids(orderId, 1);
 
@@ -207,7 +216,7 @@ describe('LemonadeMarketplace', () => {
   });
 
   it('should create auction order and then bid 3 times and then fill', async () => {
-    const { orderId, tokenId } = await createOrder(OrderKind.Auction, await mintToCaller(signers[0]), signers[0]);
+    const { orderId, tokenId } = await createOrder(OrderKind.Auction, ORDER_OPEN_TO, await mintToCaller(signers[0]), signers[0]);
 
     const { bidder, bidAmount } = await createBids(orderId, 5);
     const feeAmount = bidAmount.mul(FEE_RATIO).div(ethers.constants.WeiPerEther);

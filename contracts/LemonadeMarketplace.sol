@@ -131,8 +131,8 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         Order memory order_ = _orders[orderId];
         require(order_.kind == OrderKind.Auction, "LemonadeMarketplace: order must be of kind auction to bid");
         require(order_.open, "LemonadeMarketplace: order must be open to bid");
-        require(order_.openFrom == 0 || block.timestamp >= order_.openFrom, "LemonadeMarketplace: order must be open to bid - too early");
-        require(order_.openTo == 0 || block.timestamp < order_.openTo, "LemonadeMarketplace: order must be open to bid - too late");
+        require(order_.openFrom <= block.timestamp, "LemonadeMarketplace: order must be open to bid - too early");
+        require(order_.openTo > block.timestamp, "LemonadeMarketplace: order must be open to bid - too late");
         require(order_.price <= amount, "LemonadeMarketplace: must match price to bid");
 
         if (order_.bidder != address(0)) {
