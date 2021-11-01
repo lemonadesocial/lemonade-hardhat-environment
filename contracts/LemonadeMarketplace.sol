@@ -78,6 +78,14 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         whenNotPaused
         returns (uint256)
     {
+        uint openDuration_ = openDuration(openFrom, openTo);
+
+        require(openDuration_ > 0, "LemonadeMarketplace: order must be open at some point");
+
+        if (kind == OrderKind.Auction) {
+            require(openDuration_ <= 7 * 24 * 60, "LemonadeMarketplace: order of kind auction must not be open for more than 7 days");
+        }
+
         IERC721(tokenContract).transferFrom(_msgSender(), address(this), tokenId);
 
         uint256 orderId = _orderIdTracker.current();
@@ -217,6 +225,21 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         } else {
             currency.transferFrom(spender, recipient, amount); // requires allowance
         }
+    }
+
+    function openDuration(uint openFrom, uint openTo)
+        private
+        view
+        returns (uint)
+    {
+        uint start = openFrom < block.timestamp ? block.timestamp : openFrom;
+        uint end = openTo == 0 ? type(uint).max : openTo;
+
+        if (start > end) { // avoids overflow
+            return 0;
+        }
+
+        return end - start;
     }
 
     modifier whenExists(uint256 orderId) {
