@@ -216,7 +216,6 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
 
     function transferERC20(address currency_, address spender, address recipient, uint256 amount)
         private
-        whenNotPaused
     {
         IERC20 currency = IERC20(currency_);
 
