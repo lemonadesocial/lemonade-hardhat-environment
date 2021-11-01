@@ -163,6 +163,8 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         address spender;
 
         if (order_.kind == OrderKind.Direct) {
+            require(order_.openFrom <= block.timestamp, "LemonadeMarketplace: order must be open to fill - too early");
+            require(order_.openTo == 0 || order_.openTo > block.timestamp, "LemonadeMarketplace: order must be open to fill - too late");
             require(order_.price <= amount, "LemonadeMarketplace: must match price to fill direct order");
 
             _orders[orderId].taker = _msgSender();
