@@ -179,8 +179,11 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
             _orders[orderId].paidAmount = amount;
             spender = _msgSender();
         } else if (order_.kind == OrderKind.Auction) {
-            require(order_.maker == _msgSender() || hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "LemonadeMarketplace: must be the maker to fill auction order");
-            require(order_.bidder != address(0), "LemonadeMarketplace: order must have bid to fill auction order");
+            require((order_.bidder != address(0)), "LemonadeMarketplace: order must have bid to fill auction order");
+            require((order_.bidder == _msgSender() && order_.openTo <= block.timestamp)
+                    || order_.maker == _msgSender() || hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
+                "LemonadeMarketplace: must be the maker or final bidder to fill auction order"
+            );
 
             _orders[orderId].taker = order_.bidder;
             _orders[orderId].paidAmount = order_.bidAmount;
