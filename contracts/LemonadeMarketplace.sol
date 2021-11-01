@@ -50,6 +50,14 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         _setupRole(PAUSER_ROLE, _msgSender());
     }
 
+    function fee()
+        public
+        view
+        returns (address, uint256)
+    {
+        return (FEE_MAKER, FEE_FRACTION);
+    }
+
     function order(uint256 orderId)
         public
         virtual
