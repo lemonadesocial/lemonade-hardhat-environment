@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v1.1.1...v1.2.0) (2021-11-10)
+
+
+### Features
+
+* **LemonadeMarketplace:** add polygon deployment ([bf7a3ff](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/bf7a3ff3d2018ef18cb7ed4e845fb7d1699516e2))
+
 ### [1.1.1](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v1.1.0...v1.1.1) (2021-11-04)
 
 
