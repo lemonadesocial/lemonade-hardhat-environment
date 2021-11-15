@@ -94,7 +94,7 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC721, ERC721Enumerable)
+        override(AccessControlEnumerable, ERC721, ERC721Enumerable, ERC721Royalty)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
