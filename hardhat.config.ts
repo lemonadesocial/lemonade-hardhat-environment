@@ -16,11 +16,13 @@ const config: HardhatUserConfig = {
       url: process.env.NETWORK_MUMBAI_URL,
       chainId: 80001,
       accounts: { mnemonic },
+      deploy: ['deploy/mumbai'],
     },
     polygon: {
       url: process.env.NETWORK_POLYGON_URL,
       chainId: 137,
       accounts: { mnemonic },
+      deploy: ['deploy/polygon'],
     },
   },
   solidity: "0.8.4",
