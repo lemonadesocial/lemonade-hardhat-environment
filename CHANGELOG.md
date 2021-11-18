@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v1.2.0...v1.3.0) (2021-11-18)
+
+
+### Features
+
+* **ERC721Lemonade:** add parent chain mapping support ([9c0d1d7](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9c0d1d7aa43f913bb657181144a95ec3adc74fb2))
+* **ERC721LemonadeParent:** add parent chain erc721 contract ([26708f5](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/26708f52c164345e66da81ae7a0fa7140f491a29))
+* **ERC721Lemonade:** update deployments ([facf7ac](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/facf7ac603eab7fb7b6ed36ac9172eb6ef43ff49))
+* **ERC721Royalty:** add erc165 support ([c68c604](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/c68c604e51f67a3fa57b0f856203f1e81acc0a8a))
+
 ## [1.2.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v1.1.1...v1.2.0) (2021-11-10)
 
 
