@@ -15,9 +15,9 @@ contract ERC721LemonadeParent is Context, AccessControlEnumerable, ERC721Enumera
 
     mapping (uint256 => string) private _tokenURIs;
 
-    constructor(string memory name, string memory symbol, address parentChainManager) ERC721(name, symbol) {
+    constructor(string memory name, string memory symbol, address mintableAssetProxy) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(PREDICATE_ROLE, parentChainManager);
+        _setupRole(PREDICATE_ROLE, mintableAssetProxy);
     }
 
     function tokenURI(uint256 tokenId)
