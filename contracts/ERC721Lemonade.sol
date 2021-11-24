@@ -136,10 +136,7 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
     function withdraw(uint256 tokenId)
         external
     {
-        require(_msgSender() == ownerOf(tokenId), "ERC721Lemonade: INVALID_TOKEN_OWNER");
-
-        _tokenWithdrawn[tokenId] = true;
-        _burn(tokenId);
+        withdrawWithMetadata(tokenId);
     }
 
     /**
@@ -154,10 +151,7 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
         for (uint256 i; i < length; i++) {
             uint256 tokenId = tokenIds[i];
 
-            require(_msgSender() == ownerOf(tokenId), string(abi.encodePacked("ERC721Lemonade: INVALID_TOKEN_OWNER ", tokenId)));
-
-            _tokenWithdrawn[tokenId] = true;
-            _burn(tokenId);
+            withdrawWithMetadata(tokenId);
         }
 
         emit WithdrawnBatch(_msgSender(), tokenIds);
@@ -167,9 +161,9 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
      * @dev see https://github.com/maticnetwork/pos-portal/blob/88dbf0a88fd68fa11f7a3b9d36629930f6b93a05/flat/ChildMintableERC721.sol#L2234
      */
     function withdrawWithMetadata(uint256 tokenId)
-        external
+        public
     {
-        require(_msgSender() == ownerOf(tokenId), "ERC721Lemonade: INVALID_TOKEN_OWNER");
+        require(_msgSender() == ownerOf(tokenId), string(abi.encodePacked("ERC721Lemonade: INVALID_TOKEN_OWNER ", tokenId)));
 
         _tokenWithdrawn[tokenId] = true;
 
