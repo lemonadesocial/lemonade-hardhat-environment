@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.6.2 <0.8.0;
+pragma solidity ^0.8.0;
 
 import "../LibPart.sol";
 
@@ -23,7 +23,7 @@ abstract contract AbstractRoyalties {
         uint length = royalties[_id].length;
         for(uint i = 0; i < length; i++) {
             if (royalties[_id][i].account == _from) {
-                royalties[_id][i].account = address(uint160(_to));
+                royalties[_id][i].account = payable(address(uint160(_to)));
             }
         }
     }
