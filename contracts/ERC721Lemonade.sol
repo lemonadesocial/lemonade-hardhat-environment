@@ -2,16 +2,15 @@
 
 pragma solidity ^0.8.0;
 
+import "./Royalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./ERC721Royalty.sol";
 
-contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, ERC721Burnable, ERC721Pausable, ERC721Royalty {
+contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Burnable, ERC721Pausable, Royalties {
     using Counters for Counters.Counter;
 
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
@@ -48,7 +47,7 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
         return tokenId;
     }
 
-    function mintToCallerWithRoyalty(string memory tokenURI_, uint256 fraction)
+    function mintToCallerWithRoyalty(string memory tokenURI_, LibPart.Part[] memory royalties_)
         public
         virtual
         whenNotPaused
@@ -56,7 +55,7 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
     {
         uint256 tokenId = mintToCaller(tokenURI_);
 
-        _setRoyalty(tokenId, _msgSender(), fraction);
+        _saveRoyalties(tokenId, royalties_);
 
         return tokenId;
     }
@@ -93,7 +92,7 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC721, ERC721Enumerable, ERC721Royalty)
+        override(AccessControlEnumerable, ERC721, Royalties)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -102,7 +101,7 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
     function _beforeTokenTransfer(address from, address to, uint256 tokenId)
         internal
         virtual
-        override(ERC721, ERC721Enumerable, ERC721Pausable)
+        override(ERC721, ERC721Pausable)
     {
         super._beforeTokenTransfer(from, to, tokenId);
     }
@@ -181,15 +180,6 @@ contract ERC721Lemonade is Context, AccessControlEnumerable, ERC721Enumerable, E
         virtual
         returns (bytes memory)
     {
-        string memory tokenURI_ = tokenURI(tokenId);
-        address royaltyMaker;
-        uint256 royaltyFraction;
-
-        try this.royalty(tokenId) returns (address maker, uint256 fraction) {
-            royaltyMaker = maker;
-            royaltyFraction = fraction;
-        } catch { }
-
-        return abi.encode(tokenURI_, royaltyMaker, royaltyFraction);
+        return abi.encode(tokenURI(tokenId), royalties[tokenId]);
     }
 }
