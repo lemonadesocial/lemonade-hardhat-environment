@@ -9,8 +9,8 @@ const ERC20_NAME = 'Lemons';
 const ERC20_SYMBOL = 'LEM';
 const ERC721_NAME = 'Non-Fungible Lemon';
 const ERC721_SYMBOL = 'NFL';
-const FEE_MAKER = '0x951292004e8a18955Cb1095CB72Ca6B01d68336E';
-const FEE_RATIO = ethers.utils.parseEther('0.05');
+const FEE_ACCOUNT = '0x951292004e8a18955Cb1095CB72Ca6B01d68336E';
+const FEE_VALUE = '200';
 const MINT_TOKEN_URI = 'ipfs://QmcjpRmXZQsnnusxhWwWqDMgxe9dSbLRTo1WbxAzMTy2NM';
 const ORDER_OPEN_TO =  (Math.floor(Date.now() / 1000) + 24 * 60).toString();
 const ORDER_PRICE = ethers.utils.parseEther('0.5');
@@ -34,7 +34,7 @@ describe('LemonadeMarketplace', () => {
     signers = await ethers.getSigners();
     erc20Mint = await ERC20Mint.deploy(ERC20_NAME, ERC20_SYMBOL, signers[0].address, ERC20_INITIAL_SUPPLY);
     erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL, CHILD_CHAIN_MANAGER);
-    lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_MAKER, FEE_RATIO);
+    lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_ACCOUNT, FEE_VALUE);
 
     const transferAmount = ERC20_INITIAL_SUPPLY.div(signers.length);
 
@@ -107,12 +107,12 @@ describe('LemonadeMarketplace', () => {
 
   it('should create direct order and then fill', async () => {
     const { orderId, price, tokenId } = await createOrder(OrderKind.Direct, '0', await mintToCaller(signers[0]), signers[0]);
-    const feeAmount = price.mul(FEE_RATIO).div(ethers.constants.WeiPerEther);
+    const feeAmount = price.mul(FEE_VALUE).div(10000);
 
     await erc20Mint.connect(signers[1]).approve(lemonadeMarketplace.address, price);
 
     const tx = await lemonadeMarketplace.connect(signers[1]).fillOrder(orderId, price);
-    await expect(tx).to.emit(erc20Mint, 'Transfer').withArgs(signers[1].address, FEE_MAKER, feeAmount);
+    await expect(tx).to.emit(erc20Mint, 'Transfer').withArgs(signers[1].address, FEE_ACCOUNT, feeAmount);
     await expect(tx).to.emit(erc20Mint, 'Transfer').withArgs(signers[1].address, signers[0].address, price.sub(feeAmount));
     await expect(tx).to.emit(erc721Lemonade, 'Transfer').withArgs(lemonadeMarketplace.address, signers[1].address, tokenId);
     await expect(tx).to.emit(lemonadeMarketplace, 'OrderFilled').withArgs(orderId, signers[1].address, price);
@@ -193,7 +193,7 @@ describe('LemonadeMarketplace', () => {
     const { orderId, tokenId } = await createOrder(OrderKind.Auction, ORDER_OPEN_TO, await mintToCaller(signers[0]), signers[0]);
 
     const { bidder, bidAmount } = await createBids(orderId, 5);
-    const feeAmount = bidAmount.mul(FEE_RATIO).div(ethers.constants.WeiPerEther);
+    const feeAmount = bidAmount.mul(FEE_VALUE).div(10000);
 
     const tx = await lemonadeMarketplace.connect(signers[0]).fillOrder(orderId, '0');
     await expect(tx).emit(erc20Mint, 'Transfer').withArgs(lemonadeMarketplace.address, signers[0].address, bidAmount.sub(feeAmount));

@@ -13,8 +13,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
     using Counters for Counters.Counter;
 
-    address public immutable FEE_MAKER;
-    uint256 public immutable FEE_FRACTION;
+    address public immutable FEE_ACCOUNT;
+    uint96 public immutable FEE_VALUE;
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     enum OrderKind { Direct, Auction }
@@ -43,9 +43,9 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
 
     Counters.Counter private _orderIdTracker;
 
-    constructor(address feeMaker, uint256 feeFraction) {
-        FEE_MAKER = feeMaker;
-        FEE_FRACTION = feeFraction;
+    constructor(address feeAccount, uint96 feeValue) {
+        FEE_ACCOUNT = feeAccount;
+        FEE_VALUE = feeValue;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(PAUSER_ROLE, _msgSender());
@@ -54,9 +54,9 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
     function fee()
         public
         view
-        returns (address, uint256)
+        returns (address, uint96)
     {
-        return (FEE_MAKER, FEE_FRACTION);
+        return (FEE_ACCOUNT, FEE_VALUE);
     }
 
     function order(uint256 orderId)
@@ -204,8 +204,8 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         if (order_.paidAmount > 0) {
             uint256 transferAmount = order_.paidAmount;
 
-            uint256 feeAmount = order_.paidAmount * FEE_FRACTION / 10 ** 18;
-            transferERC20(order_.currency, spender, FEE_MAKER, feeAmount);
+            uint256 feeAmount = order_.paidAmount * FEE_VALUE / 10000;
+            transferERC20(order_.currency, spender, FEE_ACCOUNT, feeAmount);
             transferAmount -= feeAmount;
 
             try RoyaltiesV2(order_.tokenContract).getRaribleV2Royalties(order_.tokenId) returns (LibPart.Part[] memory royalties) {
