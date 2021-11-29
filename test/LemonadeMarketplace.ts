@@ -3,6 +3,7 @@ import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
+const CHILD_CHAIN_MANAGER = '0xb5505a6d998549090530911180f38aC5130101c6';
 const ERC20_INITIAL_SUPPLY = ethers.utils.parseEther('100');
 const ERC20_NAME = 'Lemons';
 const ERC20_SYMBOL = 'LEM';
@@ -10,7 +11,6 @@ const ERC721_NAME = 'Non-Fungible Lemon';
 const ERC721_SYMBOL = 'NFL';
 const FEE_MAKER = '0x951292004e8a18955Cb1095CB72Ca6B01d68336E';
 const FEE_RATIO = ethers.utils.parseEther('0.05');
-const MINT_ROYALTY = ethers.utils.parseEther('0.1');
 const MINT_TOKEN_URI = 'ipfs://QmcjpRmXZQsnnusxhWwWqDMgxe9dSbLRTo1WbxAzMTy2NM';
 const ORDER_OPEN_TO =  (Math.floor(Date.now() / 1000) + 24 * 60).toString();
 const ORDER_PRICE = ethers.utils.parseEther('0.5');
@@ -33,7 +33,7 @@ describe('LemonadeMarketplace', () => {
 
     signers = await ethers.getSigners();
     erc20Mint = await ERC20Mint.deploy(ERC20_NAME, ERC20_SYMBOL, signers[0].address, ERC20_INITIAL_SUPPLY);
-    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL);
+    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL, CHILD_CHAIN_MANAGER);
     lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_MAKER, FEE_RATIO);
 
     const transferAmount = ERC20_INITIAL_SUPPLY.div(signers.length);
@@ -45,13 +45,6 @@ describe('LemonadeMarketplace', () => {
 
   const mintToCaller = async (signer: SignerWithAddress) => {
     const tx: ContractTransaction = await erc721Lemonade.connect(signer).mintToCaller(MINT_TOKEN_URI);
-    const receipt = await tx.wait();
-
-    return receipt.events?.map(({ args }) => args?.tokenId).find(Boolean);
-  };
-
-  const mintToCallerWithRoyalty = async (signer: SignerWithAddress) => {
-    const tx: ContractTransaction = await erc721Lemonade.connect(signer).mintToCallerWithRoyalty(MINT_TOKEN_URI, MINT_ROYALTY);
     const receipt = await tx.wait();
 
     return receipt.events?.map(({ args }) => args?.tokenId).find(Boolean);
@@ -125,25 +118,6 @@ describe('LemonadeMarketplace', () => {
     await expect(tx).to.emit(lemonadeMarketplace, 'OrderFilled').withArgs(orderId, signers[1].address, price);
   });
 
-  it('should create direct order with royalty and then fill with royalties', async () => {
-    const tokenId = await mintToCallerWithRoyalty(signers[0]);
-
-    await erc721Lemonade.connect(signers[0]).transferFrom(signers[0].address, signers[1].address, tokenId);
-
-    const { orderId, price } = await createOrder(OrderKind.Direct, '0', tokenId, signers[1]);
-    const feeAmount = price.mul(FEE_RATIO).div(ethers.constants.WeiPerEther);
-    const royaltyAmount = price.mul(MINT_ROYALTY).div(ethers.constants.WeiPerEther);
-
-    await erc20Mint.connect(signers[2]).approve(lemonadeMarketplace.address, price);
-
-    const tx = lemonadeMarketplace.connect(signers[2]).fillOrder(orderId, price);
-    await expect(tx).to.emit(erc20Mint, 'Transfer').withArgs(signers[2].address, FEE_MAKER, feeAmount);
-    await expect(tx).to.emit(erc20Mint, 'Transfer').withArgs(signers[2].address, signers[0].address, royaltyAmount);
-    await expect(tx).to.emit(erc20Mint, 'Transfer').withArgs(signers[2].address, signers[1].address, price.sub(feeAmount).sub(royaltyAmount));
-    await expect(tx).to.emit(erc721Lemonade, 'Transfer').withArgs(lemonadeMarketplace.address, signers[2].address, tokenId);
-    await expect(tx).to.emit(lemonadeMarketplace, 'OrderFilled').withArgs(orderId, signers[2].address, price);
-  });
-
   it('should create direct order and then fail to fill due to unmet price', async () => {
     const { orderId } = await createOrder(OrderKind.Direct, '0', await mintToCaller(signers[0]), signers[0]);
 
@@ -152,7 +126,7 @@ describe('LemonadeMarketplace', () => {
   });
 
   it('should fail to create auction order due to open for more than 7 days', async () => {
-    const openTo = (Math.floor(Date.now() / 1000) + 8 * 24 * 60).toString();
+    const openTo = (Math.floor(Date.now() / 1000) + 8 * 24 * 60 * 60).toString();
 
     await expect(createOrder(OrderKind.Auction, openTo, await mintToCaller(signers[0]), signers[0]))
       .to.revertedWith('LemonadeMarketplace: order of kind auction must not be open for more than 7 days');
