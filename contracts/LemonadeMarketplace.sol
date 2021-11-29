@@ -2,12 +2,13 @@
 
 pragma solidity ^0.8.0;
 
+import "./IERC2981.sol";
+import "./rarible/RoyaltiesV2.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./IERC721Royalty.sol";
 
 contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
     using Counters for Counters.Counter;
@@ -207,13 +208,23 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
             transferERC20(order_.currency, spender, FEE_MAKER, feeAmount);
             transferAmount -= feeAmount;
 
-            try IERC721Royalty(order_.tokenContract).royalty(order_.tokenId) returns (address royaltyMaker, uint256 royaltyFraction) {
-                if (order_.maker != royaltyMaker) {
-                    uint256 royaltyAmount = order_.paidAmount * royaltyFraction / 10 ** 18;
-                    transferERC20(order_.currency, spender, royaltyMaker, royaltyAmount);
-                    transferAmount -= royaltyAmount;
+            try RoyaltiesV2(order_.tokenContract).getRaribleV2Royalties(order_.tokenId) returns (LibPart.Part[] memory royalties) {
+                uint length = royalties.length;
+                for (uint i; i < length; i++) {
+                    if (order_.maker != royalties[i].account) {
+                        uint256 royaltyAmount = order_.paidAmount * royalties[i].value / 10000;
+                        transferERC20(order_.currency, spender, royalties[i].account, royaltyAmount);
+                        transferAmount -= royaltyAmount;
+                    }
                 }
-            } catch { }
+            } catch {
+                try IERC2981(order_.tokenContract).royaltyInfo(order_.tokenId, order_.paidAmount) returns (address receiver, uint256 royaltyAmount) {
+                    if (order_.maker != receiver) {
+                        transferERC20(order_.currency, spender, receiver, royaltyAmount);
+                        transferAmount -= royaltyAmount;
+                    }
+                } catch { }
+            }
 
             if (transferAmount > 0) {
                 transferERC20(order_.currency, spender, order_.maker, transferAmount);
