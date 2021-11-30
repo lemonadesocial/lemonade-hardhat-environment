@@ -12,6 +12,18 @@ const mnemonic = process.env.MNEMONIC;
 const config: HardhatUserConfig = {
   etherscan: { apiKey: process.env.ETHERSCAN_API_KEY },
   networks: {
+    ethereum: {
+      url: process.env.NETWORK_ETHEREUM_URL,
+      chainId: 1,
+      accounts: { mnemonic },
+      deploy: ['deploy/ethereum'],
+    },
+    goerli: {
+      url: process.env.NETWORK_GOERLI_URL,
+      chainId: 5,
+      accounts: { mnemonic },
+      deploy: ['deploy/goerli'],
+    },
     mumbai: {
       url: process.env.NETWORK_MUMBAI_URL,
       chainId: 80001,

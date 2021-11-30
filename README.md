@@ -61,12 +61,8 @@ The following variables are all required and must be specified as environment va
 
 A Secret Recovery Phrase, mnemonic phrase, or Seed Phrase used to generate the signers.
 
-### `NETWORK_MUMBAI_URL`
+### `NETWORK_ETHEREUM_URL` / `NETWORK_GOERLI_URL` / `NETWORK_MUMBAI_URL` / `NETWORK_POLYGON_URL`
 
-An HTTP RPC endpoint for Polygon Mumbai Testnet.
-
-### `NETWORK_POLYGON_URL`
-
-An HTTP RPC endpoint for Polygon Mainnet.
+An HTTP RPC endpoint for the corresponding network.
 
 See [Polygon Network Details](https://docs.polygon.technology/docs/develop/network-details/network/) for a list of public RPC endpoints.
