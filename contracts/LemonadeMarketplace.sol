@@ -92,7 +92,7 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         require(openDuration_ > 0, "LemonadeMarketplace: order must be open at some point");
 
         if (kind == OrderKind.Auction) {
-            require(openDuration_ <= 7 * 24 * 60 * 60, "LemonadeMarketplace: order of kind auction must not be open for more than 7 days");
+            require(openDuration_ <= 30 * 24 * 60 * 60, "LemonadeMarketplace: order of kind auction must not be open for more than 30 days");
         }
 
         IERC721(tokenContract).transferFrom(_msgSender(), address(this), tokenId);

@@ -125,11 +125,11 @@ describe('LemonadeMarketplace', () => {
       .to.revertedWith('LemonadeMarketplace: must match price to fill direct order');
   });
 
-  it('should fail to create auction order due to open for more than 7 days', async () => {
-    const openTo = (Math.floor(Date.now() / 1000) + 8 * 24 * 60 * 60).toString();
+  it('should fail to create auction order due to open for more than 30 days', async () => {
+    const openTo = (Math.floor(Date.now() / 1000) + 31 * 24 * 60 * 60).toString();
 
     await expect(createOrder(OrderKind.Auction, openTo, await mintToCaller(signers[0]), signers[0]))
-      .to.revertedWith('LemonadeMarketplace: order of kind auction must not be open for more than 7 days');
+      .to.revertedWith('LemonadeMarketplace: order of kind auction must not be open for more than 30 days');
   });
 
   it('should create auction order and then fail to fill due to missing bid', async () => {
