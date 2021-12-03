@@ -16,6 +16,7 @@ contract ERC721Claimable is Context, AccessControlEnumerable, ERC721Pausable {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     Counters.Counter private _tokenIdTracker;
+    address private _creator;
     string private _tokenURI;
 
     Counters.Counter private _claimIdTracker;
@@ -24,16 +25,24 @@ contract ERC721Claimable is Context, AccessControlEnumerable, ERC721Pausable {
     constructor(
         string memory name,
         string memory symbol,
-        string memory tokenURI_
+        address creator,
+        string memory tokenURI_,
+        uint256 initialSupply
     ) ERC721(name, symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(PAUSER_ROLE, _msgSender());
 
+        _creator = creator;
         _tokenURI = tokenURI_;
+
+        mintBatch(initialSupply);
+
+        _claimIdTracker.increment();
+        _claimers[creator] = true;
     }
 
-    function mintBatch(address owner, uint256 amount)
+    function mintBatch(uint256 amount)
         public
         virtual
         onlyRole(MINTER_ROLE)
@@ -42,7 +51,7 @@ contract ERC721Claimable is Context, AccessControlEnumerable, ERC721Pausable {
         for (uint256 i; i < amount; i++) {
             uint256 tokenId = _tokenIdTracker.current();
 
-            _mint(owner, tokenId);
+            _mint(_creator, tokenId);
 
             _tokenIdTracker.increment();
         }
