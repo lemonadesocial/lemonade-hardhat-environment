@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.0;
 
+import "./RelayRecipient.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -9,7 +10,11 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract ERC721Claimable is Context, AccessControlEnumerable, ERC721Pausable {
+contract ERC721Claimable is
+    AccessControlEnumerable,
+    ERC721Pausable,
+    RelayRecipient
+{
     using Counters for Counters.Counter;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -25,10 +30,13 @@ contract ERC721Claimable is Context, AccessControlEnumerable, ERC721Pausable {
     constructor(
         string memory name,
         string memory symbol,
+        address trustedForwarder_,
         address creator,
         string memory tokenURI_,
         uint256 initialSupply
     ) ERC721(name, symbol) {
+        trustedForwarder = trustedForwarder_;
+
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(PAUSER_ROLE, _msgSender());
@@ -40,6 +48,8 @@ contract ERC721Claimable is Context, AccessControlEnumerable, ERC721Pausable {
 
         _claimIdTracker.increment();
         _claimers[creator] = true;
+
+
     }
 
     function mintBatch(uint256 amount)
@@ -125,5 +135,23 @@ contract ERC721Claimable is Context, AccessControlEnumerable, ERC721Pausable {
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(Context, RelayRecipient)
+        returns (address)
+    {
+        return RelayRecipient._msgSender();
+    }
+
+    function setTrustedForwarder(address trustedForwarder_)
+        public
+        virtual
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        trustedForwarder = trustedForwarder_;
     }
 }
