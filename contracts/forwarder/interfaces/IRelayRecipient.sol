@@ -1,5 +1,5 @@
 // SPDX-License-Identifier:MIT
-pragma solidity ^0.6.2;
+pragma solidity ^0.8.0;
 
 /**
  * a contract must implement this interface in order to support relayed transaction.
@@ -21,7 +21,7 @@ abstract contract IRelayRecipient {
      * otherwise, return `msg.sender`
      * should be used in the contract anywhere instead of msg.sender
      */
-    function _msgSender() internal virtual view returns (address payable);
+    function _msgSender() internal virtual view returns (address);
 
     function versionRecipient() external virtual view returns (string memory);
 }

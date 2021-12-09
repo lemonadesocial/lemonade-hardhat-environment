@@ -1,5 +1,5 @@
 // SPDX-License-Identifier:MIT
-pragma solidity ^0.6.2;
+pragma solidity ^0.8.0;
 
 import "./interfaces/IRelayRecipient.sol";
 
@@ -32,7 +32,7 @@ abstract contract BaseRelayRecipient is IRelayRecipient {
      * otherwise, return `msg.sender`.
      * should be used in the contract anywhere instead of msg.sender
      */
-    function _msgSender() internal override virtual view returns (address payable ret) {
+    function _msgSender() internal override virtual view returns (address ret) {
         if (msg.data.length >= 24 && isTrustedForwarder(msg.sender)) {
             // At this point we know that the sender is a trusted forwarder,
             // so we trust that the last bytes of msg.data are the verified sender address.
