@@ -83,12 +83,12 @@ contract LemonadeMarketplace is
         _setupRole(PAUSER_ROLE, _msgSender());
     }
 
-    function fee() public view returns (address, uint96) {
+    function fee() external view returns (address, uint96) {
         return (FEE_ACCOUNT, FEE_VALUE);
     }
 
     function order(uint256 orderId)
-        public
+        external
         view
         virtual
         whenExists(orderId)
@@ -121,14 +121,13 @@ contract LemonadeMarketplace is
     }
 
     function token(uint256 orderId)
-        public
+        external
         view
         virtual
         whenExists(orderId)
         returns (address, uint256)
     {
-        Order memory order_ = _orders[orderId];
-        return (order_.tokenContract, order_.tokenId);
+        return (_orders[orderId].tokenContract, _orders[orderId].tokenId);
     }
 
     function createOrder(
@@ -139,7 +138,7 @@ contract LemonadeMarketplace is
         uint256 price,
         address tokenContract,
         uint256 tokenId
-    ) public virtual whenNotPaused returns (uint256) {
+    ) external virtual whenNotPaused returns (uint256) {
         uint256 openDuration_ = openDuration(openFrom, openTo);
 
         require(
@@ -196,7 +195,7 @@ contract LemonadeMarketplace is
     }
 
     function cancelOrder(uint256 orderId)
-        public
+        external
         virtual
         whenNotPaused
         whenExists(orderId)
@@ -227,7 +226,7 @@ contract LemonadeMarketplace is
     }
 
     function bidOrder(uint256 orderId, uint256 amount)
-        public
+        external
         virtual
         whenNotPaused
         whenExists(orderId)
@@ -280,7 +279,7 @@ contract LemonadeMarketplace is
     }
 
     function fillOrder(uint256 orderId, uint256 amount)
-        public
+        external
         virtual
         whenNotPaused
         whenExists(orderId)
@@ -431,7 +430,7 @@ contract LemonadeMarketplace is
         _;
     }
 
-    function pause() public virtual {
+    function pause() external virtual {
         require(
             hasRole(PAUSER_ROLE, _msgSender()),
             "LemonadeMarketplace: must have pauser role to pause"
@@ -439,7 +438,7 @@ contract LemonadeMarketplace is
         _pause();
     }
 
-    function unpause() public virtual {
+    function unpause() external virtual {
         require(
             hasRole(PAUSER_ROLE, _msgSender()),
             "LemonadeMarketplace: must have pauser role to unpause"
@@ -458,7 +457,7 @@ contract LemonadeMarketplace is
     }
 
     function setTrustedForwarder(address trustedForwarder_)
-        public
+        external
         virtual
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
