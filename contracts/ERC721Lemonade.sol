@@ -21,7 +21,6 @@ contract ERC721Lemonade is
 
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    uint256 public constant WITHDRAW_BATCH_LIMIT = 20;
 
     Counters.Counter private _tokenIdTracker;
 
@@ -151,10 +150,6 @@ contract ERC721Lemonade is
      */
     function withdrawBatch(uint256[] calldata tokenIds) external {
         uint256 length = tokenIds.length;
-        require(
-            length <= WITHDRAW_BATCH_LIMIT,
-            "ERC721Lemonade: EXCEEDS_BATCH_LIMIT"
-        );
 
         for (uint256 i; i < length; i++) {
             uint256 tokenId = tokenIds[i];
