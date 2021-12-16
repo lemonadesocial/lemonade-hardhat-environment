@@ -35,7 +35,7 @@ describe('LemonadeMarketplace', () => {
     signers = await ethers.getSigners();
     erc20Mint = await ERC20Mint.deploy(ERC20_NAME, ERC20_SYMBOL, signers[0].address, ERC20_INITIAL_SUPPLY);
     erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL, TRUSTED_FORWARDER, CHILD_CHAIN_MANAGER);
-    lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_ACCOUNT, FEE_VALUE);
+    lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_ACCOUNT, FEE_VALUE, TRUSTED_FORWARDER);
 
     const transferAmount = ERC20_INITIAL_SUPPLY.div(signers.length);
 

@@ -4,13 +4,18 @@ pragma solidity ^0.8.0;
 
 import "./IERC2981.sol";
 import "./rarible/RoyaltiesV2.sol";
+import "./RelayRecipient.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
+contract LemonadeMarketplace is
+    AccessControlEnumerable,
+    Pausable,
+    RelayRecipient
+{
     using Counters for Counters.Counter;
 
     address public immutable FEE_ACCOUNT;
@@ -64,9 +69,15 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
 
     Counters.Counter private _orderIdTracker;
 
-    constructor(address feeAccount, uint96 feeValue) {
+    constructor(
+        address feeAccount,
+        uint96 feeValue,
+        address trustedForwarder_
+    ) {
         FEE_ACCOUNT = feeAccount;
         FEE_VALUE = feeValue;
+
+        trustedForwarder = trustedForwarder_;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(PAUSER_ROLE, _msgSender());
@@ -434,5 +445,23 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
             "LemonadeMarketplace: must have pauser role to unpause"
         );
         _unpause();
+    }
+
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(Context, RelayRecipient)
+        returns (address)
+    {
+        return RelayRecipient._msgSender();
+    }
+
+    function setTrustedForwarder(address trustedForwarder_)
+        public
+        virtual
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        trustedForwarder = trustedForwarder_;
     }
 }
