@@ -17,11 +17,32 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
     uint96 public immutable FEE_VALUE;
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
-    enum OrderKind { Direct, Auction }
+    enum OrderKind {
+        Direct,
+        Auction
+    }
 
-    event OrderCreated(uint256 indexed orderId, OrderKind kind, uint256 openFrom, uint256 openTo, address indexed maker, address currency, uint256 price, address tokenContract, uint256 tokenId);
-    event OrderBid(uint256 indexed orderId, address indexed bidder, uint256 bidAmount);
-    event OrderFilled(uint256 indexed orderId, address indexed taker, uint256 paidAmount);
+    event OrderCreated(
+        uint256 indexed orderId,
+        OrderKind kind,
+        uint256 openFrom,
+        uint256 openTo,
+        address indexed maker,
+        address currency,
+        uint256 price,
+        address tokenContract,
+        uint256 tokenId
+    );
+    event OrderBid(
+        uint256 indexed orderId,
+        address indexed bidder,
+        uint256 bidAmount
+    );
+    event OrderFilled(
+        uint256 indexed orderId,
+        address indexed taker,
+        uint256 paidAmount
+    );
     event OrderCancelled(uint256 indexed orderId);
 
     struct Order {
@@ -39,7 +60,7 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         address taker;
         uint256 paidAmount;
     }
-    mapping (uint256 => Order) private _orders;
+    mapping(uint256 => Order) private _orders;
 
     Counters.Counter private _orderIdTracker;
 
@@ -51,29 +72,47 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         _setupRole(PAUSER_ROLE, _msgSender());
     }
 
-    function fee()
-        public
-        view
-        returns (address, uint96)
-    {
+    function fee() public view returns (address, uint96) {
         return (FEE_ACCOUNT, FEE_VALUE);
     }
 
     function order(uint256 orderId)
         public
-        virtual
         view
+        virtual
         whenExists(orderId)
-        returns (OrderKind, bool, uint, uint, address, address, uint256, uint256, address, uint256)
+        returns (
+            OrderKind,
+            bool,
+            uint256,
+            uint256,
+            address,
+            address,
+            uint256,
+            uint256,
+            address,
+            uint256
+        )
     {
         Order memory order_ = _orders[orderId];
-        return (order_.kind, order_.open, order_.openFrom, order_.openTo, order_.maker, order_.currency, order_.price, order_.bidAmount, order_.taker, order_.paidAmount);
+        return (
+            order_.kind,
+            order_.open,
+            order_.openFrom,
+            order_.openTo,
+            order_.maker,
+            order_.currency,
+            order_.price,
+            order_.bidAmount,
+            order_.taker,
+            order_.paidAmount
+        );
     }
 
     function token(uint256 orderId)
         public
-        virtual
         view
+        virtual
         whenExists(orderId)
         returns (address, uint256)
     {
@@ -81,21 +120,34 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         return (order_.tokenContract, order_.tokenId);
     }
 
-    function createOrder(OrderKind kind, uint openFrom, uint openTo, address currency, uint256 price, address tokenContract, uint256 tokenId)
-        public
-        virtual
-        whenNotPaused
-        returns (uint256)
-    {
-        uint openDuration_ = openDuration(openFrom, openTo);
+    function createOrder(
+        OrderKind kind,
+        uint256 openFrom,
+        uint256 openTo,
+        address currency,
+        uint256 price,
+        address tokenContract,
+        uint256 tokenId
+    ) public virtual whenNotPaused returns (uint256) {
+        uint256 openDuration_ = openDuration(openFrom, openTo);
 
-        require(openDuration_ > 0, "LemonadeMarketplace: order must be open at some point");
+        require(
+            openDuration_ > 0,
+            "LemonadeMarketplace: order must be open at some point"
+        );
 
         if (kind == OrderKind.Auction) {
-            require(openDuration_ <= 30 * 24 * 60 * 60, "LemonadeMarketplace: order of kind auction must not be open for more than 30 days");
+            require(
+                openDuration_ <= 30 * 24 * 60 * 60,
+                "LemonadeMarketplace: order of kind auction must not be open for more than 30 days"
+            );
         }
 
-        IERC721(tokenContract).transferFrom(_msgSender(), address(this), tokenId);
+        IERC721(tokenContract).transferFrom(
+            _msgSender(),
+            address(this),
+            tokenId
+        );
 
         uint256 orderId = _orderIdTracker.current();
 
@@ -118,7 +170,17 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         _orderIdTracker.increment();
 
         Order memory order_ = _orders[orderId];
-        emit OrderCreated(orderId, order_.kind, order_.openFrom, order_.openTo, order_.maker, order_.currency, order_.price, order_.tokenContract, order_.tokenId);
+        emit OrderCreated(
+            orderId,
+            order_.kind,
+            order_.openFrom,
+            order_.openTo,
+            order_.maker,
+            order_.currency,
+            order_.price,
+            order_.tokenContract,
+            order_.tokenId
+        );
         return orderId;
     }
 
@@ -129,11 +191,25 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         whenExists(orderId)
     {
         Order memory order_ = _orders[orderId];
-        require(order_.maker == _msgSender() || hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "LemonadeMarketplace: must be the maker to cancel");
-        require(order_.open, "LemonadeMarketplace: order must be open to cancel");
-        require(order_.bidder == address(0), "LemonadeMarketplace: order must have no bid to cancel");
+        require(
+            order_.maker == _msgSender() ||
+                hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
+            "LemonadeMarketplace: must be the maker to cancel"
+        );
+        require(
+            order_.open,
+            "LemonadeMarketplace: order must be open to cancel"
+        );
+        require(
+            order_.bidder == address(0),
+            "LemonadeMarketplace: order must have no bid to cancel"
+        );
 
-        IERC721(order_.tokenContract).safeTransferFrom(address(this), order_.maker, order_.tokenId);
+        IERC721(order_.tokenContract).safeTransferFrom(
+            address(this),
+            order_.maker,
+            order_.tokenId
+        );
 
         _orders[orderId].open = false;
         emit OrderCancelled(orderId);
@@ -146,23 +222,48 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         whenExists(orderId)
     {
         Order memory order_ = _orders[orderId];
-        require(order_.kind == OrderKind.Auction, "LemonadeMarketplace: order must be of kind auction to bid");
+        require(
+            order_.kind == OrderKind.Auction,
+            "LemonadeMarketplace: order must be of kind auction to bid"
+        );
         require(order_.open, "LemonadeMarketplace: order must be open to bid");
-        require(order_.openFrom <= block.timestamp, "LemonadeMarketplace: order must be open to bid - too early");
-        require(order_.openTo > block.timestamp, "LemonadeMarketplace: order must be open to bid - too late");
-        require(order_.price <= amount, "LemonadeMarketplace: must match price to bid");
+        require(
+            order_.openFrom <= block.timestamp,
+            "LemonadeMarketplace: order must be open to bid - too early"
+        );
+        require(
+            order_.openTo > block.timestamp,
+            "LemonadeMarketplace: order must be open to bid - too late"
+        );
+        require(
+            order_.price <= amount,
+            "LemonadeMarketplace: must match price to bid"
+        );
 
         if (order_.bidder != address(0)) {
-            require(order_.bidAmount < amount, "LemonadeMarketplace: must surpass bid to bid");
+            require(
+                order_.bidAmount < amount,
+                "LemonadeMarketplace: must surpass bid to bid"
+            );
 
-            transferERC20(order_.currency, address(this), order_.bidder, order_.bidAmount);
+            transferERC20(
+                order_.currency,
+                address(this),
+                order_.bidder,
+                order_.bidAmount
+            );
         }
 
         _orders[orderId].bidder = _msgSender();
         _orders[orderId].bidAmount = amount;
         order_ = _orders[orderId];
 
-        transferERC20(order_.currency, order_.bidder, address(this), order_.bidAmount);
+        transferERC20(
+            order_.currency,
+            order_.bidder,
+            address(this),
+            order_.bidAmount
+        );
 
         emit OrderBid(orderId, order_.bidder, order_.bidAmount);
     }
@@ -180,17 +281,32 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         address spender;
 
         if (order_.kind == OrderKind.Direct) {
-            require(order_.openFrom <= block.timestamp, "LemonadeMarketplace: order must be open to fill - too early");
-            require(order_.openTo == 0 || order_.openTo > block.timestamp, "LemonadeMarketplace: order must be open to fill - too late");
-            require(order_.price <= amount, "LemonadeMarketplace: must match price to fill direct order");
+            require(
+                order_.openFrom <= block.timestamp,
+                "LemonadeMarketplace: order must be open to fill - too early"
+            );
+            require(
+                order_.openTo == 0 || order_.openTo > block.timestamp,
+                "LemonadeMarketplace: order must be open to fill - too late"
+            );
+            require(
+                order_.price <= amount,
+                "LemonadeMarketplace: must match price to fill direct order"
+            );
 
             _orders[orderId].taker = _msgSender();
             _orders[orderId].paidAmount = amount;
             spender = _msgSender();
         } else if (order_.kind == OrderKind.Auction) {
-            require((order_.bidder != address(0)), "LemonadeMarketplace: order must have bid to fill auction order");
-            require((order_.bidder == _msgSender() && order_.openTo <= block.timestamp)
-                    || order_.maker == _msgSender() || hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
+            require(
+                (order_.bidder != address(0)),
+                "LemonadeMarketplace: order must have bid to fill auction order"
+            );
+            require(
+                (order_.bidder == _msgSender() &&
+                    order_.openTo <= block.timestamp) ||
+                    order_.maker == _msgSender() ||
+                    hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
                 "LemonadeMarketplace: must be the maker or final bidder to fill auction order"
             );
 
@@ -204,41 +320,73 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         if (order_.paidAmount > 0) {
             uint256 transferAmount = order_.paidAmount;
 
-            uint256 feeAmount = order_.paidAmount * FEE_VALUE / 10000;
+            uint256 feeAmount = (order_.paidAmount * FEE_VALUE) / 10000;
             transferERC20(order_.currency, spender, FEE_ACCOUNT, feeAmount);
             transferAmount -= feeAmount;
 
-            try RoyaltiesV2(order_.tokenContract).getRaribleV2Royalties(order_.tokenId) returns (LibPart.Part[] memory royalties) {
-                uint length = royalties.length;
-                for (uint i; i < length; i++) {
+            try
+                RoyaltiesV2(order_.tokenContract).getRaribleV2Royalties(
+                    order_.tokenId
+                )
+            returns (LibPart.Part[] memory royalties) {
+                uint256 length = royalties.length;
+                for (uint256 i; i < length; i++) {
                     if (order_.maker != royalties[i].account) {
-                        uint256 royaltyAmount = order_.paidAmount * royalties[i].value / 10000;
-                        transferERC20(order_.currency, spender, royalties[i].account, royaltyAmount);
+                        uint256 royaltyAmount = (order_.paidAmount *
+                            royalties[i].value) / 10000;
+                        transferERC20(
+                            order_.currency,
+                            spender,
+                            royalties[i].account,
+                            royaltyAmount
+                        );
                         transferAmount -= royaltyAmount;
                     }
                 }
             } catch {
-                try IERC2981(order_.tokenContract).royaltyInfo(order_.tokenId, order_.paidAmount) returns (address receiver, uint256 royaltyAmount) {
+                try
+                    IERC2981(order_.tokenContract).royaltyInfo(
+                        order_.tokenId,
+                        order_.paidAmount
+                    )
+                returns (address receiver, uint256 royaltyAmount) {
                     if (order_.maker != receiver) {
-                        transferERC20(order_.currency, spender, receiver, royaltyAmount);
+                        transferERC20(
+                            order_.currency,
+                            spender,
+                            receiver,
+                            royaltyAmount
+                        );
                         transferAmount -= royaltyAmount;
                     }
-                } catch { }
+                } catch {}
             }
 
             if (transferAmount > 0) {
-                transferERC20(order_.currency, spender, order_.maker, transferAmount);
+                transferERC20(
+                    order_.currency,
+                    spender,
+                    order_.maker,
+                    transferAmount
+                );
             }
         }
 
-        IERC721(order_.tokenContract).safeTransferFrom(address(this), order_.taker, order_.tokenId);
+        IERC721(order_.tokenContract).safeTransferFrom(
+            address(this),
+            order_.taker,
+            order_.tokenId
+        );
 
         emit OrderFilled(orderId, order_.taker, order_.paidAmount);
     }
 
-    function transferERC20(address currency_, address spender, address recipient, uint256 amount)
-        private
-    {
+    function transferERC20(
+        address currency_,
+        address spender,
+        address recipient,
+        uint256 amount
+    ) private {
         IERC20 currency = IERC20(currency_);
 
         if (spender == address(this)) {
@@ -248,15 +396,16 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
         }
     }
 
-    function openDuration(uint openFrom, uint openTo)
+    function openDuration(uint256 openFrom, uint256 openTo)
         private
         view
-        returns (uint)
+        returns (uint256)
     {
-        uint start = openFrom < block.timestamp ? block.timestamp : openFrom;
-        uint end = openTo == 0 ? type(uint).max : openTo;
+        uint256 start = openFrom < block.timestamp ? block.timestamp : openFrom;
+        uint256 end = openTo == 0 ? type(uint256).max : openTo;
 
-        if (start > end) { // avoids overflow
+        if (start > end) {
+            // avoids overflow
             return 0;
         }
 
@@ -264,23 +413,26 @@ contract LemonadeMarketplace is AccessControlEnumerable, Pausable {
     }
 
     modifier whenExists(uint256 orderId) {
-        require(_orders[orderId].maker != address(0), "LemonadeMarketplace: order nonexistent");
+        require(
+            _orders[orderId].maker != address(0),
+            "LemonadeMarketplace: order nonexistent"
+        );
         _;
     }
 
-    function pause()
-        public
-        virtual
-    {
-        require(hasRole(PAUSER_ROLE, _msgSender()), "LemonadeMarketplace: must have pauser role to pause");
+    function pause() public virtual {
+        require(
+            hasRole(PAUSER_ROLE, _msgSender()),
+            "LemonadeMarketplace: must have pauser role to pause"
+        );
         _pause();
     }
 
-    function unpause()
-        public
-        virtual
-    {
-        require(hasRole(PAUSER_ROLE, _msgSender()), "LemonadeMarketplace: must have pauser role to unpause");
+    function unpause() public virtual {
+        require(
+            hasRole(PAUSER_ROLE, _msgSender()),
+            "LemonadeMarketplace: must have pauser role to unpause"
+        );
         _unpause();
     }
 }
