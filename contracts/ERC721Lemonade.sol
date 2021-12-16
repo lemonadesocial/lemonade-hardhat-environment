@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.0;
 
+import "./RelayRecipient.sol";
 import "./Royalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -15,6 +16,7 @@ contract ERC721Lemonade is
     AccessControlEnumerable,
     ERC721Burnable,
     ERC721Pausable,
+    RelayRecipient,
     Royalties
 {
     using Counters for Counters.Counter;
@@ -38,8 +40,11 @@ contract ERC721Lemonade is
     constructor(
         string memory name,
         string memory symbol,
+        address trustedForwarder_,
         address childChainManager
     ) ERC721(name, symbol) {
+        trustedForwarder = trustedForwarder_;
+
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(DEPOSITOR_ROLE, childChainManager);
         _setupRole(PAUSER_ROLE, _msgSender());
@@ -111,6 +116,24 @@ contract ERC721Lemonade is
         uint256 tokenId
     ) internal virtual override(ERC721, ERC721Pausable) {
         super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function _msgSender()
+        internal
+        view
+        virtual
+        override(Context, RelayRecipient)
+        returns (address)
+    {
+        return RelayRecipient._msgSender();
+    }
+
+    function setTrustedForwarder(address trustedForwarder_)
+        public
+        virtual
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        trustedForwarder = trustedForwarder_;
     }
 
     /**

@@ -14,6 +14,7 @@ const FEE_VALUE = '200';
 const MINT_TOKEN_URI = 'ipfs://QmcjpRmXZQsnnusxhWwWqDMgxe9dSbLRTo1WbxAzMTy2NM';
 const ORDER_OPEN_TO =  (Math.floor(Date.now() / 1000) + 24 * 60).toString();
 const ORDER_PRICE = ethers.utils.parseEther('0.5');
+const TRUSTED_FORWARDER = '0x9399BB24DBB5C4b782C70c2969F58716Ebbd6a3b';
 
 enum OrderKind {
   Direct = 0,
@@ -33,7 +34,7 @@ describe('LemonadeMarketplace', () => {
 
     signers = await ethers.getSigners();
     erc20Mint = await ERC20Mint.deploy(ERC20_NAME, ERC20_SYMBOL, signers[0].address, ERC20_INITIAL_SUPPLY);
-    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL, CHILD_CHAIN_MANAGER);
+    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL, TRUSTED_FORWARDER, CHILD_CHAIN_MANAGER);
     lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_ACCOUNT, FEE_VALUE);
 
     const transferAmount = ERC20_INITIAL_SUPPLY.div(signers.length);
