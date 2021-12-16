@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v1.3.0...v2.0.0) (2021-12-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* **LemonadeMarketplace:** update fee precision
+* **LemonadeMarketplace:** add extended royalties support
+* **ERC721LemonadeParent:** add extended royalties support
+* **ERC721Lemonade:** add extended royalties support
+
+### Features
+
+* **ERC721Claimable:** add claimable token contract ([eeba504](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/eeba504a799ed57e77774bc1613d31d0d433ad84))
+* **ERC721Claimable:** reserve first token for creator ([754ec86](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/754ec86bcae6cc8733ccbdbe54757f546dbc1e5f))
+* **ERC721Lemonade:** add extended royalties support ([37ca7c1](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/37ca7c14aad97b9b0f382f5ef3d569808e6681ee))
+* **ERC721Lemonade:** add state transfer support to batch withdraw ([853c7ed](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/853c7edddf0d35205efbf547eb54fc217f91f61f))
+* **ERC721LemonadeParent:** add extended royalties support ([2a7b5e2](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/2a7b5e29c63c3d527f03628bd06ca099d100c28b))
+* **LemonadeMarketplace:** add extended royalties support ([8945758](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/8945758b4a65a999b0a423646f6eee205c6eb098))
+* **LemonadeMarketplace:** increase max auction duration to 30 days ([e502f03](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e502f034791c4e5ad136c1d3f3b6b54a6d8ccd04))
+* **LemonadeMarketplace:** update fee precision ([a8df88b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a8df88b9beebff9b9c7d4d33b4d68f0f3380c5cc))
+* **royalties:** add contract with erc2981 and rarible royalties v2 support ([9745a09](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9745a0977c9c494630b30847e9a9ecbb51397f7e))
+* **royalties:** fix rarible contracts build ([a4c2fb7](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a4c2fb75aa5b676963d59a2f7cd663643ae09fa5))
+* **royalties:** import rarible contracts ([6baf1db](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6baf1db7b42929917fe12f8dd5684d273e45582f))
+* update deployments ([34582fb](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/34582fb67b8f25329580b9ff55ecdcc7f3b1278f))
+
 ## [1.3.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v1.2.0...v1.3.0) (2021-11-18)
 
 
