@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.0.0...v2.1.0) (2022-01-19)
+
+
+### Features
+
+* **ERC721Claimable:** add meta transaction support ([527b6a6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/527b6a612f1766cc87da73f25fe94e0496f1f2b5))
+* **ERC721Lemonade:** add meta transaction support ([836c3c6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/836c3c643c870eef7eafd0fdd7f265bef255d903))
+* **ERC721Lemonade:** remove withdraw batch limit ([96dff46](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/96dff46db908eafae0a1bd3a8f2feaa0b1052109))
+* **forwarder:** fix forwarder contracts build ([c800715](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/c8007153b04aafd9097d6e537a9bbedc99bae4f0))
+* **forwarder:** import forwarder contracts ([976917b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/976917bd4177deae3492108885ca86a4db2118fd))
+* **LemonadeMarketplace:** add meta transaction support ([0823262](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/082326285b040514a311e4f963f58a60a345683d))
+* **RelayRecipient:** add relay recipient contract ([16e9ed7](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/16e9ed75fce0d7f3dad6f167818b0b4e9e3fafa6))
+* update deployments ([cd72d33](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/cd72d33ccab6ea34024a6645bf5ff6d8daec7857))
+
 ## [2.0.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v1.3.0...v2.0.0) (2021-12-16)
 
 
