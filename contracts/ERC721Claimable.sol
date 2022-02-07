@@ -48,8 +48,6 @@ contract ERC721Claimable is
 
         _claimIdTracker.increment();
         _claimers[creator] = true;
-
-
     }
 
     function mintBatch(uint256 amount)
