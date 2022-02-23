@@ -10,7 +10,12 @@ dotenv.config();
 const mnemonic = process.env.MNEMONIC;
 
 const config: HardhatUserConfig = {
-  etherscan: { apiKey: process.env.ETHERSCAN_API_KEY },
+  etherscan: {
+    apiKey: {
+      polygon: process.env.ETHERSCAN_POLYGON_API_KEY,
+      polygonMumbai: process.env.ETHERSCAN_MUMBAI_API_KEY,
+    },
+  },
   networks: {
     ethereum: {
       url: process.env.NETWORK_ETHEREUM_URL,
