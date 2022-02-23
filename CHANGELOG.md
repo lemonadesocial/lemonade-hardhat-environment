@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.1.0...v2.2.0) (2022-02-23)
+
+
+### Features
+
+* **ERC721ClaimableV2:** add claimable contract ([692a082](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/692a082e0b074383357fdaf5d22dada14e88a847))
+* **ERC721ClaimableV2:** add royalties and opensea support ([3b91144](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/3b9114449d6dd84d708592ef54249a22a99da7a5))
+
 ## [2.1.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.0.0...v2.1.0) (2022-01-19)
 
 
