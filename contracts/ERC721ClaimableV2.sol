@@ -3,24 +3,22 @@
 pragma solidity ^0.8.0;
 
 import "./RelayRecipient.sol";
+import "./Royalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract ERC721ClaimableV2 is
     AccessControlEnumerable,
-    ERC721Pausable,
-    RelayRecipient
+    ERC721,
+    RelayRecipient,
+    Royalties
 {
     using Counters for Counters.Counter;
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-
     Counters.Counter private _tokenIdTracker;
+    address private _trustedOperator;
     address private _creator;
     string private _tokenURI;
 
@@ -31,41 +29,43 @@ contract ERC721ClaimableV2 is
         string memory name,
         string memory symbol,
         address trustedForwarder_,
+        address trustedOperator,
         address creator,
         string memory tokenURI_,
+        LibPart.Part[] memory royalties,
         uint256 initialSupply
     ) ERC721(name, symbol) {
         trustedForwarder = trustedForwarder_;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(MINTER_ROLE, _msgSender());
-        _setupRole(PAUSER_ROLE, _msgSender());
+        _setupRole(DEFAULT_ADMIN_ROLE, creator);
 
+        _trustedOperator = trustedOperator;
         _creator = creator;
         _tokenURI = tokenURI_;
 
-        mintBatch(initialSupply);
+        mintBatch(initialSupply, royalties);
 
         _claimIdTracker.increment();
         _claimers[creator] = true;
     }
 
-    function mintBatch(uint256 amount)
+    function mintBatch(uint256 amount, LibPart.Part[] memory royalties)
         public
         virtual
-        onlyRole(MINTER_ROLE)
-        whenNotPaused
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         for (uint256 i; i < amount; i++) {
             uint256 tokenId = _tokenIdTracker.current();
 
             _mint(_creator, tokenId);
+            _saveRoyalties(tokenId, royalties);
 
             _tokenIdTracker.increment();
         }
     }
 
-    function claim() public virtual whenNotPaused returns (uint256) {
+    function claim() public virtual returns (uint256) {
         uint256 tokenId = _claimIdTracker.current();
 
         require(
@@ -117,19 +117,24 @@ contract ERC721ClaimableV2 is
         return _tokenURI;
     }
 
-    function pause() public virtual onlyRole(PAUSER_ROLE) {
-        _pause();
-    }
+    function isApprovedForAll(address owner, address operator)
+        public
+        view
+        override(ERC721)
+        returns (bool isOperator)
+    {
+        if (operator == address(_trustedOperator)) {
+            return true;
+        }
 
-    function unpause() public virtual onlyRole(PAUSER_ROLE) {
-        _unpause();
+        return ERC721.isApprovedForAll(owner, operator);
     }
 
     function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
-        override(AccessControlEnumerable, ERC721)
+        override(AccessControlEnumerable, ERC721, Royalties)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -142,7 +147,21 @@ contract ERC721ClaimableV2 is
         override(Context, RelayRecipient)
         returns (address)
     {
-        return RelayRecipient._msgSender();
+        address payable sender;
+        if (msg.sender == address(this)) {
+            bytes memory array = msg.data;
+            uint256 index = msg.data.length;
+            assembly {
+                // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
+                sender := and(
+                    mload(add(array, index)),
+                    0xffffffffffffffffffffffffffffffffffffffff
+                )
+            }
+        } else {
+            sender = payable(RelayRecipient._msgSender());
+        }
+        return sender;
     }
 
     function setTrustedForwarder(address trustedForwarder_)
@@ -151,5 +170,32 @@ contract ERC721ClaimableV2 is
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         trustedForwarder = trustedForwarder_;
+    }
+
+    function updateRoyalties(uint256 tokenId, LibPart.Part[] memory royalties_)
+        public
+        virtual
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        require(
+            _exists(tokenId),
+            "ERC721CollectionV1: update royalties for nonexistent token"
+        );
+
+        delete royalties[tokenId];
+        _saveRoyalties(tokenId, royalties_);
+    }
+
+    function updateRoyaltiesForAll(LibPart.Part[] memory royalties_)
+        public
+        virtual
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        uint256 n = totalSupply();
+
+        for (uint256 tokenId; tokenId < n; tokenId++) {
+            delete royalties[tokenId];
+            _saveRoyalties(tokenId, royalties_);
+        }
     }
 }
