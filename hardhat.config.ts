@@ -7,7 +7,10 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const mnemonic = process.env.MNEMONIC;
+const accounts =
+  process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] :
+  process.env.MNEMONIC ? { mnemonic: process.env.MNEMONIC } :
+  undefined;
 
 const config: HardhatUserConfig = {
   etherscan: {
@@ -26,25 +29,25 @@ const config: HardhatUserConfig = {
     ethereum: {
       url: process.env.NETWORK_ETHEREUM_URL,
       chainId: 1,
-      accounts: { mnemonic },
+      accounts,
       deploy: ['deploy/ethereum'],
     },
     goerli: {
       url: process.env.NETWORK_GOERLI_URL,
       chainId: 5,
-      accounts: { mnemonic },
+      accounts,
       deploy: ['deploy/goerli'],
     },
     mumbai: {
       url: process.env.NETWORK_MUMBAI_URL,
       chainId: 80001,
-      accounts: { mnemonic },
+      accounts,
       deploy: ['deploy/mumbai'],
     },
     polygon: {
       url: process.env.NETWORK_POLYGON_URL,
       chainId: 137,
-      accounts: { mnemonic },
+      accounts,
       deploy: ['deploy/polygon'],
     },
   },

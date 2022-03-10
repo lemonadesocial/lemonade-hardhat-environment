@@ -55,7 +55,11 @@ For more information see the [Hardhat documentation](https://hardhat.org/getting
 
 ## Configuration
 
-The following variables are all required and must be specified as environment variables or in the `.env` configuration file.
+The following variables can be specified as environment variables or in the `.env` configuration file.
+
+### `PRIVATE_KEY`
+
+The private key of the signer.
 
 ### `MNEMONIC`
 
