@@ -32,12 +32,6 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/ethereum'],
     },
-    goerli: {
-      url: process.env.NETWORK_GOERLI_URL,
-      chainId: 5,
-      accounts,
-      deploy: ['deploy/goerli'],
-    },
     mumbai: {
       url: process.env.NETWORK_MUMBAI_URL,
       chainId: 80001,
@@ -49,6 +43,12 @@ const config: HardhatUserConfig = {
       chainId: 137,
       accounts,
       deploy: ['deploy/polygon'],
+    },
+    rinkeby: {
+      url: process.env.NETWORK_RINKEBY_URL,
+      chainId: 4,
+      accounts,
+      deploy: ['deploy/rinkeby'],
     },
   },
   solidity: {

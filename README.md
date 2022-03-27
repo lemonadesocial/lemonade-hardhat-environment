@@ -65,7 +65,7 @@ The private key of the signer.
 
 A Secret Recovery Phrase, mnemonic phrase, or Seed Phrase used to generate the signers.
 
-### `NETWORK_ETHEREUM_URL` / `NETWORK_GOERLI_URL` / `NETWORK_MUMBAI_URL` / `NETWORK_POLYGON_URL`
+### `NETWORK_ETHEREUM_URL` / `NETWORK_RINKEBY_URL` / `NETWORK_MUMBAI_URL` / `NETWORK_POLYGON_URL`
 
 An HTTP RPC endpoint for the corresponding network.
 
