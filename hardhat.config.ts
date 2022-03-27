@@ -17,6 +17,12 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    development: {
+      url: 'http://127.0.0.1:8545/',
+      chainId: 31337,
+      accounts,
+      deploy: ['deploy/development'],
+    },
     ethereum: {
       url: process.env.NETWORK_ETHEREUM_URL,
       chainId: 1,
