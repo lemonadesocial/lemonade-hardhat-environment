@@ -3,7 +3,6 @@ import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-const CHILD_CHAIN_MANAGER = '0xb5505a6d998549090530911180f38aC5130101c6';
 const ERC20_INITIAL_SUPPLY = ethers.utils.parseEther('100');
 const ERC20_NAME = 'Lemons';
 const ERC20_SYMBOL = 'LEM';
@@ -14,14 +13,13 @@ const FEE_VALUE = '200';
 const MINT_TOKEN_URI = 'ipfs://QmcjpRmXZQsnnusxhWwWqDMgxe9dSbLRTo1WbxAzMTy2NM';
 const ORDER_OPEN_TO =  (Math.floor(Date.now() / 1000) + 24 * 60).toString();
 const ORDER_PRICE = ethers.utils.parseEther('0.5');
-const TRUSTED_FORWARDER = '0x9399BB24DBB5C4b782C70c2969F58716Ebbd6a3b';
 
 enum OrderKind {
   Direct = 0,
   Auction = 1,
 }
 
-describe('LemonadeMarketplace', () => {
+describe('LemonadeMarketplaceV1', () => {
   let erc20Mint: Contract;
   let erc721Lemonade: Contract;
   let lemonadeMarketplace: Contract;
@@ -29,13 +27,13 @@ describe('LemonadeMarketplace', () => {
 
   beforeEach(async () => {
     const ERC20Mint = await ethers.getContractFactory('ERC20Mint');
-    const ERC721Lemonade = await ethers.getContractFactory('ERC721Lemonade');
-    const LemonadeMarketplace = await ethers.getContractFactory('LemonadeMarketplace');
+    const ERC721Lemonade = await ethers.getContractFactory('ERC721LemonadeV1');
+    const LemonadeMarketplace = await ethers.getContractFactory('LemonadeMarketplaceV1');
 
     signers = await ethers.getSigners();
     erc20Mint = await ERC20Mint.deploy(ERC20_NAME, ERC20_SYMBOL, signers[0].address, ERC20_INITIAL_SUPPLY);
-    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL, TRUSTED_FORWARDER, CHILD_CHAIN_MANAGER);
-    lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_ACCOUNT, FEE_VALUE, TRUSTED_FORWARDER);
+    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL);
+    lemonadeMarketplace = await LemonadeMarketplace.deploy(FEE_ACCOUNT, FEE_VALUE);
 
     const transferAmount = ERC20_INITIAL_SUPPLY.div(signers.length);
 

@@ -5,19 +5,17 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const ERC721_NAME = 'Non-Fungible Lemon';
 const ERC721_SYMBOL = 'NFL';
-const TRUSTED_FORWARDER = '0x9399BB24DBB5C4b782C70c2969F58716Ebbd6a3b';
-const CHILD_CHAIN_MANAGER = '0xb5505a6d998549090530911180f38aC5130101c6';
 const MINT_TOKEN_URI = 'tokenURI';
 
-describe('ERC721Lemonade', () => {
+describe('ERC721LemonadeV1', () => {
   let erc721Lemonade: Contract;
   let signer: SignerWithAddress;
 
   beforeEach(async () => {
-    const ERC721Lemonade = await ethers.getContractFactory('ERC721Lemonade');
+    const ERC721Lemonade = await ethers.getContractFactory('ERC721LemonadeV1');
     const signers = await ethers.getSigners();
 
-    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL, TRUSTED_FORWARDER, CHILD_CHAIN_MANAGER);
+    erc721Lemonade = await ERC721Lemonade.deploy(ERC721_NAME, ERC721_SYMBOL);
     signer = signers[0];
   });
 
