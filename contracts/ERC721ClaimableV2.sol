@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "./RelayRecipient.sol";
 import "./Royalties.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -12,6 +13,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract ERC721ClaimableV2 is
     AccessControlEnumerable,
     ERC721,
+    Ownable,
     RelayRecipient,
     Royalties
 {
@@ -35,6 +37,8 @@ contract ERC721ClaimableV2 is
         LibPart.Part[] memory royalties,
         uint256 initialSupply
     ) ERC721(name, symbol) {
+        _transferOwnership(creator);
+
         trustedForwarder = trustedForwarder_;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
