@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.2.0...v2.3.0) (2022-05-20)
+
+
+### Features
+
+* add ethereum deploys ([41e0791](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/41e07913e5800242655026bbc8900a39bec61a30))
+* add rinkeby deploys ([9069dd6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9069dd6eb5df5c96fe9c0102b7741bd06816ec7a))
+* **ERC721ClaimableV2:** make contract ownable ([e50dd5f](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e50dd5f5d467d2df9df9feb4f28388f6716d1afe))
+* **ERC721CollectionV1:** add minimal ERC721 collection contract ([4c89497](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/4c89497f5cd79b3f9a916dd4c155ee03a7ec95d7))
+* **LemonadePoapV1:** add Lemonade POAP contract ([3430070](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/34300708496af4ad8464949c6c51fee7f92eb988))
+* **misc:** allow using private key directly instead of mnemonic ([64c5345](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/64c534519d348ea9b57ab3726d380a9789995093))
+* **misc:** enable optimizer ([c6282c0](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/c6282c08bd6158d8dee46b41586cb6dfaf3623c0))
+* split LemonadeMarketplace and ERC721Lemonade contracts ([37f0910](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/37f0910f452d4a25ffe730d25a24f0bc731f8788))
+
 ## [2.2.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.1.0...v2.2.0) (2022-02-23)
 
 
