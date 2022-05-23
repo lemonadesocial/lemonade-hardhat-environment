@@ -27,8 +27,9 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
 
     address private _creator;
     string private _tokenURI;
-    uint256 private _totalSupply;
     LibPart.Part[] private _royalties;
+    uint256 private _totalSupply;
+    address private _trustedClaimer;
 
     Counters.Counter private _tokenIdTracker;
     mapping(address => bool) private _claimers;
@@ -38,12 +39,12 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         string memory symbol,
         address creator,
         string memory tokenURI_,
+        LibPart.Part[] memory royalties,
         uint256 totalSupply_,
-        LibPart.Part[] memory royalties
+        address trustedClaimer
     ) ERC721(name, symbol) {
         _creator = creator;
         _tokenURI = tokenURI_;
-        _totalSupply = totalSupply_;
 
         uint256 length = royalties.length;
         for (uint256 i; i < length; ) {
@@ -53,12 +54,18 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
             }
         }
 
+        _totalSupply = totalSupply_;
+        _trustedClaimer = trustedClaimer;
+
         _claim(creator);
         _transferOwnership(creator);
     }
 
     function _claim(address claimer) internal virtual {
         uint256 tokenId = _tokenIdTracker.current();
+
+        require(tokenId < _totalSupply, "LemonadePoap: all tokens claimed");
+        require(!_claimers[claimer], "LemonadePoap: already claimed");
 
         _mint(claimer, tokenId);
 
@@ -67,11 +74,16 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     }
 
     function claim() public virtual override {
-        uint256 tokenId = _tokenIdTracker.current();
         address claimer = _msgSender();
 
-        require(tokenId < _totalSupply, "LemonadePoap: all tokens claimed");
-        require(!_claimers[claimer], "LemonadePoap: already claimed");
+        _claim(claimer);
+    }
+
+    function claimTo(address claimer) public virtual {
+        require(
+            _trustedClaimer == _msgSender(),
+            "LemonadePoap: can only claim for self"
+        );
 
         _claim(claimer);
     }

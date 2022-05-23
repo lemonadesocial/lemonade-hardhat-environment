@@ -13,11 +13,12 @@ contract LemonadePoapV1Polygon is LemonadePoapV1, RelayRecipient {
         string memory symbol,
         address creator,
         string memory tokenURI,
-        uint256 totalSupply,
         LibPart.Part[] memory royalties,
+        uint256 totalSupply,
+        address trustedClaimer,
         address trustedForwarder_,
         address trustedOperator
-    ) LemonadePoapV1(name, symbol, creator, tokenURI, totalSupply, royalties) {
+    ) LemonadePoapV1(name, symbol, creator, tokenURI, royalties, totalSupply, trustedClaimer) {
         trustedForwarder = trustedForwarder_;
         _trustedOperator = trustedOperator;
     }
