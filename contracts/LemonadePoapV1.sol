@@ -46,8 +46,11 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         _totalSupply = totalSupply_;
 
         uint256 length = royalties.length;
-        for (uint256 i; i < length; i++) {
+        for (uint256 i; i < length; ) {
             _royalties.push(royalties[i]);
+            unchecked {
+                ++i;
+            }
         }
 
         _claim(creator);
