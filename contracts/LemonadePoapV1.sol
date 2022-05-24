@@ -15,7 +15,10 @@ bytes4 constant RaribleRoyaltiesV2_INTERFACE_ID = 0xcad96cca;
 interface ILemonadePoapV1 is IERC721 {
     function claim() external;
 
-    function hasClaimed(address claimer) external view returns (bool);
+    function hasClaimed(address[] calldata claimers)
+        external
+        view
+        returns (bool[] memory);
 
     function totalSupply() external view returns (uint256);
 
@@ -32,7 +35,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     address private _trustedClaimer;
 
     Counters.Counter private _tokenIdTracker;
-    mapping(address => bool) private _claimers;
+    mapping(address => bool) private _claimed;
 
     constructor(
         string memory name,
@@ -65,12 +68,12 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         uint256 tokenId = _tokenIdTracker.current();
 
         require(tokenId < _totalSupply, "LemonadePoap: all tokens claimed");
-        require(!_claimers[claimer], "LemonadePoap: already claimed");
+        require(!_claimed[claimer], "LemonadePoap: already claimed");
 
         _mint(claimer, tokenId);
 
+        _claimed[claimer] = true;
         _tokenIdTracker.increment();
-        _claimers[claimer] = true;
     }
 
     function claim() public virtual override {
@@ -88,14 +91,24 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         _claim(claimer);
     }
 
-    function hasClaimed(address claimer)
+    function hasClaimed(address[] calldata claimers)
         public
         view
         virtual
         override
-        returns (bool)
+        returns (bool[] memory)
     {
-        return _claimers[claimer];
+        uint256 length = claimers.length;
+        bool[] memory result = new bool[](length);
+
+        for (uint256 i; i < length; ) {
+            result[i] = _claimed[claimers[i]];
+            unchecked {
+                ++i;
+            }
+        }
+
+        return result;
     }
 
     function totalSupply() public view virtual override returns (uint256) {
