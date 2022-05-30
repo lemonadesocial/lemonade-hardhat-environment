@@ -20,9 +20,9 @@ interface ILemonadePoapV1 is IERC721 {
         view
         returns (bool[] memory);
 
-    function totalSupply() external view returns (uint256);
+    function supply() external view returns (uint256, uint256);
 
-    function totalUnclaimed() external view returns (uint256);
+    function totalSupply() external view returns (uint256);
 }
 
 contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
@@ -31,7 +31,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     address private _creator;
     string private _tokenURI;
     LibPart.Part[] private _royalties;
-    uint256 private _totalSupply;
+    uint256 private _maxSupply;
     address private _trustedClaimer;
 
     Counters.Counter private _tokenIdTracker;
@@ -43,7 +43,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         address creator,
         string memory tokenURI_,
         LibPart.Part[] memory royalties,
-        uint256 totalSupply_,
+        uint256 maxSupply,
         address trustedClaimer
     ) ERC721(name, symbol) {
         _creator = creator;
@@ -57,7 +57,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
             }
         }
 
-        _totalSupply = totalSupply_;
+        _maxSupply = maxSupply;
         _trustedClaimer = trustedClaimer;
 
         _claim(creator);
@@ -67,7 +67,10 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     function _claim(address claimer) internal virtual {
         uint256 tokenId = _tokenIdTracker.current();
 
-        require(tokenId < _totalSupply, "LemonadePoap: all tokens claimed");
+        require(
+            tokenId < _maxSupply || _maxSupply == 0,
+            "LemonadePoap: all tokens claimed"
+        );
         require(!_claimed[claimer], "LemonadePoap: already claimed");
 
         _mint(claimer, tokenId);
@@ -111,12 +114,12 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         return result;
     }
 
-    function totalSupply() public view virtual override returns (uint256) {
-        return _totalSupply;
+    function supply() public view virtual override returns (uint256, uint256) {
+        return (_tokenIdTracker.current(), _maxSupply);
     }
 
-    function totalUnclaimed() public view virtual override returns (uint256) {
-        return _totalSupply - _tokenIdTracker.current();
+    function totalSupply() public view virtual override returns (uint256) {
+        return (_tokenIdTracker.current());
     }
 
     function supportsInterface(bytes4 interfaceId)
