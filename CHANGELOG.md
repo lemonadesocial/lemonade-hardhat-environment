@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.3.0...v2.4.0) (2022-06-03)
+
+
+### Features
+
+* add moonbase and moonbeam deploys ([9dee746](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9dee746d11ad92c8ef9541f4621b012f0731e5ea))
+* **LemonadePoapV1:** add trusted claimer ([dd5762f](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/dd5762f3ff584dc1822098673630989165e695e4))
+* **LemonadePoapV1:** make has claimed plural ([78f486c](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/78f486c2a3369cdb22aa759e05f39dfa62a75d9f))
+* **LemonadePoapV1:** optimize gas ([6ef7487](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6ef7487d238372ed6f611a8048507fdd02157332))
+* **LemonadePoapV1:** update supply tracking ([730af50](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/730af50f4e685f81e9307f7817540a09f5d261cb))
+
 ## [2.3.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.2.0...v2.3.0) (2022-05-20)
 
 
