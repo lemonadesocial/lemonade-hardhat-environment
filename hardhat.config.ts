@@ -50,6 +50,18 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/rinkeby'],
     },
+    moonbase: {
+      url: process.env.NETWORK_MOONBASE_URL,
+      chainId: 1287,
+      accounts,
+      deploy: ['deploy/moonbase'],
+    },
+    moonbeam: {
+      url: process.env.NETWORK_MOONBEAM_URL,
+      chainId: 1284,
+      accounts,
+      deploy: ['deploy/moonbeam'],
+    },
   },
   solidity: {
     version: "0.8.4",
