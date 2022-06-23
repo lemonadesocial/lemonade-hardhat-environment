@@ -13,9 +13,9 @@ contract LemonadePoapV1Forwardable is LemonadePoapV1, RelayRecipient {
         string memory tokenURI,
         LibPart.Part[] memory royalties,
         uint256 totalSupply,
-        address trustedClaimer,
+        address accessRegistry,
         address trustedForwarder_
-    ) LemonadePoapV1(name, symbol, creator, tokenURI, royalties, totalSupply, trustedClaimer) {
+    ) LemonadePoapV1(name, symbol, creator, tokenURI, royalties, totalSupply, accessRegistry) {
         trustedForwarder = trustedForwarder_;
     }
 

@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 pragma abicoder v2;
 
+import "./AccessRegistry.sol";
 import "./rarible/LibPart.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -11,6 +12,9 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 bytes4 constant ERC2981_INTERFACE_ID = 0x2a55205a;
 bytes4 constant RaribleRoyaltiesV2_INTERFACE_ID = 0xcad96cca;
+
+bytes32 constant TRUSTED_CLAIMER_ROLE = keccak256("TRUSTED_CLAIMER_ROLE");
+bytes32 constant TRUSTED_OPERATOR_ROLE = keccak256("TRUSTED_OPERATOR_ROLE");
 
 interface ILemonadePoapV1 is IERC721 {
     function claim() external;
@@ -32,7 +36,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     string private _tokenURI;
     LibPart.Part[] private _royalties;
     uint256 private _maxSupply;
-    address private _trustedClaimer;
+    address private _accessRegistry;
 
     Counters.Counter private _tokenIdTracker;
     mapping(address => bool) private _claimed;
@@ -44,7 +48,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         string memory tokenURI_,
         LibPart.Part[] memory royalties,
         uint256 maxSupply,
-        address trustedClaimer
+        address accessRegistry
     ) ERC721(name, symbol) {
         _creator = creator;
         _tokenURI = tokenURI_;
@@ -58,7 +62,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         }
 
         _maxSupply = maxSupply;
-        _trustedClaimer = trustedClaimer;
+        _accessRegistry = accessRegistry;
 
         _claim(creator);
         _transferOwnership(creator);
@@ -87,7 +91,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
 
     function claimTo(address claimer) public virtual {
         require(
-            _trustedClaimer == _msgSender(),
+            AccessRegistry(_accessRegistry).hasRole(TRUSTED_CLAIMER_ROLE, _msgSender()),
             "LemonadePoap: can only claim for self"
         );
 
@@ -120,6 +124,20 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
 
     function totalSupply() public view virtual override returns (uint256) {
         return (_tokenIdTracker.current());
+    }
+
+    function isApprovedForAll(address owner, address operator)
+        public
+        view
+        virtual
+        override(ERC721, IERC721)
+        returns (bool isOperator)
+    {
+        if (AccessRegistry(_accessRegistry).hasRole(TRUSTED_OPERATOR_ROLE, owner)) {
+            return true;
+        }
+
+        return ERC721.isApprovedForAll(owner, operator);
     }
 
     function supportsInterface(bytes4 interfaceId)

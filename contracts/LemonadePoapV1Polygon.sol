@@ -15,10 +15,10 @@ contract LemonadePoapV1Polygon is LemonadePoapV1, RelayRecipient {
         string memory tokenURI,
         LibPart.Part[] memory royalties,
         uint256 totalSupply,
-        address trustedClaimer,
+        address accessRegistry,
         address trustedForwarder_,
         address trustedOperator
-    ) LemonadePoapV1(name, symbol, creator, tokenURI, royalties, totalSupply, trustedClaimer) {
+    ) LemonadePoapV1(name, symbol, creator, tokenURI, royalties, totalSupply, accessRegistry) {
         trustedForwarder = trustedForwarder_;
         _trustedOperator = trustedOperator;
     }
@@ -26,14 +26,14 @@ contract LemonadePoapV1Polygon is LemonadePoapV1, RelayRecipient {
     function isApprovedForAll(address owner, address operator)
         public
         view
-        override(ERC721)
+        override(LemonadePoapV1)
         returns (bool isOperator)
     {
         if (operator == address(_trustedOperator)) {
             return true;
         }
 
-        return ERC721.isApprovedForAll(owner, operator);
+        return LemonadePoapV1.isApprovedForAll(owner, operator);
     }
 
     function _msgSender()
