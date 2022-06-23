@@ -20,6 +20,30 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    'aurora': {
+      url: 'https://mainnet.aurora.dev/',
+      chainId: 1313161554,
+      accounts,
+      deploy: ['deploy/aurora'],
+    },
+    'aurora-testnet': {
+      url: 'https://testnet.aurora.dev/',
+      chainId: 1313161555,
+      accounts,
+      deploy: ['deploy/aurora-testnet'],
+    },
+    'bnb': {
+      url: 'https://bsc-dataseed.binance.org/',
+      chainId: 56,
+      accounts,
+      deploy: ['deploy/bnb'],
+    },
+    'bnb-testnet': {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+      chainId: 97,
+      accounts,
+      deploy: ['deploy/bnb-testnet'],
+    },
     development: {
       url: 'http://127.0.0.1:8545/',
       chainId: 31337,
