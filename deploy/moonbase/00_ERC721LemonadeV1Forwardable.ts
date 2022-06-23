@@ -4,7 +4,7 @@ const from = '0xFB756b44060e426731e54e9F433c43c75ee90d9f';
 
 const ERC721_NAME = 'Non-Fungible Lemon';
 const ERC721_SYMBOL = 'NFL';
-const TRUSTED_FORWARDER = '0x3AF14449e18f2c3677bFCB5F954Dc68d5fb74a75';
+const TRUSTED_FORWARDER = '0x98dae673b68A0F39B5fD0559F121f081Bc0AE6B8';
 
 const deployFunction: DeployFunction = async function ({ deployments: { deploy } }) {
   await deploy('ERC721LemonadeV1Forwardable', {
