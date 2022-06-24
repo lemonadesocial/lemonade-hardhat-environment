@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.4.0...v2.5.0) (2022-06-24)
+
+
+### Features
+
+* add aurora testnet, aurora, bnb, and bnb testnet chains ([10c854b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/10c854b2544c1e4dce585a445ea0a28c2a1a3d74))
+* update moonbase trusted forwarder ([329c238](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/329c2384483b14fe3362511095cfeab16c11dd00))
+
 ## [2.4.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.3.0...v2.4.0) (2022-06-03)
 
 
