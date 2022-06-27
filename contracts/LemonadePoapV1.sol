@@ -32,11 +32,11 @@ interface ILemonadePoapV1 is IERC721 {
 contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     using Counters for Counters.Counter;
 
-    address private _creator;
+    address private immutable _creator;
     string private _tokenURI;
-    LibPart.Part[] private _royalties;
+    LibPart.Part[] private  _royalties;
     uint256 private _maxSupply;
-    address private _accessRegistry;
+    address private immutable _accessRegistry;
 
     Counters.Counter private _tokenIdTracker;
     mapping(address => bool) private _claimed;
@@ -91,7 +91,10 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
 
     function claimTo(address claimer) public virtual {
         require(
-            AccessRegistry(_accessRegistry).hasRole(TRUSTED_CLAIMER_ROLE, _msgSender()),
+            AccessRegistry(_accessRegistry).hasRole(
+                TRUSTED_CLAIMER_ROLE,
+                _msgSender()
+            ),
             "LemonadePoap: can only claim for self"
         );
 
@@ -133,7 +136,12 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         override(ERC721, IERC721)
         returns (bool isOperator)
     {
-        if (AccessRegistry(_accessRegistry).hasRole(TRUSTED_OPERATOR_ROLE, owner)) {
+        if (
+            AccessRegistry(_accessRegistry).hasRole(
+                TRUSTED_OPERATOR_ROLE,
+                owner
+            )
+        ) {
             return true;
         }
 
