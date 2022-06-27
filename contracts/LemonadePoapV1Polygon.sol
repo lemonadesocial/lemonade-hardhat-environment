@@ -18,7 +18,17 @@ contract LemonadePoapV1Polygon is LemonadePoapV1, RelayRecipient {
         address accessRegistry,
         address trustedForwarder_,
         address trustedOperator
-    ) LemonadePoapV1(name, symbol, creator, tokenURI, royalties, totalSupply, accessRegistry) {
+    )
+        LemonadePoapV1(
+            name,
+            symbol,
+            creator,
+            tokenURI,
+            royalties,
+            totalSupply,
+            accessRegistry
+        )
+    {
         trustedForwarder = trustedForwarder_;
         _trustedOperator = trustedOperator;
     }

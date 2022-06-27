@@ -34,7 +34,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
 
     address private immutable _creator;
     string private _tokenURI;
-    LibPart.Part[] private  _royalties;
+    LibPart.Part[] private _royalties;
     uint256 private _maxSupply;
     address private immutable _accessRegistry;
 

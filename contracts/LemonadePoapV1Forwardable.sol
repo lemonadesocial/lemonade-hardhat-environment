@@ -15,7 +15,17 @@ contract LemonadePoapV1Forwardable is LemonadePoapV1, RelayRecipient {
         uint256 totalSupply,
         address accessRegistry,
         address trustedForwarder_
-    ) LemonadePoapV1(name, symbol, creator, tokenURI, royalties, totalSupply, accessRegistry) {
+    )
+        LemonadePoapV1(
+            name,
+            symbol,
+            creator,
+            tokenURI,
+            royalties,
+            totalSupply,
+            accessRegistry
+        )
+    {
         trustedForwarder = trustedForwarder_;
     }
 
