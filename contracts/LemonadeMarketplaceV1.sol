@@ -5,12 +5,11 @@ pragma solidity ^0.8.0;
 import "./IERC2981.sol";
 import "./rarible/RoyaltiesV2.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
+contract LemonadeMarketplaceV1 is AccessControlEnumerable {
     using Counters for Counters.Counter;
 
     address private immutable _feeAccount;
@@ -125,7 +124,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
         uint256 price,
         address tokenContract,
         uint256 tokenId
-    ) external virtual whenNotPaused returns (uint256) {
+    ) external virtual returns (uint256) {
         uint256 openDuration_ = openDuration(openFrom, openTo);
 
         require(
@@ -184,7 +183,6 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
     function cancelOrder(uint256 orderId)
         external
         virtual
-        whenNotPaused
         whenExists(orderId)
     {
         Order memory order_ = _orders[orderId];
@@ -215,7 +213,6 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
     function bidOrder(uint256 orderId, uint256 amount)
         external
         virtual
-        whenNotPaused
         whenExists(orderId)
     {
         Order memory order_ = _orders[orderId];
@@ -268,7 +265,6 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
     function fillOrder(uint256 orderId, uint256 amount)
         external
         virtual
-        whenNotPaused
         whenExists(orderId)
     {
         Order memory order_ = _orders[orderId];
@@ -415,13 +411,5 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
             "LemonadeMarketplace: order nonexistent"
         );
         _;
-    }
-
-    function pause() external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        _pause();
-    }
-
-    function unpause() external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        _unpause();
     }
 }
