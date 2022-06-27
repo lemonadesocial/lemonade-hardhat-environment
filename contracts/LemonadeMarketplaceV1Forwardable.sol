@@ -23,12 +23,4 @@ contract LemonadeMarketplaceV1Forwardable is LemonadeMarketplaceV1, RelayRecipie
     {
         return RelayRecipient._msgSender();
     }
-
-    function setTrustedForwarder(address trustedForwarder_)
-        external
-        virtual
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        trustedForwarder = trustedForwarder_;
-    }
 }
