@@ -95,7 +95,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
                 TRUSTED_CLAIMER_ROLE,
                 _msgSender()
             ),
-            "LemonadePoap: can only claim for self"
+            "LemonadePoap: missing trusted claimer role"
         );
 
         _claim(claimer);
