@@ -22,7 +22,7 @@ contract ERC721LemonadeV1Polygon is ERC721LemonadeV1, RelayRecipient {
         public
         view
         override(ERC721)
-        returns (bool isOperator)
+        returns (bool)
     {
         if (operator == address(_trustedOperator)) {
             return true;
