@@ -13,8 +13,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
     using Counters for Counters.Counter;
 
-    address public immutable FEE_ACCOUNT;
-    uint96 public immutable FEE_VALUE;
+    address private immutable _feeAccount;
+    uint96 private immutable _feeValue;
 
     enum OrderKind {
         Direct,
@@ -64,14 +64,14 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
     Counters.Counter private _orderIdTracker;
 
     constructor(address feeAccount, uint96 feeValue) {
-        FEE_ACCOUNT = feeAccount;
-        FEE_VALUE = feeValue;
+        _feeAccount = feeAccount;
+        _feeValue = feeValue;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
     function fee() external view returns (address, uint96) {
-        return (FEE_ACCOUNT, FEE_VALUE);
+        return (_feeAccount, _feeValue);
     }
 
     function order(uint256 orderId)
@@ -317,8 +317,8 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable, Pausable {
         if (order_.paidAmount > 0) {
             uint256 transferAmount = order_.paidAmount;
 
-            uint256 feeAmount = (order_.paidAmount * FEE_VALUE) / 10000;
-            transferERC20(order_.currency, spender, FEE_ACCOUNT, feeAmount);
+            uint256 feeAmount = (order_.paidAmount * _feeValue) / 10000;
+            transferERC20(order_.currency, spender, _feeAccount, feeAmount);
             transferAmount -= feeAmount;
 
             try
