@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.6.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.5.0...v2.6.0) (2022-06-29)
+
+
+### Features
+
+* add bnb testnet and bnb access registry deployments ([23ef086](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/23ef086c3126da4e241b5e3f9deb51d527c320a1))
+* add moonbase and moonbeam access registry deployments ([5c0a434](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/5c0a43453cea4ae817718dde93899dc612270f18))
+* **LemonadeMarketplace:** make fee variables private ([dcad3c6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/dcad3c61a2c58c99b580fcd02c09ab4a18651929))
+* **LemonadeMarketplace:** remove pausible ([be53fd2](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/be53fd228fd172c38b0d4e3bf4b3a1a45e8aede5))
+* **LemonadeMarketplace:** remove set trusted forwarder ([9a3d2d9](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9a3d2d91d13c2f6a9d4492d187da6b46cca67852))
+* **LemonadePoap:** add external access registry ([cc1a981](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/cc1a9819045354f6685f2b30b99418399c953daa))
+* **LemonadePoap:** mark variables as immutable ([aecd4b8](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/aecd4b81255e99e1ca53f1873f262494adaa8fc0))
+* upgrade mumbai and polygon deployments ([fcea82f](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/fcea82f38b6838a68c8ded3c7e05bdef74b649dc))
+
 ## [2.5.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.4.0...v2.5.0) (2022-06-24)
 
 
