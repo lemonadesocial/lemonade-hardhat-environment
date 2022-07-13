@@ -62,6 +62,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__testnet__', 'deploy/mumbai'],
     },
+    opal: {
+      url: 'https://rpc-opal.unique.network/',
+      chainId: 8882,
+      accounts,
+      deploy: ['deploy/__testnet__', 'deploy/opal'],
+    },
     polygon: {
       url: process.env.NETWORK_POLYGON_URL,
       chainId: 137,
