@@ -180,11 +180,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
         return orderId;
     }
 
-    function cancelOrder(uint256 orderId)
-        external
-        virtual
-        whenExists(orderId)
-    {
+    function cancelOrder(uint256 orderId) external virtual whenExists(orderId) {
         Order memory order_ = _orders[orderId];
         require(
             order_.maker == _msgSender() ||
@@ -328,7 +324,10 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             returns (LibPart.Part[] memory royalties) {
                 uint256 length = royalties.length;
                 for (uint256 i; i < length; i++) {
-                    if (order_.maker != royalties[i].account && royalties[i].value > 0) {
+                    if (
+                        order_.maker != royalties[i].account &&
+                        royalties[i].value > 0
+                    ) {
                         uint256 royaltyAmount = (order_.paidAmount *
                             royalties[i].value) / 10000;
                         transferERC20(
