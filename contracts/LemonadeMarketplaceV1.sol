@@ -317,11 +317,11 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             transferERC20(order_.currency, spender, _feeAccount, feeAmount);
             transferAmount -= feeAmount;
 
-            try
-                RoyaltiesV2(order_.tokenContract).getRaribleV2Royalties(
-                    order_.tokenId
-                )
-            returns (LibPart.Part[] memory royalties) {
+            (
+                bool supportsRaribleV2Royalties,
+                LibPart.Part[] memory royalties
+            ) = getRaribleV2Royalties(order_.tokenContract, order_.tokenId);
+            if (supportsRaribleV2Royalties) {
                 uint256 length = royalties.length;
                 for (uint256 i; i < length; i++) {
                     if (
@@ -339,23 +339,29 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
                         transferAmount -= royaltyAmount;
                     }
                 }
-            } catch {
-                try
-                    IERC2981(order_.tokenContract).royaltyInfo(
+            } else {
+                (
+                    bool supportsRoyaltyInfo,
+                    address receiver,
+                    uint256 royaltyAmount
+                ) = getRoyaltyInfo(
+                        order_.tokenContract,
                         order_.tokenId,
                         order_.paidAmount
-                    )
-                returns (address receiver, uint256 royaltyAmount) {
-                    if (order_.maker != receiver && royaltyAmount > 0) {
-                        transferERC20(
-                            order_.currency,
-                            spender,
-                            receiver,
-                            royaltyAmount
-                        );
-                        transferAmount -= royaltyAmount;
-                    }
-                } catch {}
+                    );
+                if (
+                    supportsRoyaltyInfo &&
+                    order_.maker != receiver &&
+                    royaltyAmount > 0
+                ) {
+                    transferERC20(
+                        order_.currency,
+                        spender,
+                        receiver,
+                        royaltyAmount
+                    );
+                    transferAmount -= royaltyAmount;
+                }
             }
 
             if (transferAmount > 0) {
@@ -375,6 +381,45 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
         );
 
         emit OrderFilled(orderId, order_.taker, order_.paidAmount);
+    }
+
+    function getRaribleV2Royalties(address tokenContract, uint256 tokenId)
+        public
+        view
+        virtual
+        returns (bool, LibPart.Part[] memory)
+    {
+        try RoyaltiesV2(tokenContract).getRaribleV2Royalties(tokenId) returns (
+            LibPart.Part[] memory royalties
+        ) {
+            return (true, royalties);
+        } catch {
+            return (false, new LibPart.Part[](0));
+        }
+    }
+
+    function getRoyaltyInfo(
+        address tokenContract,
+        uint256 tokenId,
+        uint256 paidAmount
+    )
+        public
+        view
+        virtual
+        returns (
+            bool,
+            address,
+            uint256
+        )
+    {
+        try IERC2981(tokenContract).royaltyInfo(tokenId, paidAmount) returns (
+            address receiver,
+            uint256 royaltyAmount
+        ) {
+            return (true, receiver, royaltyAmount);
+        } catch {
+            return (false, address(0), 0);
+        }
     }
 
     function transferERC20(
