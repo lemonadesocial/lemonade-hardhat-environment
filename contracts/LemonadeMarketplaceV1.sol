@@ -240,24 +240,28 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
                 "LemonadeMarketplace: must surpass bid to bid"
             );
 
-            transferERC20(
-                order_.currency,
-                address(this),
-                order_.bidder,
-                order_.bidAmount
-            );
+            if (order_.bidAmount > 0) {
+                transferERC20(
+                    order_.currency,
+                    address(this),
+                    order_.bidder,
+                    order_.bidAmount
+                );
+            }
         }
 
         _orders[orderId].bidder = _msgSender();
         _orders[orderId].bidAmount = amount;
         order_ = _orders[orderId];
 
-        transferERC20(
-            order_.currency,
-            order_.bidder,
-            address(this),
-            order_.bidAmount
-        );
+        if (order_.bidAmount > 0) {
+            transferERC20(
+                order_.currency,
+                order_.bidder,
+                address(this),
+                order_.bidAmount
+            );
+        }
 
         emit OrderBid(orderId, order_.bidder, order_.bidAmount);
     }
@@ -324,7 +328,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             returns (LibPart.Part[] memory royalties) {
                 uint256 length = royalties.length;
                 for (uint256 i; i < length; i++) {
-                    if (order_.maker != royalties[i].account) {
+                    if (order_.maker != royalties[i].account && royalties[i].value > 0) {
                         uint256 royaltyAmount = (order_.paidAmount *
                             royalties[i].value) / 10000;
                         transferERC20(
@@ -343,7 +347,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
                         order_.paidAmount
                     )
                 returns (address receiver, uint256 royaltyAmount) {
-                    if (order_.maker != receiver) {
+                    if (order_.maker != receiver && royaltyAmount > 0) {
                         transferERC20(
                             order_.currency,
                             spender,
