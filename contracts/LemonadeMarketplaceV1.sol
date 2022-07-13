@@ -196,7 +196,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             "LemonadeMarketplace: order must have no bid to cancel"
         );
 
-        IERC721(order_.tokenContract).safeTransferFrom(
+        IERC721(order_.tokenContract).transferFrom(
             address(this),
             order_.maker,
             order_.tokenId
@@ -368,7 +368,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             }
         }
 
-        IERC721(order_.tokenContract).safeTransferFrom(
+        IERC721(order_.tokenContract).transferFrom(
             address(this),
             order_.taker,
             order_.tokenId
