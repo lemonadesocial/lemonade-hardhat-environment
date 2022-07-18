@@ -208,6 +208,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
 
     function bidOrder(uint256 orderId, uint256 amount)
         external
+        payable
         virtual
         whenExists(orderId)
     {
@@ -229,6 +230,10 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             order_.price <= amount,
             "LemonadeMarketplace: must match price to bid"
         );
+        require(
+            order_.currency != address(0) || amount == msg.value,
+            "LemonadeMarketplace: amount must match tx value"
+        );
 
         if (order_.bidder != address(0)) {
             require(
@@ -237,7 +242,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             );
 
             if (order_.bidAmount > 0) {
-                transferERC20(
+                transfer(
                     order_.currency,
                     address(this),
                     order_.bidder,
@@ -251,7 +256,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
         order_ = _orders[orderId];
 
         if (order_.bidAmount > 0) {
-            transferERC20(
+            transfer(
                 order_.currency,
                 order_.bidder,
                 address(this),
@@ -264,6 +269,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
 
     function fillOrder(uint256 orderId, uint256 amount)
         external
+        payable
         virtual
         whenExists(orderId)
     {
@@ -285,6 +291,10 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             require(
                 order_.price <= amount,
                 "LemonadeMarketplace: must match price to fill direct order"
+            );
+            require(
+                order_.currency != address(0) || amount == msg.value,
+                "LemonadeMarketplace: amount must match tx value"
             );
 
             _orders[orderId].taker = _msgSender();
@@ -314,7 +324,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             uint256 transferAmount = order_.paidAmount;
 
             uint256 feeAmount = (order_.paidAmount * _feeValue) / 10000;
-            transferERC20(order_.currency, spender, _feeAccount, feeAmount);
+            transfer(order_.currency, spender, _feeAccount, feeAmount);
             transferAmount -= feeAmount;
 
             (
@@ -330,7 +340,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
                     ) {
                         uint256 royaltyAmount = (order_.paidAmount *
                             royalties[i].value) / 10000;
-                        transferERC20(
+                        transfer(
                             order_.currency,
                             spender,
                             royalties[i].account,
@@ -354,18 +364,13 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
                     order_.maker != receiver &&
                     royaltyAmount > 0
                 ) {
-                    transferERC20(
-                        order_.currency,
-                        spender,
-                        receiver,
-                        royaltyAmount
-                    );
+                    transfer(order_.currency, spender, receiver, royaltyAmount);
                     transferAmount -= royaltyAmount;
                 }
             }
 
             if (transferAmount > 0) {
-                transferERC20(
+                transfer(
                     order_.currency,
                     spender,
                     order_.maker,
@@ -422,18 +427,22 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
         }
     }
 
-    function transferERC20(
-        address currency_,
+    function transfer(
+        address currency,
         address spender,
         address recipient,
         uint256 amount
     ) private {
-        IERC20 currency = IERC20(currency_);
-
-        if (spender == address(this)) {
-            currency.transfer(recipient, amount);
+        if (currency == address(0)) {
+            if (recipient != address(this)) {
+                payable(recipient).transfer(amount);
+            }
         } else {
-            currency.transferFrom(spender, recipient, amount); // requires allowance
+            if (spender == address(this)) {
+                IERC20(currency).transfer(recipient, amount);
+            } else {
+                IERC20(currency).transferFrom(spender, recipient, amount);
+            }
         }
     }
 
