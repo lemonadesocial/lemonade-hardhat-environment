@@ -33,8 +33,8 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     using Counters for Counters.Counter;
 
     address private immutable _creator;
-    string private _tokenURI;
-    LibPart.Part[] private _royalties;
+    string internal _tokenURI;
+    LibPart.Part[] internal _royalties;
     uint256 private _maxSupply;
     address private immutable _accessRegistry;
 
@@ -139,7 +139,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         if (
             AccessRegistry(_accessRegistry).hasRole(
                 TRUSTED_OPERATOR_ROLE,
-                owner
+                operator
             )
         ) {
             return true;
@@ -178,7 +178,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     }
 
     function getRaribleV2Royalties(uint256)
-        external
+        public
         view
         returns (LibPart.Part[] memory)
     {
@@ -186,7 +186,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     }
 
     function royaltyInfo(uint256, uint256 price)
-        external
+        public
         view
         returns (address receiver, uint256 royaltyAmount)
     {
