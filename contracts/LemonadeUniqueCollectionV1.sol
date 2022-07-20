@@ -8,7 +8,7 @@ import "./unique/ICollection.sol";
 import "./unique/ICollectionHelpers.sol";
 
 contract LemonadeUniqueCollectionV1 is IMintable {
-    address private _collection;
+    address public collection;
 
     constructor(
         address collectionHelpers,
@@ -16,10 +16,10 @@ contract LemonadeUniqueCollectionV1 is IMintable {
         string memory description,
         string memory tokenPrefix
     ) payable {
-        _collection = ICollectionHelpers(collectionHelpers)
+        collection = ICollectionHelpers(collectionHelpers)
             .createNonfungibleCollection(name, description, tokenPrefix);
 
-        ICollection(_collection).setTokenPropertyPermission(
+        ICollection(collection).setTokenPropertyPermission(
             ROYALTIES_PROPERTY,
             false,
             true,
@@ -32,11 +32,11 @@ contract LemonadeUniqueCollectionV1 is IMintable {
         override
         returns (uint256)
     {
-        ICollection collection = ICollection(_collection);
+        ICollection collection_ = ICollection(collection);
 
-        uint256 tokenId = collection.nextTokenId();
+        uint256 tokenId = collection_.nextTokenId();
 
-        collection.mintWithTokenURI(msg.sender, tokenId, tokenURI);
+        collection_.mintWithTokenURI(msg.sender, tokenId, tokenURI);
 
         return tokenId;
     }
@@ -47,7 +47,7 @@ contract LemonadeUniqueCollectionV1 is IMintable {
     ) public override returns (uint256) {
         uint256 tokenId = mintToCaller(tokenURI);
 
-        ICollection(_collection).setProperty(
+        ICollection(collection).setProperty(
             tokenId,
             ROYALTIES_PROPERTY,
             abi.encode(royalties)
