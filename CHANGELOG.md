@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.7.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.6.0...v2.7.0) (2022-07-20)
+
+
+### Features
+
+* add opal chain ([20acaab](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/20acaaba8abfd72172d3dba6be289a8f2659cadf))
+* **LemonadeMarketplaceV1:** add native currency support ([aa9ddaa](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/aa9ddaa0d116b8b7fbbcb2116985256ab9d6115f))
+* **LemonadeMarketplaceV1:** avoid ERC20 transfers with amount zero ([29f1333](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/29f1333360db19c0b1e2e0bbabc62b94beaeba05))
+* **LemonadeMarketplaceV1:** move royalties to virtual functions for override ([92e70e8](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/92e70e80ac5d4f81c6cfbc932bd3f2bd50aba255))
+* **LemonadeMarketplaceV1Unique:** add Unique variant of Lemonade marketplace contract ([a813fd0](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a813fd02b0e9bc46af1565300dc933449adb2516))
+* **LemonadeMarketplaceV1:** use ERC721 transferFrom instead of safeTransferFrom ([a7fc221](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a7fc221e954049565d3718cccdda7783b6064b7a))
+* **LemonadePoapV1Unique:** add Unique variant of Lemonade POAP contract ([b4f85ad](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/b4f85ad1a629dce9b92ecc2b4bc4e4d182fcca8e))
+* **LemonadeUniqueCollectionV1:** add Lemonade Unique collection contract ([f675e02](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f675e02be5cb2fa5bb0a302ca5b15f810f435ce6))
+* **LemonadeUniqueCollectionV1:** make collection public ([40c8637](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/40c8637ec9e434a21d4e65e29962c0cc3871984b))
+* **LemonadeUniqueCollectionV1:** share mintable interface with ERC721LemonadeV1 ([01fa265](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/01fa2655c6ec3951a013c22cdffef44f2cfc2226))
+
 ## [2.6.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.5.0...v2.6.0) (2022-06-29)
 
 
