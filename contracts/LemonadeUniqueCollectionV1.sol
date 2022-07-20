@@ -2,11 +2,12 @@
 
 pragma solidity ^0.8.0;
 
+import "./ERC721LemonadeV1.sol";
 import "./rarible/LibPart.sol";
 import "./unique/ICollection.sol";
 import "./unique/ICollectionHelpers.sol";
 
-contract LemonadeUniqueCollectionV1 {
+contract LemonadeUniqueCollectionV1 is IMintable {
     address private _collection;
 
     constructor(
@@ -28,7 +29,7 @@ contract LemonadeUniqueCollectionV1 {
 
     function mintToCaller(string memory tokenURI)
         public
-        virtual
+        override
         returns (uint256)
     {
         ICollection collection = ICollection(_collection);
@@ -43,7 +44,7 @@ contract LemonadeUniqueCollectionV1 {
     function mintToCallerWithRoyalty(
         string memory tokenURI,
         LibPart.Part[] memory royalties
-    ) public virtual returns (uint256) {
+    ) public override returns (uint256) {
         uint256 tokenId = mintToCaller(tokenURI);
 
         ICollection(_collection).setProperty(

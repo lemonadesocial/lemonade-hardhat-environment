@@ -7,7 +7,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract ERC721LemonadeV1 is ERC721, Royalties, Ownable {
+interface IMintable {
+    function mintToCaller(string memory tokenURI) external returns (uint256);
+
+    function mintToCallerWithRoyalty(
+        string memory tokenURI,
+        LibPart.Part[] memory royalties
+    ) external returns (uint256);
+}
+
+contract ERC721LemonadeV1 is ERC721, Royalties, Ownable, IMintable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdTracker;
@@ -20,7 +29,7 @@ contract ERC721LemonadeV1 is ERC721, Royalties, Ownable {
 
     function mintToCaller(string memory tokenURI_)
         public
-        virtual
+        override
         returns (uint256)
     {
         uint256 tokenId = _tokenIdTracker.current();
@@ -36,7 +45,7 @@ contract ERC721LemonadeV1 is ERC721, Royalties, Ownable {
     function mintToCallerWithRoyalty(
         string memory tokenURI_,
         LibPart.Part[] memory royalties_
-    ) public virtual returns (uint256) {
+    ) public override returns (uint256) {
         uint256 tokenId = mintToCaller(tokenURI_);
 
         _saveRoyalties(tokenId, royalties_);
