@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.7.0...v2.8.0) (2022-07-27)
+
+
+### Features
+
+* replace rinkeby by goerli ([c09e7a5](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/c09e7a5a59dee246f6fbf230de4513a8558ae681))
+* replace rpc environment variables by public endpoints ([367560b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/367560bee4295d0e26fa59f6c746188af40666da))
+
 ## [2.7.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.6.0...v2.7.0) (2022-07-20)
 
 
