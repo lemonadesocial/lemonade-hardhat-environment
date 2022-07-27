@@ -74,11 +74,11 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__mainnet__', 'deploy/polygon'],
     },
-    rinkeby: {
-      url: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-      chainId: 4,
+    goerli: {
+      url: 'https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+      chainId: 5,
       accounts,
-      deploy: ['deploy/rinkeby'],
+      deploy: ['deploy/goerli'],
     },
     moonbase: {
       url: 'https://moonbeam-alpha.api.onfinality.io/public',
