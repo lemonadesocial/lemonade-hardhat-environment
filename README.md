@@ -64,9 +64,3 @@ The private key of the signer.
 ### `MNEMONIC`
 
 A Secret Recovery Phrase, mnemonic phrase, or Seed Phrase used to generate the signers.
-
-### `NETWORK_ETHEREUM_URL` / `NETWORK_RINKEBY_URL` / `NETWORK_MUMBAI_URL` / `NETWORK_POLYGON_URL` / `NETWORK_MOONBASE_URL` / `NETWORK_MOONBEAM_URL`
-
-An HTTP RPC endpoint for the corresponding network.
-
-See [Polygon Network Details](https://docs.polygon.technology/docs/develop/network-details/network/) for a list of public RPC endpoints.
