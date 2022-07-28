@@ -65,7 +65,16 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         _accessRegistry = accessRegistry;
 
         _claim(creator);
-        _transferOwnership(creator);
+    }
+
+    function _afterTokenTransfer(
+        address,
+        address to,
+        uint256 tokenId
+    ) internal override {
+        if (tokenId == 0 && owner() != to) {
+            _transferOwnership(to);
+        }
     }
 
     function _claim(address claimer) internal virtual {
