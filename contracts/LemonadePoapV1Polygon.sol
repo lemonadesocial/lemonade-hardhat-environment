@@ -16,6 +16,7 @@ contract LemonadePoapV1Polygon is LemonadePoapV1, RelayRecipient {
         LibPart.Part[] memory royalties,
         uint256 totalSupply,
         address accessRegistry,
+        address chainlinkRequest,
         address trustedForwarder_,
         address trustedOperator
     )
@@ -26,7 +27,8 @@ contract LemonadePoapV1Polygon is LemonadePoapV1, RelayRecipient {
             tokenURI,
             royalties,
             totalSupply,
-            accessRegistry
+            accessRegistry,
+            chainlinkRequest
         )
     {
         trustedForwarder = trustedForwarder_;

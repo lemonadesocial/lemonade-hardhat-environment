@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "./AccessRegistry.sol";
+import "./ChainlinkRequest.sol";
 import "./rarible/LibPart.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -32,13 +33,16 @@ interface ILemonadePoapV1 is IERC721 {
 contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     using Counters for Counters.Counter;
 
+    event ClaimFailed(string reason);
+
     address private immutable _creator;
     string internal _tokenURI;
     LibPart.Part[] internal _royalties;
     uint256 private _maxSupply;
     address private immutable _accessRegistry;
+    address private _chainlinkRequest;
 
-    Counters.Counter private _tokenIdTracker;
+    Counters.Counter internal _tokenIdTracker;
     mapping(address => bool) private _claimed;
 
     constructor(
@@ -48,7 +52,8 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         string memory tokenURI_,
         LibPart.Part[] memory royalties,
         uint256 maxSupply,
-        address accessRegistry
+        address accessRegistry,
+        address chainlinkRequest
     ) ERC721(name, symbol) {
         _creator = creator;
         _tokenURI = tokenURI_;
@@ -63,8 +68,30 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
 
         _maxSupply = maxSupply;
         _accessRegistry = accessRegistry;
+        _chainlinkRequest = chainlinkRequest;
 
-        _claim(creator);
+        _mint(creator);
+    }
+
+    function _mint(address claimer)
+        internal
+        virtual
+        returns (string memory err)
+    {
+        uint256 tokenId = _tokenIdTracker.current();
+
+        if (_maxSupply != 0 && tokenId == _maxSupply) {
+            return "LemonadePoap: already claimed";
+        }
+        if (_claimed[claimer]) {
+            return "LemonadePoap: all tokens claimed";
+        }
+
+        ERC721._mint(claimer, tokenId);
+
+        _claimed[claimer] = true;
+        _tokenIdTracker.increment();
+        return "";
     }
 
     function _afterTokenTransfer(
@@ -78,18 +105,41 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     }
 
     function _claim(address claimer) internal virtual {
-        uint256 tokenId = _tokenIdTracker.current();
+        if (_chainlinkRequest == address(0)) {
+            string memory err = _mint(claimer);
 
+            if (bytes(err).length > 0) {
+                revert(err);
+            }
+        } else {
+            bytes memory state = abi.encode(claimer);
+
+            ChainlinkRequest(_chainlinkRequest).requestBytes(
+                this.fulfillClaim.selector,
+                state
+            );
+        }
+    }
+
+    function fulfillClaim(bytes memory state, bytes memory bytesData)
+        public
+        virtual
+    {
         require(
-            tokenId < _maxSupply || _maxSupply == 0,
-            "LemonadePoap: all tokens claimed"
+            _msgSender() == _chainlinkRequest,
+            "LemonadePoap: caller must be access request"
         );
-        require(!_claimed[claimer], "LemonadePoap: already claimed");
 
-        _mint(claimer, tokenId);
+        (bool ok, string memory err) = abi.decode(bytesData, (bool, string));
 
-        _claimed[claimer] = true;
-        _tokenIdTracker.increment();
+        if (ok) {
+            address claimer = abi.decode(state, (address));
+
+            err = _mint(claimer);
+        }
+        if (bytes(err).length > 0) {
+            emit ClaimFailed(err);
+        }
     }
 
     function claim() public virtual override {
@@ -210,5 +260,9 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
             totalValue += _royalties[i].value;
         }
         return (_royalties[0].account, (price * totalValue) / 10000);
+    }
+
+    function setChainlinkRequest(address chainlinkRequest) public onlyOwner {
+        _chainlinkRequest = chainlinkRequest;
     }
 }

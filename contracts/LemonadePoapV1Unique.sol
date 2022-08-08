@@ -7,6 +7,8 @@ import "./unique/ICollection.sol";
 import "./unique/ICollectionHelpers.sol";
 
 contract LemonadePoapV1Unique is LemonadePoapV1 {
+    using Counters for Counters.Counter;
+
     address public collection;
 
     constructor(
@@ -17,6 +19,7 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         LibPart.Part[] memory royalties,
         uint256 totalSupply,
         address accessRegistry,
+        address chainlinkRequest,
         address collectionHelpers
     )
         payable
@@ -27,7 +30,8 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
             tokenURI,
             royalties,
             totalSupply,
-            accessRegistry
+            accessRegistry,
+            chainlinkRequest
         )
     {
         collection = ICollectionHelpers(collectionHelpers)
@@ -41,20 +45,26 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         );
     }
 
-    function _mint(address to, uint256 tokenId) internal virtual override {
+    function _mint(address claimer)
+        internal
+        virtual
+        override
+        returns (string memory err)
+    {
+        uint256 tokenId = _tokenIdTracker.current();
+
         if (tokenId == 0) {
-            return ERC721._mint(to, tokenId);
+            return LemonadePoapV1._mint(claimer);
         }
 
         ICollection collection_ = ICollection(collection);
-
-        collection_.mintWithTokenURI(to, tokenId, _tokenURI);
-
+        collection_.mintWithTokenURI(claimer, tokenId, _tokenURI);
         collection_.setProperty(
             tokenId,
             ROYALTIES_PROPERTY,
             abi.encode(_royalties)
         );
+        return "";
     }
 
     function transferFrom(
