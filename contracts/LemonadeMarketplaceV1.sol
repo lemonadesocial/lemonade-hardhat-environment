@@ -461,10 +461,8 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
         uint256 end = openTo == 0 ? type(uint256).max : openTo;
 
         if (start > end) {
-            // avoids overflow
             return 0;
         }
-
         return end - start;
     }
 
