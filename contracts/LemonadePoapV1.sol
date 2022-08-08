@@ -170,13 +170,9 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         uint256 length = claimers.length;
         bool[] memory result = new bool[](length);
 
-        for (uint256 i; i < length; ) {
+        for (uint256 i; i < length; i++) {
             result[i] = _claimed[claimers[i]];
-            unchecked {
-                ++i;
-            }
         }
-
         return result;
     }
 
