@@ -376,7 +376,13 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
                     order_.maker,
                     transferAmount
                 );
+                transferAmount -= transferAmount;
             }
+
+            require(
+                transferAmount == 0,
+                "LemonadeMarketplace: transfer amount must be zero"
+            );
         }
 
         IERC721(order_.tokenContract).transferFrom(
