@@ -5,14 +5,12 @@ pragma abicoder v2;
 
 import "./AccessRegistry.sol";
 import "./ChainlinkRequest.sol";
-import "./rarible/LibPart.sol";
+import "./IERC2981.sol";
+import "./rarible/RoyaltiesV2.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-
-bytes4 constant ERC2981_INTERFACE_ID = 0x2a55205a;
-bytes4 constant RaribleRoyaltiesV2_INTERFACE_ID = 0xcad96cca;
 
 bytes32 constant TRUSTED_CLAIMER_ROLE = keccak256("TRUSTED_CLAIMER_ROLE");
 bytes32 constant TRUSTED_OPERATOR_ROLE = keccak256("TRUSTED_OPERATOR_ROLE");
@@ -30,7 +28,13 @@ interface ILemonadePoapV1 is IERC721 {
     function totalSupply() external view returns (uint256);
 }
 
-contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
+contract LemonadePoapV1 is
+    ERC721,
+    IERC2981,
+    ILemonadePoapV1,
+    Ownable,
+    RoyaltiesV2
+{
     using Counters for Counters.Counter;
 
     event ClaimFailed(string reason);
@@ -211,9 +215,9 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
         returns (bool)
     {
         return
-            interfaceId == ERC2981_INTERFACE_ID ||
-            interfaceId == RaribleRoyaltiesV2_INTERFACE_ID ||
+            interfaceId == type(IERC2981).interfaceId ||
             interfaceId == type(ILemonadePoapV1).interfaceId ||
+            interfaceId == type(RoyaltiesV2).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
@@ -235,6 +239,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     function getRaribleV2Royalties(uint256)
         public
         view
+        override
         returns (LibPart.Part[] memory)
     {
         return _royalties;
@@ -243,6 +248,7 @@ contract LemonadePoapV1 is ERC721, ILemonadePoapV1, Ownable {
     function royaltyInfo(uint256, uint256 price)
         public
         view
+        override
         returns (address receiver, uint256 royaltyAmount)
     {
         uint256 length = _royalties.length;
