@@ -21,14 +21,24 @@ contract ChainlinkRequest is ChainlinkClient, Ownable {
     }
     mapping(bytes32 => PendingRequest) private _pendingRequests;
 
-    constructor(
-        address chainlinkToken,
-        address chainlinkOracle,
-        bytes32 jobId,
-        uint256 fee,
-        string memory url
-    ) {
-        configure(chainlinkToken, chainlinkOracle, jobId, fee, url);
+    function config()
+        public
+        view
+        returns (
+            address chainlinkToken,
+            address chainlinkOracle,
+            bytes32 jobId,
+            uint256 fee,
+            string memory url
+        )
+    {
+        return (
+            chainlinkTokenAddress(),
+            chainlinkOracleAddress(),
+            _jobId,
+            _fee,
+            _url
+        );
     }
 
     function configure(
