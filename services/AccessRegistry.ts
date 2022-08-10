@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat';
-import type { DeployFunction, DeployOptions } from 'hardhat-deploy/types';
+import type { DeployFunction } from 'hardhat-deploy/types';
 
 interface Entry {
   role: string;
@@ -7,14 +7,16 @@ interface Entry {
   grant: boolean;
 }
 
-export function deployFunction(entries: Entry[], options: DeployOptions): DeployFunction {
-  return async function ({ deployments: { deploy } }) {
-    const deployResult = await deploy('AccessRegistry', options);
+export function deployFunction(entries: Entry[]): DeployFunction {
+  return async function ({ deployments: { deploy }, getNamedAccounts }) {
+    const { deployer: from } = await getNamedAccounts();
+
+    const deployResult = await deploy('AccessRegistry', { from });
 
     const contract = await ethers.getContractAt(
       deployResult.abi,
       deployResult.address,
-      await ethers.getSigner(options.from)
+      await ethers.getSigner(from)
     );
 
     for (const entry of entries) {

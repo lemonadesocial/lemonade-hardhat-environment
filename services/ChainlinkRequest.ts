@@ -1,5 +1,6 @@
 import { BigNumberish } from 'ethers';
 import { ethers } from 'hardhat';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import type { DeployFunction, DeployOptions } from 'hardhat-deploy/types';
 
 interface Config {
@@ -10,16 +11,18 @@ interface Config {
   url: string;
 }
 
-export function deployFunction(config: Config, options: DeployOptions): DeployFunction {
+export function deployFunction(config: Config): DeployFunction {
   const jobId = ethers.utils.toUtf8Bytes(config.jobId);
 
-  return async function ({ deployments: { deploy } }) {
-    const deployResult = await deploy('ChainlinkRequest', options);
+  return async function ({ deployments: { deploy }, getNamedAccounts }) {
+    const { deployer: from } = await getNamedAccounts();
+
+    const deployResult = await deploy('ChainlinkRequest', { from });
 
     const contract = await ethers.getContractAt(
       deployResult.abi,
       deployResult.address,
-      await ethers.getSigner(options.from)
+      await ethers.getSigner(from)
     );
 
     const current = await contract.config();

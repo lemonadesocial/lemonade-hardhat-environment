@@ -1,12 +1,7 @@
 import { deployFunction } from "../../services/AccessRegistry";
 
-const from = '0x951292004e8a18955Cb1095CB72Ca6B01d68336E';
-
-export default deployFunction(
-  [
-    { role: 'TRUSTED_CLAIMER_ROLE',   account: '0xB25D3d684EAB618B51eE8A3127FBacA6224DaFA9',  grant: true },
-    { role: 'TRUSTED_OPERATOR_ROLE',  account: '0xB25D3d684EAB618B51eE8A3127FBacA6224DaFA9',  grant: true },
-  ],
-  { from },
-);
+export default deployFunction([
+  { role: 'TRUSTED_CLAIMER_ROLE',   account: '0xB25D3d684EAB618B51eE8A3127FBacA6224DaFA9',  grant: true },
+  { role: 'TRUSTED_OPERATOR_ROLE',  account: '0xB25D3d684EAB618B51eE8A3127FBacA6224DaFA9',  grant: true },
+]);
 
