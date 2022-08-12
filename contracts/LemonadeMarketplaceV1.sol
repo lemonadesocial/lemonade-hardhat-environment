@@ -12,8 +12,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract LemonadeMarketplaceV1 is AccessControlEnumerable {
     using Counters for Counters.Counter;
 
-    address private immutable _feeAccount;
-    uint96 private immutable _feeValue;
+    address public immutable feeAccount;
+    uint96 public immutable feeValue;
 
     enum OrderKind {
         Direct,
@@ -59,18 +59,13 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
         uint256 paidAmount;
     }
     mapping(uint256 => Order) private _orders;
+    Counters.Counter public orderIdTracker;
 
-    Counters.Counter private _orderIdTracker;
-
-    constructor(address feeAccount, uint96 feeValue) {
-        _feeAccount = feeAccount;
-        _feeValue = feeValue;
+    constructor(address feeAccount_, uint96 feeValue_) {
+        feeAccount = feeAccount_;
+        feeValue = feeValue_;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-    }
-
-    function fee() external view returns (address, uint96) {
-        return (_feeAccount, _feeValue);
     }
 
     function order(uint256 orderId)
@@ -145,7 +140,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             tokenId
         );
 
-        uint256 orderId = _orderIdTracker.current();
+        uint256 orderId = orderIdTracker.current();
 
         _orders[orderId] = Order({
             kind: kind,
@@ -163,7 +158,7 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
             paidAmount: 0
         });
 
-        _orderIdTracker.increment();
+        orderIdTracker.increment();
 
         Order memory order_ = _orders[orderId];
         emit OrderCreated(
@@ -323,8 +318,8 @@ contract LemonadeMarketplaceV1 is AccessControlEnumerable {
         if (order_.paidAmount > 0) {
             uint256 transferAmount = order_.paidAmount;
 
-            uint256 feeAmount = (order_.paidAmount * _feeValue) / 10000;
-            transfer(order_.currency, spender, _feeAccount, feeAmount);
+            uint256 feeAmount = (order_.paidAmount * feeValue) / 10000;
+            transfer(order_.currency, spender, feeAccount, feeAmount);
             transferAmount -= feeAmount;
 
             (
