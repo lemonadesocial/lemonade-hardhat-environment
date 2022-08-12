@@ -14,7 +14,6 @@ contract LemonadePoapV1Forwardable is LemonadePoapV1, RelayRecipient {
         LibPart.Part[] memory royalties,
         uint256 totalSupply,
         address accessRegistry,
-        address chainlinkRequest,
         address trustedForwarder
     )
         LemonadePoapV1(
@@ -24,8 +23,7 @@ contract LemonadePoapV1Forwardable is LemonadePoapV1, RelayRecipient {
             tokenURI,
             royalties,
             totalSupply,
-            accessRegistry,
-            chainlinkRequest
+            accessRegistry
         )
         RelayRecipient(trustedForwarder)
     {}

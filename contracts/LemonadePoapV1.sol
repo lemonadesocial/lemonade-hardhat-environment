@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "./AccessRegistry.sol";
-import "./ChainlinkRequest.sol";
 import "./IERC2981.sol";
 import "./rarible/RoyaltiesV2.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -44,7 +43,6 @@ contract LemonadePoapV1 is
     LibPart.Part[] public royalties;
     uint256 public maxSupply;
     address public immutable accessRegistry;
-    address public chainlinkRequest;
 
     Counters.Counter public tokenIdTracker;
     mapping(address => bool) public claimed;
@@ -56,8 +54,7 @@ contract LemonadePoapV1 is
         string memory tokenURI__,
         LibPart.Part[] memory royalties_,
         uint256 maxSupply_,
-        address accessRegistry_,
-        address chainlinkRequest_
+        address accessRegistry_
     ) ERC721(name, symbol) {
         creator = creator_;
         tokenURI_ = tokenURI__;
@@ -72,7 +69,6 @@ contract LemonadePoapV1 is
 
         maxSupply = maxSupply_;
         accessRegistry = accessRegistry_;
-        chainlinkRequest = chainlinkRequest_;
 
         _mint(creator_);
     }
@@ -109,40 +105,10 @@ contract LemonadePoapV1 is
     }
 
     function _claim(address claimer) internal virtual {
-        if (chainlinkRequest == address(0)) {
-            string memory err = _mint(claimer);
+        string memory err = _mint(claimer);
 
-            if (bytes(err).length > 0) {
-                revert(err);
-            }
-        } else {
-            bytes memory state = abi.encode(claimer);
-
-            ChainlinkRequest(chainlinkRequest).requestBytes(
-                this.fulfillClaim.selector,
-                state
-            );
-        }
-    }
-
-    function fulfillClaim(bytes memory state, bytes memory bytesData)
-        public
-        virtual
-    {
-        require(
-            _msgSender() == chainlinkRequest,
-            "LemonadePoap: caller must be access request"
-        );
-
-        (bool ok, string memory err) = abi.decode(bytesData, (bool, string));
-
-        if (ok) {
-            address claimer = abi.decode(state, (address));
-
-            err = _mint(claimer);
-        }
         if (bytes(err).length > 0) {
-            emit ClaimFailed(err);
+            revert(err);
         }
     }
 
@@ -262,9 +228,5 @@ contract LemonadePoapV1 is
             totalValue += royalties[i].value;
         }
         return (royalties[0].account, (price * totalValue) / 10000);
-    }
-
-    function setChainlinkRequest(address chainlinkRequest_) public onlyOwner {
-        chainlinkRequest = chainlinkRequest_;
     }
 }

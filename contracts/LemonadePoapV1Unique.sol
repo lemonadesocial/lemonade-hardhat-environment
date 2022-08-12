@@ -19,7 +19,6 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         LibPart.Part[] memory royalties,
         uint256 totalSupply,
         address accessRegistry,
-        address chainlinkRequest,
         address collectionHelpers
     )
         payable
@@ -30,8 +29,7 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
             tokenURI,
             royalties,
             totalSupply,
-            accessRegistry,
-            chainlinkRequest
+            accessRegistry
         )
     {
         collection = ICollectionHelpers(collectionHelpers)
