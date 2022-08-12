@@ -22,10 +22,10 @@ interface IMintable {
 contract ERC721LemonadeV1 is ERC721, Ownable, IMintable {
     using Counters for Counters.Counter;
 
-    Counters.Counter private _tokenIdTracker;
+    Counters.Counter public tokenIdTracker;
 
-    mapping(uint256 => string) private _tokenURIs;
-    mapping(uint256 => LibPart.Part[]) private _royalties;
+    mapping(uint256 => string) public tokenURIs;
+    mapping(uint256 => LibPart.Part[]) public royalties;
 
     constructor(string memory name, string memory symbol)
         ERC721(name, symbol)
@@ -36,25 +36,25 @@ contract ERC721LemonadeV1 is ERC721, Ownable, IMintable {
         override
         returns (uint256)
     {
-        uint256 tokenId = _tokenIdTracker.current();
+        uint256 tokenId = tokenIdTracker.current();
 
         _mint(_msgSender(), tokenId);
-        _tokenURIs[tokenId] = tokenURI_;
+        tokenURIs[tokenId] = tokenURI_;
 
-        _tokenIdTracker.increment();
+        tokenIdTracker.increment();
 
         return tokenId;
     }
 
     function mintToCallerWithRoyalty(
         string memory tokenURI_,
-        LibPart.Part[] memory royalties
+        LibPart.Part[] memory royalties_
     ) public override returns (uint256) {
         uint256 tokenId = mintToCaller(tokenURI_);
 
-        uint256 length = royalties.length;
+        uint256 length = royalties_.length;
         for (uint256 i; i < length; ) {
-            _royalties[tokenId].push(royalties[i]);
+            royalties[tokenId].push(royalties_[i]);
             unchecked {
                 ++i;
             }
@@ -75,7 +75,7 @@ contract ERC721LemonadeV1 is ERC721, Ownable, IMintable {
             "ERC721Lemonade: URI query for nonexistent token"
         );
 
-        return _tokenURIs[tokenId];
+        return tokenURIs[tokenId];
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -96,7 +96,7 @@ contract ERC721LemonadeV1 is ERC721, Ownable, IMintable {
         view
         returns (LibPart.Part[] memory)
     {
-        return _royalties[tokenId];
+        return royalties[tokenId];
     }
 
     function royaltyInfo(uint256 tokenId, uint256 price)
@@ -104,7 +104,7 @@ contract ERC721LemonadeV1 is ERC721, Ownable, IMintable {
         view
         returns (address receiver, uint256 royaltyAmount)
     {
-        uint256 length = _royalties[tokenId].length;
+        uint256 length = royalties[tokenId].length;
 
         if (length == 0) {
             return (address(0), 0);
@@ -112,8 +112,8 @@ contract ERC721LemonadeV1 is ERC721, Ownable, IMintable {
 
         uint256 totalValue;
         for (uint256 i; i < length; i++) {
-            totalValue += _royalties[tokenId][i].value;
+            totalValue += royalties[tokenId][i].value;
         }
-        return (_royalties[tokenId][0].account, (price * totalValue) / 10000);
+        return (royalties[tokenId][0].account, (price * totalValue) / 10000);
     }
 }
