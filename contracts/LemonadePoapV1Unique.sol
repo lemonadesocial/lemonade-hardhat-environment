@@ -51,18 +51,18 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         override
         returns (string memory err)
     {
-        uint256 tokenId = _tokenIdTracker.current();
+        uint256 tokenId = tokenIdTracker.current();
 
         if (tokenId == 0) {
             return LemonadePoapV1._mint(claimer);
         }
 
         ICollection collection_ = ICollection(collection);
-        collection_.mintWithTokenURI(claimer, tokenId, _tokenURI);
+        collection_.mintWithTokenURI(claimer, tokenId, tokenURI_);
         collection_.setProperty(
             tokenId,
             ROYALTIES_PROPERTY,
-            abi.encode(_royalties)
+            abi.encode(royalties)
         );
         return "";
     }

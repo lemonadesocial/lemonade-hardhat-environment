@@ -39,42 +39,42 @@ contract LemonadePoapV1 is
 
     event ClaimFailed(string reason);
 
-    address private immutable _creator;
-    string internal _tokenURI;
-    LibPart.Part[] internal _royalties;
-    uint256 private _maxSupply;
-    address private immutable _accessRegistry;
-    address private _chainlinkRequest;
+    address public immutable creator;
+    string public tokenURI_;
+    LibPart.Part[] public royalties;
+    uint256 public maxSupply;
+    address public immutable accessRegistry;
+    address public chainlinkRequest;
 
-    Counters.Counter internal _tokenIdTracker;
-    mapping(address => bool) private _claimed;
+    Counters.Counter public tokenIdTracker;
+    mapping(address => bool) public claimed;
 
     constructor(
         string memory name,
         string memory symbol,
-        address creator,
-        string memory tokenURI_,
-        LibPart.Part[] memory royalties,
-        uint256 maxSupply,
-        address accessRegistry,
-        address chainlinkRequest
+        address creator_,
+        string memory tokenURI__,
+        LibPart.Part[] memory royalties_,
+        uint256 maxSupply_,
+        address accessRegistry_,
+        address chainlinkRequest_
     ) ERC721(name, symbol) {
-        _creator = creator;
-        _tokenURI = tokenURI_;
+        creator = creator_;
+        tokenURI_ = tokenURI__;
 
-        uint256 length = royalties.length;
+        uint256 length = royalties_.length;
         for (uint256 i; i < length; ) {
-            _royalties.push(royalties[i]);
+            royalties.push(royalties_[i]);
             unchecked {
                 ++i;
             }
         }
 
-        _maxSupply = maxSupply;
-        _accessRegistry = accessRegistry;
-        _chainlinkRequest = chainlinkRequest;
+        maxSupply = maxSupply_;
+        accessRegistry = accessRegistry_;
+        chainlinkRequest = chainlinkRequest_;
 
-        _mint(creator);
+        _mint(creator_);
     }
 
     function _mint(address claimer)
@@ -82,19 +82,19 @@ contract LemonadePoapV1 is
         virtual
         returns (string memory err)
     {
-        uint256 tokenId = _tokenIdTracker.current();
+        uint256 tokenId = tokenIdTracker.current();
 
-        if (_maxSupply != 0 && tokenId == _maxSupply) {
+        if (maxSupply != 0 && tokenId == maxSupply) {
             return "LemonadePoap: already claimed";
         }
-        if (_claimed[claimer]) {
+        if (claimed[claimer]) {
             return "LemonadePoap: all tokens claimed";
         }
 
         ERC721._mint(claimer, tokenId);
 
-        _claimed[claimer] = true;
-        _tokenIdTracker.increment();
+        claimed[claimer] = true;
+        tokenIdTracker.increment();
         return "";
     }
 
@@ -109,7 +109,7 @@ contract LemonadePoapV1 is
     }
 
     function _claim(address claimer) internal virtual {
-        if (_chainlinkRequest == address(0)) {
+        if (chainlinkRequest == address(0)) {
             string memory err = _mint(claimer);
 
             if (bytes(err).length > 0) {
@@ -118,7 +118,7 @@ contract LemonadePoapV1 is
         } else {
             bytes memory state = abi.encode(claimer);
 
-            ChainlinkRequest(_chainlinkRequest).requestBytes(
+            ChainlinkRequest(chainlinkRequest).requestBytes(
                 this.fulfillClaim.selector,
                 state
             );
@@ -130,7 +130,7 @@ contract LemonadePoapV1 is
         virtual
     {
         require(
-            _msgSender() == _chainlinkRequest,
+            _msgSender() == chainlinkRequest,
             "LemonadePoap: caller must be access request"
         );
 
@@ -154,7 +154,7 @@ contract LemonadePoapV1 is
 
     function claimTo(address claimer) public virtual {
         require(
-            AccessRegistry(_accessRegistry).hasRole(
+            AccessRegistry(accessRegistry).hasRole(
                 TRUSTED_CLAIMER_ROLE,
                 _msgSender()
             ),
@@ -175,17 +175,17 @@ contract LemonadePoapV1 is
         bool[] memory result = new bool[](length);
 
         for (uint256 i; i < length; i++) {
-            result[i] = _claimed[claimers[i]];
+            result[i] = claimed[claimers[i]];
         }
         return result;
     }
 
     function supply() public view virtual override returns (uint256, uint256) {
-        return (_tokenIdTracker.current(), _maxSupply);
+        return (tokenIdTracker.current(), maxSupply);
     }
 
     function totalSupply() public view virtual override returns (uint256) {
-        return (_tokenIdTracker.current());
+        return (tokenIdTracker.current());
     }
 
     function isApprovedForAll(address owner, address operator)
@@ -196,7 +196,7 @@ contract LemonadePoapV1 is
         returns (bool isOperator)
     {
         if (
-            AccessRegistry(_accessRegistry).hasRole(
+            AccessRegistry(accessRegistry).hasRole(
                 TRUSTED_OPERATOR_ROLE,
                 operator
             )
@@ -233,7 +233,7 @@ contract LemonadePoapV1 is
             "LemonadePoap: URI query for nonexistent token"
         );
 
-        return _tokenURI;
+        return tokenURI_;
     }
 
     function getRaribleV2Royalties(uint256)
@@ -242,7 +242,7 @@ contract LemonadePoapV1 is
         override
         returns (LibPart.Part[] memory)
     {
-        return _royalties;
+        return royalties;
     }
 
     function royaltyInfo(uint256, uint256 price)
@@ -251,7 +251,7 @@ contract LemonadePoapV1 is
         override
         returns (address receiver, uint256 royaltyAmount)
     {
-        uint256 length = _royalties.length;
+        uint256 length = royalties.length;
 
         if (length == 0) {
             return (address(0), 0);
@@ -259,12 +259,12 @@ contract LemonadePoapV1 is
 
         uint256 totalValue;
         for (uint256 i; i < length; i++) {
-            totalValue += _royalties[i].value;
+            totalValue += royalties[i].value;
         }
-        return (_royalties[0].account, (price * totalValue) / 10000);
+        return (royalties[0].account, (price * totalValue) / 10000);
     }
 
-    function setChainlinkRequest(address chainlinkRequest) public onlyOwner {
-        _chainlinkRequest = chainlinkRequest;
+    function setChainlinkRequest(address chainlinkRequest_) public onlyOwner {
+        chainlinkRequest = chainlinkRequest_;
     }
 }
