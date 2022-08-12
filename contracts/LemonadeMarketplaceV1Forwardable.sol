@@ -12,10 +12,11 @@ contract LemonadeMarketplaceV1Forwardable is
     constructor(
         address feeAccount,
         uint96 feeValue,
-        address trustedForwarder_
-    ) LemonadeMarketplaceV1(feeAccount, feeValue) {
-        trustedForwarder = trustedForwarder_;
-    }
+        address trustedForwarder
+    )
+        LemonadeMarketplaceV1(feeAccount, feeValue)
+        RelayRecipient(trustedForwarder)
+    {}
 
     function _msgSender()
         internal

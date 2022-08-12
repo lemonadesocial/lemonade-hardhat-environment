@@ -2,18 +2,35 @@
 
 pragma solidity ^0.8.0;
 
-import "./forwarder/BaseRelayRecipient.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./IRelayRecipient.sol";
 
-abstract contract RelayRecipient is BaseRelayRecipient {
-    function _msgSender()
-        internal
+abstract contract RelayRecipient is IRelayRecipient {
+    address public trustedForwarder;
+
+    constructor(address forwarder) {
+        trustedForwarder = forwarder;
+    }
+
+    function isTrustedForwarder(address forwarder)
+        public
         view
-        virtual
-        override(BaseRelayRecipient)
-        returns (address)
+        override
+        returns (bool)
     {
-        return BaseRelayRecipient._msgSender();
+        return forwarder == trustedForwarder;
+    }
+
+    function _msgSender() internal view virtual override returns (address ret) {
+        if (msg.data.length >= 24 && isTrustedForwarder(msg.sender)) {
+            // At this point we know that the sender is a trusted forwarder,
+            // so we trust that the last bytes of msg.data are the verified sender address.
+            // extract sender address from the end of msg.data
+            assembly {
+                ret := shr(96, calldataload(sub(calldatasize(), 20)))
+            }
+        } else {
+            return msg.sender;
+        }
     }
 
     function versionRecipient() external pure override returns (string memory) {

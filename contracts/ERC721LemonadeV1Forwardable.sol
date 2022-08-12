@@ -9,10 +9,8 @@ contract ERC721LemonadeV1Forwardable is ERC721LemonadeV1, RelayRecipient {
     constructor(
         string memory name,
         string memory symbol,
-        address trustedForwarder_
-    ) ERC721LemonadeV1(name, symbol) {
-        trustedForwarder = trustedForwarder_;
-    }
+        address trustedForwarder
+    ) ERC721LemonadeV1(name, symbol) RelayRecipient(trustedForwarder) {}
 
     function _msgSender()
         internal

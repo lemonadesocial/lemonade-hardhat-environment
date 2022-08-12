@@ -11,10 +11,9 @@ contract ERC721LemonadeV1Polygon is ERC721LemonadeV1, RelayRecipient {
     constructor(
         string memory name,
         string memory symbol,
-        address trustedForwarder_,
+        address trustedForwarder,
         address trustedOperator
-    ) ERC721LemonadeV1(name, symbol) {
-        trustedForwarder = trustedForwarder_;
+    ) ERC721LemonadeV1(name, symbol) RelayRecipient(trustedForwarder) {
         _trustedOperator = trustedOperator;
     }
 

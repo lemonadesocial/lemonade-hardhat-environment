@@ -15,7 +15,7 @@ contract LemonadePoapV1Forwardable is LemonadePoapV1, RelayRecipient {
         uint256 totalSupply,
         address accessRegistry,
         address chainlinkRequest,
-        address trustedForwarder_
+        address trustedForwarder
     )
         LemonadePoapV1(
             name,
@@ -27,9 +27,8 @@ contract LemonadePoapV1Forwardable is LemonadePoapV1, RelayRecipient {
             accessRegistry,
             chainlinkRequest
         )
-    {
-        trustedForwarder = trustedForwarder_;
-    }
+        RelayRecipient(trustedForwarder)
+    {}
 
     function _msgSender()
         internal
