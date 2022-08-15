@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.9.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.8.0...v2.9.0) (2022-08-15)
+
+
+### Features
+
+* **AccessRegistry:** add service to manage roles ([0f6c075](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/0f6c075127245772e316ac9ef447d949ea7476e8))
+* add chainlink request mumbai deployment ([177ef91](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/177ef916580b74a2243fa8991e8f3c6f3ba44d94))
+* add create biconomy api bin ([17346a7](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/17346a797a084f9c82d309c581f212782bb1935f))
+* add rpc url environment variable overwrites ([f0d6ef9](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f0d6ef9b60a9b103b4be8c1c8b11e764035ac01b))
+* **ChainlinkRequest:** add chainlink request contract ([f46ad2a](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f46ad2aaf2003dc829a0941e5aff53d36a55cd71))
+* **ChainlinkRequest:** add service to manage config ([6ac9c72](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6ac9c72df0a6c3de0ca60b0967f6b3a029bb341d))
+* deploy non-ethereum contract on goerli ([c5cd4a1](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/c5cd4a19f236f7f49daa7b08aacb1a2c1eaa78a7))
+* **ERC721LemonadeV1:** make variables public ([1f9b3ad](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/1f9b3ad9131f12e2c49bb8e4b31b0769efa11637))
+* **ERC721LemonadeV1Polygon:** remove polygon variant of erc721 lemonade contract ([34cb7ea](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/34cb7ea7e8e95332d0ac4763ecc9443da5871e2c))
+* **ERC721LemonadeV1:** refactor royalties implementation ([d0b3bcf](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/d0b3bcf88857caf669355b944ad1a919c44145c6))
+* **Introspection:** add introspection contract and deployments ([a087b89](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a087b89e6156f111511f42e3863e26f36113bf19))
+* **LemonadeMarketplaceV1:** make variables public ([0ce96d8](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/0ce96d827be59fd62bd48e1dd64ade878bb6558b))
+* **LemonadeMarketplaceV1:** protect against transfering more than amount ([8b5fbcf](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/8b5fbcf59912114cb9554b1cb159498c89c46f78))
+* **LemonadePoapV1:** bind contract ownership to owner of token zero ([f331c35](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f331c359852aa31c595c7cc9a4cb837b4908f955))
+* **LemonadePoapV1ChainlinkRequest:** add variant of lemonade poap contract ([e83e3e1](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e83e3e1a4389526cfec5494ad26b9a40bbcd0c09))
+* **LemonadePoapV1ChainlinkRequestForwardable:** add variant of lemonade poap contract ([49acd6c](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/49acd6c7f276944e31e950d560628644bcae37c3))
+* **LemonadePoapV1:** integrate chainlink request ([b54a3f2](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/b54a3f25d1b82f52e48c7bfaa2da0864f4933d52))
+* **LemonadePoapV1:** make variables public ([8d30458](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/8d304588b395ccb0c23f20e2cd447dcc314d3548))
+* **LemonadePoapV1Polygon:** remove polygon variant of lemonade poap contract ([f044530](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f044530830392a4b3acc479d4b1e96aa38140abb))
+* **LemonadePoapV1:** refactor royalties ([8a025e8](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/8a025e8b00f4eb6e7d9fe60eba4d569972405b29))
+* **LemonadePoapV1:** remove gas optimization in view ([bbed78a](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/bbed78ad54f4fce734795f9323492be644e70d62))
+* refactor deploy scripts ([cc738c8](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/cc738c82bb612775ec1a2887fd28c9e8e1884914))
+* **RelayRecipient:** simplify implementation ([e8839a3](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e8839a3fcb69be743de25c6948049dc69645235f))
+* remove access registry deploy from ethereum and goerli ([a660e34](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a660e3467eb146ec96205f3150c85f85a08c13a7))
+* remove generic testnet and mainnet deploy folders ([774049e](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/774049ec3351d012b6f80dcf01cf11087fcd6efe))
+* remove unused contracts ([7173bbf](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/7173bbf78138ae7344553660a53b792146fc0783))
+* update mainnet deployments ([0d485f9](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/0d485f984c17595391b57c5181d95b3341ebdf7b))
+* update testnet deployments ([902f3f7](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/902f3f7d51371037a6b7bca53d6db453dffdbd5c))
+* update testnet deployments ([31f5a08](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/31f5a081fbcaa111994761f4219dd79ec7213bd3))
+
 ## [2.8.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.7.0...v2.8.0) (2022-07-27)
 
 
