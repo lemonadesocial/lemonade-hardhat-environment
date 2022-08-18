@@ -36,8 +36,6 @@ contract LemonadePoapV1 is
 {
     using Counters for Counters.Counter;
 
-    event ClaimFailed(string reason);
-
     address public immutable creator;
     string public tokenURI_;
     LibPart.Part[] public royalties;

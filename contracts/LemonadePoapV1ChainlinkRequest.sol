@@ -8,6 +8,8 @@ import "./LemonadePoapV1.sol";
 contract LemonadePoapV1ChainlinkRequest is LemonadePoapV1 {
     address public chainlinkRequest;
 
+    event ClaimFailed(string reason);
+
     constructor(
         string memory name,
         string memory symbol,
