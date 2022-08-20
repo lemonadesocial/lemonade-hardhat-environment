@@ -11,7 +11,10 @@ export function deployFunction(entries: Entry[]): DeployFunction {
   return async function ({ deployments: { deploy }, getNamedAccounts }) {
     const { deployer: from } = await getNamedAccounts();
 
-    const deployResult = await deploy('AccessRegistry', { from });
+    const deployResult = await deploy('AccessRegistry', {
+      from,
+      log: true,
+    });
 
     const contract = await ethers.getContractAt(
       deployResult.abi,

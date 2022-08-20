@@ -17,7 +17,10 @@ export function deployFunction(config: Config): DeployFunction {
   return async function ({ deployments: { deploy }, getNamedAccounts }) {
     const { deployer: from } = await getNamedAccounts();
 
-    const deployResult = await deploy('ChainlinkRequest', { from });
+    const deployResult = await deploy('ChainlinkRequest', {
+      from,
+      log: true,
+    });
 
     const contract = await ethers.getContractAt(
       deployResult.abi,
