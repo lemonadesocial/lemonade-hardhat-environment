@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.10.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.9.0...v2.10.0) (2022-09-07)
+
+
+### Features
+
+* add operator mumbai deployment ([99d2cc3](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/99d2cc38eea96dd806eeb78c190b318c26bc09aa))
+* enable log in service deploys ([5cc117f](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/5cc117f205103620396213f09ed1a6dc79ebdc20))
+* **LemonadePoapV1:** move claim failed event to chainlink request variant ([a921308](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a921308662f6733404cc87d0ed1b135dbcf7e7d1))
+* **Operation:** add chainlink operator contract and service ([59a55ab](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/59a55ab87619bfe76870e2b9f584d05ab57f322a))
+
+
+### Bug Fixes
+
+* **LemonadePoapV1Unique:** fix `revert item id should be next` ([79c9877](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/79c98776f823ae573e6f78fb60615a0ecaa64ed1))
+
 ## [2.9.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.8.0...v2.9.0) (2022-08-15)
 
 
