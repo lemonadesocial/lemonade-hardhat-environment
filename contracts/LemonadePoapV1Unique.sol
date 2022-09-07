@@ -43,16 +43,9 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         );
     }
 
-    function _mint(address claimer)
-        internal
-        virtual
-        override
-        returns (string memory err)
-    {
-        uint256 tokenId = tokenIdTracker.current();
-
+    function _mint(address claimer, uint256 tokenId) internal virtual override {
         if (tokenId == 0) {
-            return LemonadePoapV1._mint(claimer);
+            return ERC721._mint(claimer, tokenId);
         }
 
         ICollection collection_ = ICollection(collection);
@@ -62,7 +55,6 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
             ROYALTIES_PROPERTY,
             abi.encode(royalties)
         );
-        return "";
     }
 
     function transferFrom(

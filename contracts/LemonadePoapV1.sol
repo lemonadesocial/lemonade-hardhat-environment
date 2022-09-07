@@ -85,7 +85,7 @@ contract LemonadePoapV1 is
             return "LemonadePoap: all tokens claimed";
         }
 
-        ERC721._mint(claimer, tokenId);
+        _mint(claimer, tokenId);
 
         claimed[claimer] = true;
         tokenIdTracker.increment();
