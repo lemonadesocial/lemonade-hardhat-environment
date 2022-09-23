@@ -39,11 +39,11 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/arbitrum-one'],
     },
-    'arbitrum-rinkeby': {
-      url: process.env.NETWORK_ARBITRUM_RINKEBY_URL || 'https://rinkeby.arbitrum.io/rpc',
-      chainId: 421611,
+    'arbitrum-goerli': {
+      url: process.env.NETWORK_ARBITRUM_GOERLI_URL || 'https://goerli-rollup.arbitrum.io/rpc',
+      chainId: 421613,
       accounts,
-      deploy: ['deploy/__all__', 'deploy/arbitrum-rinkeby'],
+      deploy: ['deploy/__all__', 'deploy/arbitrum-goerli'],
     },
     'aurora': {
       url: process.env.NETWORK_AURORA_URL || 'https://mainnet.aurora.dev/',

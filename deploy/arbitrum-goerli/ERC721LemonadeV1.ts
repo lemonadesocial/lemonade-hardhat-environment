@@ -1,14 +1,13 @@
 import type { DeployFunction } from 'hardhat-deploy/types';
 
-const FEE_ACCOUNT = '0xFB756b44060e426731e54e9F433c43c75ee90d9f';
-const FEE_VALUE = '200';
-const TRUSTED_FORWARDER = '0x67454E169d613a8e9BA6b06af2D267696EAaAf41';
+const ERC721_NAME = 'Non-Fungible Lemon';
+const ERC721_SYMBOL = 'NFL';
 
 const deployFunction: DeployFunction = async function ({ deployments: { deploy }, getNamedAccounts }) {
   const { deployer: from } = await getNamedAccounts();
 
-  await deploy('LemonadeMarketplaceV1Forwardable', {
-    args: [FEE_ACCOUNT, FEE_VALUE, TRUSTED_FORWARDER],
+  await deploy('ERC721LemonadeV1', {
+    args: [ERC721_NAME, ERC721_SYMBOL],
     from,
     log: true,
   });
