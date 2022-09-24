@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.11.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.10.0...v2.11.0) (2022-09-24)
+
+
+### Features
+
+* replace arbitrum rinkeby by arbitrum goerli ([013eb7e](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/013eb7e41c5ff79892ad9b297b4f5df083d156d4))
+
 ## [2.10.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.9.0...v2.10.0) (2022-09-07)
 
 
