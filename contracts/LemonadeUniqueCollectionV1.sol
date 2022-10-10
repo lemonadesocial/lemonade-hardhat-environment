@@ -16,10 +16,25 @@ contract LemonadeUniqueCollectionV1 is IMintable {
         string memory description,
         string memory tokenPrefix
     ) payable {
-        collection = ICollectionHelpers(collectionHelpers)
-            .createNonfungibleCollection(name, description, tokenPrefix);
+        ICollectionHelpers collectionHelpers_ = ICollectionHelpers(
+            collectionHelpers
+        );
 
-        ICollection(collection).setTokenPropertyPermission(
+        collection = collectionHelpers_.createNFTCollection{value: msg.value}(
+            name,
+            description,
+            tokenPrefix
+        );
+        collectionHelpers_.makeCollectionERC721MetadataCompatible(
+            collection,
+            ""
+        );
+
+        ICollection collection_ = ICollection(collection);
+
+        collection_.addCollectionAdmin(address(this));
+        collection_.changeCollectionOwner(msg.sender);
+        collection_.setTokenPropertyPermission(
             ROYALTIES_PROPERTY,
             false,
             true,
@@ -32,13 +47,7 @@ contract LemonadeUniqueCollectionV1 is IMintable {
         override
         returns (uint256)
     {
-        ICollection collection_ = ICollection(collection);
-
-        uint256 tokenId = collection_.nextTokenId();
-
-        collection_.mintWithTokenURI(msg.sender, tokenId, tokenURI);
-
-        return tokenId;
+        return ICollection(collection).mintWithTokenURI(msg.sender, tokenURI);
     }
 
     function mintToCallerWithRoyalty(

@@ -13,7 +13,7 @@ const deployFunction: DeployFunction = async function ({ deployments: { deploy }
     args: [COLLECTION_HELPERS, COLLECTION_NAME, COLLECTION_DESCRIPTION, COLLECTION_TOKEN_PREFIX],
     from,
     log: true,
-    value: ethers.utils.parseEther('3'),
+    value: ethers.utils.parseEther('2'),
   });
 };
 

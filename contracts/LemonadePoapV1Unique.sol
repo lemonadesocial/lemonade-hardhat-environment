@@ -32,10 +32,25 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
             accessRegistry
         )
     {
-        collection = ICollectionHelpers(collectionHelpers)
-            .createNonfungibleCollection(name, name, symbol);
+        ICollectionHelpers collectionHelpers_ = ICollectionHelpers(
+            collectionHelpers
+        );
 
-        ICollection(collection).setTokenPropertyPermission(
+        collection = collectionHelpers_.createNFTCollection{value: msg.value}(
+            name,
+            name,
+            symbol
+        );
+        collectionHelpers_.makeCollectionERC721MetadataCompatible(
+            collection,
+            tokenURI
+        );
+
+        ICollection collection_ = ICollection(collection);
+
+        collection_.addCollectionAdmin(address(this));
+        collection_.changeCollectionOwner(msg.sender);
+        collection_.setTokenPropertyPermission(
             ROYALTIES_PROPERTY,
             false,
             true,
@@ -43,13 +58,19 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         );
     }
 
-    function _mint(address claimer, uint256 tokenId) internal virtual override {
-        if (tokenId == 0) {
-            return ERC721._mint(claimer, tokenId);
+    function _mint(address claimer, uint256 tokenId_)
+        internal
+        virtual
+        override
+    {
+        if (tokenId_ == 0) {
+            return ERC721._mint(claimer, tokenId_);
         }
 
         ICollection collection_ = ICollection(collection);
-        collection_.mintWithTokenURI(claimer, tokenId, tokenURI_);
+
+        uint256 tokenId = collection_.mint(claimer);
+
         collection_.setProperty(
             tokenId,
             ROYALTIES_PROPERTY,
@@ -68,13 +89,15 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         ICollection collection_ = ICollection(collection);
 
+        address owner = collection_.ownerOf(tokenId);
+
         require(
-            collection_.ownerOf(tokenId) == from,
+            owner == from,
             "LemonadePoapV1Unique: transfer from incorrect owner"
         );
         require(
-            isApprovedForAll(from, msg.sender),
-            "LemonadePoapV1Unique: transfer caller is not approved"
+            msg.sender == owner || isApprovedForAll(owner, msg.sender),
+            "LemonadePoapV1Unique: transfer caller is not owner nor approved"
         );
 
         collection_.transferFrom(from, to, tokenId);
