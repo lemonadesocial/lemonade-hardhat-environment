@@ -21,7 +21,7 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: process.env.PRIVATE_KEY ? {
-      'default':  '0',
+      'default':      0,
     } : {
       'default':        '0xFB756b44060e426731e54e9F433c43c75ee90d9f',
       'aurora':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
