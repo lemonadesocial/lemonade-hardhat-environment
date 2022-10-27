@@ -9,6 +9,8 @@ string constant ROYALTIES_PROPERTY = "royalties";
 interface ICollection is IERC721 {
     function addCollectionAdmin(address newAdmin) external;
 
+    function addToCollectionAllowList(address user) external;
+
     function changeCollectionOwner(address newOwner) external;
 
     function mint(address to) external returns (uint256);

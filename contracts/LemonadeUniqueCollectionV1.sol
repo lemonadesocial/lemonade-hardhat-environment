@@ -33,6 +33,7 @@ contract LemonadeUniqueCollectionV1 is IMintable {
         ICollection collection_ = ICollection(collection);
 
         collection_.addCollectionAdmin(address(this));
+        collection_.addToCollectionAllowList(address(this));
         collection_.changeCollectionOwner(msg.sender);
         collection_.setTokenPropertyPermission(
             ROYALTIES_PROPERTY,
