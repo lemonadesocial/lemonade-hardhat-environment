@@ -23,27 +23,34 @@ const config: HardhatUserConfig = {
     deployer: process.env.PRIVATE_KEY ? {
       'default':  '0',
     } : {
-      'default':      '0xFB756b44060e426731e54e9F433c43c75ee90d9f',
-      'aurora':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'arbitrum-one': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'bnb':          '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'ethereum':     '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'polygon':      '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'moonbeam':     '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'default':        '0xFB756b44060e426731e54e9F433c43c75ee90d9f',
+      'aurora':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'arbitrum-nova':  '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'arbitrum-one':   '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'bnb':            '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'polygon':        '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'moonbeam':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
     },
   },
   networks: {
-    'arbitrum-one': {
-      url: process.env.NETWORK_ARBITRUM_ONE_URL || 'https://arb1.arbitrum.io/rpc',
-      chainId: 42161,
-      accounts,
-      deploy: ['deploy/__all__', 'deploy/arbitrum-one'],
-    },
     'arbitrum-goerli': {
       url: process.env.NETWORK_ARBITRUM_GOERLI_URL || 'https://goerli-rollup.arbitrum.io/rpc',
       chainId: 421613,
       accounts,
       deploy: ['deploy/__all__', 'deploy/arbitrum-goerli'],
+    },
+    'arbitrum-nova': {
+      url: process.env.NETWORK_ARBITRUM_NOVA_URL || 'https://nova.arbitrum.io/rpc',
+      chainId: 42170,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/arbitrum-nova'],
+    },
+    'arbitrum-one': {
+      url: process.env.NETWORK_ARBITRUM_ONE_URL || 'https://arb1.arbitrum.io/rpc',
+      chainId: 42161,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/arbitrum-one'],
     },
     'aurora': {
       url: process.env.NETWORK_AURORA_URL || 'https://mainnet.aurora.dev/',
