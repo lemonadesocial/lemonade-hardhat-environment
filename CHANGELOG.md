@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.12.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.11.0...v2.12.0) (2022-11-16)
+
+
+### Features
+
+* add arbitrum nova chain ([31d9e0d](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/31d9e0de58f0a957fabf641db9a1e3bd7091c832))
+
 ## [2.11.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.10.0...v2.11.0) (2022-09-24)
 
 
