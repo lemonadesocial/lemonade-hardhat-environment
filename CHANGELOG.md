@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.13.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.12.0...v2.13.0) (2022-11-17)
+
+
+### Features
+
+* update opal deployments ([4457d78](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/4457d7832954b7dde3aae9b0273a9f8fd292c6b7))
+* upgrade unique contracts for new release ([2c9a5c2](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/2c9a5c23e2b0f40d721aa247e2e2b8b3360843ca))
+
+
+### Bug Fixes
+
+* fix deployments when using specific private key ([8778b27](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/8778b2700bbbfcd39f4f0c4233127973eaa3c7ab))
+
 ## [2.12.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.11.0...v2.12.0) (2022-11-16)
 
 
