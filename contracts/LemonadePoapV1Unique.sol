@@ -11,6 +11,8 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
     address public collection;
 
+    bytes public royaltiesBytes;
+
     constructor(
         string memory name,
         string memory symbol,
@@ -50,12 +52,17 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         collection_.addCollectionAdmin(address(this));
         collection_.changeCollectionOwner(msg.sender);
-        collection_.setTokenPropertyPermission(
-            ROYALTIES_PROPERTY,
-            false,
-            true,
-            false
-        );
+
+        if (royalties.length > 0) {
+            collection_.setTokenPropertyPermission(
+                ROYALTIES_PROPERTY,
+                false,
+                true,
+                false
+            );
+
+            royaltiesBytes = abi.encode(royalties);
+        }
     }
 
     function _mint(address claimer, uint256 tokenId_)
@@ -71,11 +78,13 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         uint256 tokenId = collection_.mint(claimer);
 
-        collection_.setProperty(
-            tokenId,
-            ROYALTIES_PROPERTY,
-            abi.encode(royalties)
-        );
+        if (royaltiesBytes.length > 0) {
+            collection_.setProperty(
+                tokenId,
+                ROYALTIES_PROPERTY,
+                royaltiesBytes
+            );
+        }
     }
 
     function transferFrom(
