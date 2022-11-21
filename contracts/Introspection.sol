@@ -11,6 +11,8 @@ contract Introspection {
         address account,
         bytes4[] memory interfaceIds
     ) public view returns (bool[] memory) {
+        require(account.code.length > 0, "Introspection: account not a contract");
+
         return account.getSupportedInterfaces(interfaceIds);
     }
 }
