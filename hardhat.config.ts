@@ -31,6 +31,7 @@ const config: HardhatUserConfig = {
       'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'polygon':        '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'moonbeam':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'sapphire':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
     },
   },
   networks: {
@@ -123,6 +124,12 @@ const config: HardhatUserConfig = {
       chainId: 1284,
       accounts,
       deploy: ['deploy/__all__', 'deploy/moonbeam'],
+    },
+    'sapphire': {
+      url: process.env.NETWORK_SAPPHIRE_URL || 'https://rpc-sapphire.unique.network/',
+      chainId: 8883,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/sapphire'],
     },
   },
   solidity: {
