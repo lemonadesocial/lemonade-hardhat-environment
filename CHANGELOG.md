@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.14.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.13.0...v2.14.0) (2022-11-23)
+
+
+### Features
+
+* add sapphire chain ([7fa1987](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/7fa1987cbb07268cd8f186faa0bcbdbec5294700))
+* **Introspection:** revert if account not a contract ([6a40ba1](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6a40ba1dbbbee1b693086b0f61e2278bb102fef5))
+* **LemonadePoapV1Unique:** only set royalties if present ([4dd3946](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/4dd3946cd69d2c3da3e3401696cd3bd1a3d34d39))
+
 ## [2.13.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.12.0...v2.13.0) (2022-11-17)
 
 
