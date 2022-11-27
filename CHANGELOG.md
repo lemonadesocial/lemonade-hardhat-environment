@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.15.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.14.0...v2.15.0) (2022-11-27)
+
+
+### Features
+
+* add ChainlinkRequest and Operator deployments ([e94ae85](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e94ae85b1f3983ba048d1eb74b74ff6fabe18352))
+* add LemonadeMarketplaceV2 deployments ([70835ef](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/70835ef4c6651705eb7e60b5c594e8f784a08b18))
+* **LemonadeMarketplaceV2:** add ability to pay on someone's behalf ([9f1c7ba](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9f1c7babe20caa68b27b77ad06a9dabb1da9915e))
+* **LemonadeMarketplaceV2:** copy LemonadeMarketplaceV1 ([cf062d5](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/cf062d530e4b124875a141944d341ab22a3f3b88))
+
 ## [2.14.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.13.0...v2.14.0) (2022-11-23)
 
 
