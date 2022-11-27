@@ -201,7 +201,7 @@ contract LemonadeMarketplaceV2 is AccessControlEnumerable {
         emit OrderCancelled(orderId);
     }
 
-    function bidOrder(uint256 orderId, uint256 amount)
+    function bidOrder(uint256 orderId, uint256 amount, address subject)
         external
         payable
         virtual
@@ -246,14 +246,16 @@ contract LemonadeMarketplaceV2 is AccessControlEnumerable {
             }
         }
 
-        _orders[orderId].bidder = _msgSender();
+        address spender = _msgSender();
+
+        _orders[orderId].bidder = subject != address(0) ? subject : spender;
         _orders[orderId].bidAmount = amount;
         order_ = _orders[orderId];
 
         if (order_.bidAmount > 0) {
             transfer(
                 order_.currency,
-                order_.bidder,
+                spender,
                 address(this),
                 order_.bidAmount
             );
@@ -262,7 +264,7 @@ contract LemonadeMarketplaceV2 is AccessControlEnumerable {
         emit OrderBid(orderId, order_.bidder, order_.bidAmount);
     }
 
-    function fillOrder(uint256 orderId, uint256 amount)
+    function fillOrder(uint256 orderId, uint256 amount, address subject)
         external
         payable
         virtual
@@ -292,9 +294,9 @@ contract LemonadeMarketplaceV2 is AccessControlEnumerable {
                 "LemonadeMarketplace: amount must match tx value"
             );
 
-            _orders[orderId].taker = _msgSender();
-            _orders[orderId].paidAmount = amount;
             spender = _msgSender();
+            _orders[orderId].taker = subject != address(0) ? subject : spender;
+            _orders[orderId].paidAmount = amount;
         } else if (order_.kind == OrderKind.Auction) {
             require(
                 (order_.bidder != address(0)),
