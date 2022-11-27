@@ -7,7 +7,7 @@ const TRUSTED_FORWARDER = '0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56b8';
 const deployFunction: DeployFunction = async function ({ deployments: { deploy }, getNamedAccounts }) {
   const { deployer: from } = await getNamedAccounts();
 
-  await deploy('LemonadeMarketplaceV1Forwardable', {
+  await deploy('LemonadeMarketplaceV2Forwardable', {
     args: [FEE_ACCOUNT, FEE_VALUE, TRUSTED_FORWARDER],
     from,
     log: true,
