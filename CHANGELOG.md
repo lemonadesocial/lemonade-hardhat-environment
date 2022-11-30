@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.16.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.15.0...v2.16.0) (2022-11-30)
+
+
+### Features
+
+* reset opal chain ([bfdafc0](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/bfdafc0c4752f475534f7076b529a9d9ffee9f97))
+
 ## [2.15.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.14.0...v2.15.0) (2022-11-27)
 
 
