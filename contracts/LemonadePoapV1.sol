@@ -79,10 +79,10 @@ contract LemonadePoapV1 is
         uint256 tokenId = tokenIdTracker.current();
 
         if (maxSupply != 0 && tokenId == maxSupply) {
-            return "LemonadePoap: already claimed";
+            return "LemonadePoap: all tokens claimed";
         }
         if (claimed[claimer]) {
-            return "LemonadePoap: all tokens claimed";
+            return "LemonadePoap: already claimed";
         }
 
         _mint(claimer, tokenId);
