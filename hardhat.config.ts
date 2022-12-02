@@ -15,8 +15,10 @@ const accounts =
 const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
-      polygon: process.env.ETHERSCAN_POLYGON_API_KEY,
-      polygonMumbai: process.env.ETHERSCAN_MUMBAI_API_KEY,
+      arbitrumOne: process.env.ETHERSCAN_ARBITRUM_API_KEY || '',
+      arbitrumGoerli: process.env.ETHERSCAN_ARBITRUM_API_KEY || '',
+      polygon: process.env.ETHERSCAN_POLYGON_API_KEY || '',
+      polygonMumbai: process.env.ETHERSCAN_POLYGON_API_KEY || '',
     },
   },
   namedAccounts: {
