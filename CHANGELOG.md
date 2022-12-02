@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.17.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.16.0...v2.17.0) (2022-12-02)
+
+
+### Features
+
+* **FestivalHeadsV1:** add festival heads contract ([ec5928a](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/ec5928a908ff104f70569a3ffca9b4d3c3800429))
+* upgrade hardhat etherscan and add arbitrum support ([50cca70](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/50cca70259f0049370d647a21534046d740893f3))
+
+
+### Bug Fixes
+
+* **LemonadePoapV1:** fix wrong mint errors ([f94814d](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f94814d36ba1b45e8ce4c99a6a7bce79b869917b))
+
 ## [2.16.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.15.0...v2.16.0) (2022-11-30)
 
 
