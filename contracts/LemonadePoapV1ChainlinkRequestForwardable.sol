@@ -42,4 +42,8 @@ contract LemonadePoapV1ChainlinkRequestForwardable is
     {
         return RelayRecipient._msgSender();
     }
+
+    function setTrustedForwarder(address trustedForwarder_) public onlyOwner {
+        trustedForwarder = trustedForwarder_;
+    }
 }
