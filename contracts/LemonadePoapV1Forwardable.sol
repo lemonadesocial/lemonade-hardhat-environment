@@ -37,4 +37,8 @@ contract LemonadePoapV1Forwardable is LemonadePoapV1, RelayRecipient {
     {
         return RelayRecipient._msgSender();
     }
+
+    function setTrustedForwarder(address trustedForwarder_) public onlyOwner {
+        trustedForwarder = trustedForwarder_;
+    }
 }
