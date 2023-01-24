@@ -35,7 +35,7 @@ contract LemonadePoapV1ChainlinkRequest is LemonadePoapV1 {
 
     function _claim(address claimer) internal virtual override {
         if (chainlinkRequest == address(0)) {
-            LemonadePoapV1._claim(claimer);
+            super._claim(claimer);
         } else {
             bytes memory state = abi.encode(claimer);
 

@@ -168,7 +168,7 @@ contract LemonadePoapV1 is
             return true;
         }
 
-        return ERC721.isApprovedForAll(owner, operator);
+        return super.isApprovedForAll(owner, operator);
     }
 
     function supportsInterface(bytes4 interfaceId)

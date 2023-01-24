@@ -71,7 +71,7 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         override
     {
         if (tokenId_ == 0) {
-            return ERC721._mint(claimer, tokenId_);
+            return super._mint(claimer, tokenId_);
         }
 
         ICollection collection_ = ICollection(collection);
@@ -93,7 +93,7 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         uint256 tokenId
     ) public virtual override {
         if (tokenId == 0) {
-            return ERC721.transferFrom(from, to, tokenId);
+            return super.transferFrom(from, to, tokenId);
         }
 
         ICollection collection_ = ICollection(collection);
