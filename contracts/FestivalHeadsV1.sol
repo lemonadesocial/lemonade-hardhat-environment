@@ -5,12 +5,12 @@ pragma solidity ^0.8.0;
 import "./AccessRegistry.sol";
 import "./ChainlinkRequest.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
+bytes32 constant FESTIVAL_HEADS_OPERATOR_ROLE = keccak256("FESTIVAL_HEADS_OPERATOR_ROLE");
 bytes32 constant TRUSTED_CLAIMER_ROLE = keccak256("TRUSTED_CLAIMER_ROLE");
-bytes32 constant TRUSTED_OPERATOR_ROLE = keccak256("TRUSTED_OPERATOR_ROLE");
 
 interface IFestivalHeadsV1 is IERC721 {
     function hasClaimed(
@@ -22,10 +22,10 @@ interface IFestivalHeadsV1 is IERC721 {
     function totalSupply() external view returns (uint256);
 }
 
-contract FestivalHeadsV1 is ERC721Burnable, Ownable, IFestivalHeadsV1 {
+contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     using Counters for Counters.Counter;
 
-    uint256 public immutable maxSupply;
+    uint256 public maxSupply;
     address public immutable accessRegistry;
     address public chainlinkRequest;
 
@@ -38,24 +38,16 @@ contract FestivalHeadsV1 is ERC721Burnable, Ownable, IFestivalHeadsV1 {
     constructor(
         string memory name,
         string memory symbol,
+        address creator,
         uint256 maxSupply_,
         address accessRegistry_,
         address chainlinkRequest_
     ) ERC721(name, symbol) {
+        _transferOwnership(creator);
+
         maxSupply = maxSupply_;
         accessRegistry = accessRegistry_;
         chainlinkRequest = chainlinkRequest_;
-    }
-
-    function tokenURI(
-        uint256 tokenId
-    ) public view virtual override returns (string memory) {
-        require(
-            _exists(tokenId),
-            "FestivalHeadsV1: URI query for nonexistent token"
-        );
-
-        return tokenURIs[tokenId];
     }
 
     function _mint(
@@ -75,7 +67,6 @@ contract FestivalHeadsV1 is ERC721Burnable, Ownable, IFestivalHeadsV1 {
 
         claimed[claimer] = true;
         tokenURIs[tokenId] = tokenURI_;
-
         tokenIdTracker.increment();
         return "";
     }
@@ -149,20 +140,15 @@ contract FestivalHeadsV1 is ERC721Burnable, Ownable, IFestivalHeadsV1 {
         return (tokenIdTracker.current());
     }
 
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) public view virtual override(ERC721, IERC721) returns (bool isOperator) {
-        if (
+    function _isApprovedOrOwner(
+        address spender,
+        uint256
+    ) internal view virtual override returns (bool) {
+        return
             AccessRegistry(accessRegistry).hasRole(
-                TRUSTED_OPERATOR_ROLE,
-                operator
-            )
-        ) {
-            return true;
-        }
-
-        return ERC721.isApprovedForAll(owner, operator);
+                FESTIVAL_HEADS_OPERATOR_ROLE,
+                spender
+            );
     }
 
     function supportsInterface(
@@ -173,7 +159,68 @@ contract FestivalHeadsV1 is ERC721Burnable, Ownable, IFestivalHeadsV1 {
             super.supportsInterface(interfaceId);
     }
 
-    function setChainlinkRequest(address chainlinkRequest_) public onlyOwner {
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
+        require(
+            _exists(tokenId),
+            "FestivalHeadsV1: URI query for nonexistent token"
+        );
+
+        return tokenURIs[tokenId];
+    }
+
+    function setChainlinkRequest(
+        address chainlinkRequest_
+    ) public onlyFestivalHeadsOperator {
         chainlinkRequest = chainlinkRequest_;
+    }
+
+    function setMaxSupply(uint256 maxSupply_) public onlyFestivalHeadsOperator {
+        maxSupply = maxSupply_;
+    }
+
+    function burn(
+        uint256 tokenId,
+        bool reset
+    ) public onlyFestivalHeadsOperator {
+        if (reset) {
+            claimed[ownerOf(tokenId)] = false;
+        }
+
+        _burn(tokenId);
+    }
+
+    function mint(
+        address claimer,
+        string memory tokenURI_,
+        uint256 tokenId
+    ) public onlyFestivalHeadsOperator {
+        uint256 nextTokenId = tokenIdTracker.current();
+
+        require(
+            tokenId <= nextTokenId && tokenId != maxSupply,
+            "FestivalHeadsV1: token out of range"
+        );
+
+        _mint(claimer, tokenId);
+
+        claimed[claimer] = true;
+        tokenURIs[tokenId] = tokenURI_;
+
+        if (tokenId == nextTokenId) {
+            tokenIdTracker.increment();
+        }
+    }
+
+    modifier onlyFestivalHeadsOperator() {
+        require(
+            AccessRegistry(accessRegistry).hasRole(
+                FESTIVAL_HEADS_OPERATOR_ROLE,
+                _msgSender()
+            ),
+            "FestivalHeadsV1: missing festival heads operator role"
+        );
+        _;
     }
 }
