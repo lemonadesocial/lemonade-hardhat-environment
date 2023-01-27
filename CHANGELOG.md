@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.18.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.17.0...v2.18.0) (2023-01-27)
+
+
+### Features
+
+* **AccessRegistry:** add arbitrum one festival heads operator ([0533c07](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/0533c079208bd5e3f90f83b5e0c74d2b23c3c4d9))
+* **FestivalHeadsV1:** update festival heads contract ([1b057b6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/1b057b67298d358295e626cb50ecaf9ad764141d))
+* **LemonadePoapV1ChainlinkRequestForwardable:** add set trusted forwarder ([2cc5544](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/2cc5544835712e184e77011c61e88cd7db59778d))
+* **LemonadePoapV1Forwardable:** add set trusted forwarder ([6a9d271](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6a9d2712f9489db17b62514964dad04bce93433c))
+* **LemonadePoapV1:** refactor super calls ([36e50a9](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/36e50a966b707f8df7d752b20d7d73c4ad212605))
+
 ## [2.17.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.16.0...v2.17.0) (2022-12-02)
 
 
