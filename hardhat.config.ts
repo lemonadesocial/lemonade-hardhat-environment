@@ -31,6 +31,7 @@ const config: HardhatUserConfig = {
       'arbitrum-one':   '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'bnb':            '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'optimism':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'polygon':        '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'moonbeam':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'sapphire':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
@@ -102,6 +103,18 @@ const config: HardhatUserConfig = {
       chainId: 8882,
       accounts,
       deploy: ['deploy/__all__', 'deploy/opal'],
+    },
+    'optimism': {
+      url: process.env.NETWORK_OPTIMISM_URL || 'https://mainnet.optimism.io',
+      chainId: 10,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/optimism'],
+    },
+    'optimism-goerli': {
+      url: process.env.NETWORK_OPTIMISM_GOERLI_URL || 'https://goerli.optimism.io',
+      chainId: 420,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/optimism-goerli'],
     },
     'polygon': {
       url: process.env.NETWORK_POLYGON_URL || 'https://polygon-rpc.com/',
