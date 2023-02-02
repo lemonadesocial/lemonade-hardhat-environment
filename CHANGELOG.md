@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.19.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.18.0...v2.19.0) (2023-02-01)
+
+
+### Features
+
+* add optimism and optimism goerli chains ([2823c09](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/2823c09b132e3c3b553a345f4d142d03682476c3))
+
 ## [2.18.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.17.0...v2.18.0) (2023-01-27)
 
 
