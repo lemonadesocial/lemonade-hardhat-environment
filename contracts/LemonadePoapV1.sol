@@ -75,16 +75,22 @@ contract LemonadePoapV1 is
         _mint(creator_);
     }
 
-    function _mint(address claimer) internal virtual {
-        uint256 tokenId = tokenIdTracker.current();
-
+    function _checkBeforeMint(
+        address claimer,
+        uint256 tokenId
+    ) internal virtual {
         if (maxSupply != 0 && tokenId == maxSupply) {
             revert AllClaimed();
         }
         if (claimed[claimer]) {
             revert AlreadyClaimed();
         }
+    }
 
+    function _mint(address claimer) internal virtual {
+        uint256 tokenId = tokenIdTracker.current();
+
+        _checkBeforeMint(claimer, tokenId);
         _mint(claimer, tokenId);
 
         claimed[claimer] = true;

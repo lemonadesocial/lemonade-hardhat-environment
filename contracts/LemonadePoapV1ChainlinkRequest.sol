@@ -6,10 +6,12 @@ import "./ChainlinkRequest.sol";
 import "./LemonadePoapV1.sol";
 
 contract LemonadePoapV1ChainlinkRequest is LemonadePoapV1 {
-    address public chainlinkRequest;
+    using Counters for Counters.Counter;
 
     event ClaimFailed(string reason);
     event ClaimFailedBytes(bytes reason);
+
+    address public chainlinkRequest;
 
     constructor(
         string memory name,
@@ -36,15 +38,17 @@ contract LemonadePoapV1ChainlinkRequest is LemonadePoapV1 {
 
     function _mint(address claimer) internal virtual override {
         if (chainlinkRequest == address(0)) {
-            super._mint(claimer);
-        } else {
-            bytes memory state = abi.encode(claimer);
-
-            ChainlinkRequest(chainlinkRequest).requestBytes(
-                this.fulfillClaim.selector,
-                state
-            );
+            return super._mint(claimer);
         }
+
+        _checkBeforeMint(claimer, tokenIdTracker.current());
+
+        bytes memory state = abi.encode(claimer);
+
+        ChainlinkRequest(chainlinkRequest).requestBytes(
+            this.fulfillClaim.selector,
+            state
+        );
     }
 
     function fulfillMint(address claimer) external {
