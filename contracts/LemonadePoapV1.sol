@@ -35,6 +35,11 @@ contract LemonadePoapV1 is
 {
     using Counters for Counters.Counter;
 
+    error AllClaimed();
+    error AlreadyClaimed();
+    error Forbidden();
+    error NotFound();
+
     address public immutable creator;
     string public tokenURI_;
     LibPart.Part[] public royalties;
@@ -70,23 +75,20 @@ contract LemonadePoapV1 is
         _mint(creator_);
     }
 
-    function _mint(
-        address claimer
-    ) internal virtual returns (string memory err) {
+    function _mint(address claimer) internal virtual {
         uint256 tokenId = tokenIdTracker.current();
 
         if (maxSupply != 0 && tokenId == maxSupply) {
-            return "LemonadePoap: all tokens claimed";
+            revert AllClaimed();
         }
         if (claimed[claimer]) {
-            return "LemonadePoap: already claimed";
+            revert AlreadyClaimed();
         }
 
         _mint(claimer, tokenId);
 
         claimed[claimer] = true;
         tokenIdTracker.increment();
-        return "";
     }
 
     function _afterTokenTransfer(
@@ -99,30 +101,23 @@ contract LemonadePoapV1 is
         }
     }
 
-    function _claim(address claimer) internal virtual {
-        string memory err = _mint(claimer);
-
-        if (bytes(err).length > 0) {
-            revert(err);
-        }
-    }
-
     function claim() public virtual override {
         address claimer = _msgSender();
 
-        _claim(claimer);
+        _mint(claimer);
     }
 
     function claimTo(address claimer) public virtual {
-        require(
-            AccessRegistry(accessRegistry).hasRole(
+        if (
+            !AccessRegistry(accessRegistry).hasRole(
                 TRUSTED_CLAIMER_ROLE,
                 _msgSender()
-            ),
-            "LemonadePoap: missing trusted claimer role"
-        );
+            )
+        ) {
+            revert Forbidden();
+        }
 
-        _claim(claimer);
+        _mint(claimer);
     }
 
     function hasClaimed(
@@ -174,10 +169,9 @@ contract LemonadePoapV1 is
     function tokenURI(
         uint256 tokenId
     ) public view virtual override returns (string memory) {
-        require(
-            _exists(tokenId),
-            "LemonadePoap: URI query for nonexistent token"
-        );
+        if (!_exists(tokenId)) {
+            revert NotFound();
+        }
 
         return tokenURI_;
     }

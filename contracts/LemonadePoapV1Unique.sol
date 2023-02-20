@@ -99,14 +99,9 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         address owner = collection_.ownerOf(tokenId);
 
-        require(
-            owner == from,
-            "LemonadePoapV1Unique: transfer from incorrect owner"
-        );
-        require(
-            msg.sender == owner || isApprovedForAll(owner, msg.sender),
-            "LemonadePoapV1Unique: transfer caller is not owner nor approved"
-        );
+        if (msg.sender != owner && !isApprovedForAll(owner, msg.sender)) {
+            revert Forbidden();
+        }
 
         collection_.transferFrom(from, to, tokenId);
     }
