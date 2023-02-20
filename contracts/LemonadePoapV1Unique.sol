@@ -65,11 +65,10 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         }
     }
 
-    function _mint(address claimer, uint256 tokenId_)
-        internal
-        virtual
-        override
-    {
+    function _mint(
+        address claimer,
+        uint256 tokenId_
+    ) internal virtual override {
         if (tokenId_ == 0) {
             return super._mint(claimer, tokenId_);
         }

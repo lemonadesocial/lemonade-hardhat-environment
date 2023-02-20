@@ -17,10 +17,9 @@ bytes32 constant TRUSTED_OPERATOR_ROLE = keccak256("TRUSTED_OPERATOR_ROLE");
 interface ILemonadePoapV1 is IERC721 {
     function claim() external;
 
-    function hasClaimed(address[] calldata claimers)
-        external
-        view
-        returns (bool[] memory);
+    function hasClaimed(
+        address[] calldata claimers
+    ) external view returns (bool[] memory);
 
     function supply() external view returns (uint256, uint256);
 
@@ -71,11 +70,9 @@ contract LemonadePoapV1 is
         _mint(creator_);
     }
 
-    function _mint(address claimer)
-        internal
-        virtual
-        returns (string memory err)
-    {
+    function _mint(
+        address claimer
+    ) internal virtual returns (string memory err) {
         uint256 tokenId = tokenIdTracker.current();
 
         if (maxSupply != 0 && tokenId == maxSupply) {
@@ -128,13 +125,9 @@ contract LemonadePoapV1 is
         _claim(claimer);
     }
 
-    function hasClaimed(address[] calldata claimers)
-        public
-        view
-        virtual
-        override
-        returns (bool[] memory)
-    {
+    function hasClaimed(
+        address[] calldata claimers
+    ) public view virtual override returns (bool[] memory) {
         uint256 length = claimers.length;
         bool[] memory result = new bool[](length);
 
@@ -152,13 +145,10 @@ contract LemonadePoapV1 is
         return (tokenIdTracker.current());
     }
 
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override(ERC721, IERC721)
-        returns (bool isOperator)
-    {
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view virtual override(ERC721, IERC721) returns (bool isOperator) {
         if (
             AccessRegistry(accessRegistry).hasRole(
                 TRUSTED_OPERATOR_ROLE,
@@ -171,13 +161,9 @@ contract LemonadePoapV1 is
         return super.isApprovedForAll(owner, operator);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(IERC165, ERC721)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(IERC165, ERC721) returns (bool) {
         return
             interfaceId == type(IERC2981).interfaceId ||
             interfaceId == type(ILemonadePoapV1).interfaceId ||
@@ -185,13 +171,9 @@ contract LemonadePoapV1 is
             super.supportsInterface(interfaceId);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
         require(
             _exists(tokenId),
             "LemonadePoap: URI query for nonexistent token"
@@ -200,21 +182,16 @@ contract LemonadePoapV1 is
         return tokenURI_;
     }
 
-    function getRaribleV2Royalties(uint256)
-        public
-        view
-        override
-        returns (LibPart.Part[] memory)
-    {
+    function getRaribleV2Royalties(
+        uint256
+    ) public view override returns (LibPart.Part[] memory) {
         return royalties;
     }
 
-    function royaltyInfo(uint256, uint256 price)
-        public
-        view
-        override
-        returns (address receiver, uint256 royaltyAmount)
-    {
+    function royaltyInfo(
+        uint256,
+        uint256 price
+    ) public view override returns (address receiver, uint256 royaltyAmount) {
         uint256 length = royalties.length;
 
         if (length == 0) {

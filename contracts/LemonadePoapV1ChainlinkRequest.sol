@@ -46,10 +46,10 @@ contract LemonadePoapV1ChainlinkRequest is LemonadePoapV1 {
         }
     }
 
-    function fulfillClaim(bytes memory state, bytes memory bytesData)
-        public
-        virtual
-    {
+    function fulfillClaim(
+        bytes memory state,
+        bytes memory bytesData
+    ) public virtual {
         require(
             _msgSender() == chainlinkRequest,
             "LemonadePoap: caller must be access request"
