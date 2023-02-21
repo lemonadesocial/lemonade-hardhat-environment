@@ -17,10 +17,9 @@ bytes32 constant TRUSTED_OPERATOR_ROLE = keccak256("TRUSTED_OPERATOR_ROLE");
 interface ILemonadePoapV1 is IERC721 {
     function claim() external;
 
-    function hasClaimed(address[] calldata claimers)
-        external
-        view
-        returns (bool[] memory);
+    function hasClaimed(
+        address[] calldata claimers
+    ) external view returns (bool[] memory);
 
     function supply() external view returns (uint256, uint256);
 
@@ -35,6 +34,11 @@ contract LemonadePoapV1 is
     RoyaltiesV2
 {
     using Counters for Counters.Counter;
+
+    error AllClaimed();
+    error AlreadyClaimed();
+    error Forbidden();
+    error NotFound();
 
     address public immutable creator;
     string public tokenURI_;
@@ -71,25 +75,26 @@ contract LemonadePoapV1 is
         _mint(creator_);
     }
 
-    function _mint(address claimer)
-        internal
-        virtual
-        returns (string memory err)
-    {
-        uint256 tokenId = tokenIdTracker.current();
-
+    function _checkBeforeMint(
+        address claimer,
+        uint256 tokenId
+    ) internal virtual {
         if (maxSupply != 0 && tokenId == maxSupply) {
-            return "LemonadePoap: all tokens claimed";
+            revert AllClaimed();
         }
         if (claimed[claimer]) {
-            return "LemonadePoap: already claimed";
+            revert AlreadyClaimed();
         }
+    }
 
+    function _mint(address claimer) internal virtual {
+        uint256 tokenId = tokenIdTracker.current();
+
+        _checkBeforeMint(claimer, tokenId);
         _mint(claimer, tokenId);
 
         claimed[claimer] = true;
         tokenIdTracker.increment();
-        return "";
     }
 
     function _afterTokenTransfer(
@@ -102,39 +107,28 @@ contract LemonadePoapV1 is
         }
     }
 
-    function _claim(address claimer) internal virtual {
-        string memory err = _mint(claimer);
-
-        if (bytes(err).length > 0) {
-            revert(err);
-        }
-    }
-
     function claim() public virtual override {
         address claimer = _msgSender();
 
-        _claim(claimer);
+        _mint(claimer);
     }
 
     function claimTo(address claimer) public virtual {
-        require(
-            AccessRegistry(accessRegistry).hasRole(
+        if (
+            !AccessRegistry(accessRegistry).hasRole(
                 TRUSTED_CLAIMER_ROLE,
                 _msgSender()
-            ),
-            "LemonadePoap: missing trusted claimer role"
-        );
+            )
+        ) {
+            revert Forbidden();
+        }
 
-        _claim(claimer);
+        _mint(claimer);
     }
 
-    function hasClaimed(address[] calldata claimers)
-        public
-        view
-        virtual
-        override
-        returns (bool[] memory)
-    {
+    function hasClaimed(
+        address[] calldata claimers
+    ) public view virtual override returns (bool[] memory) {
         uint256 length = claimers.length;
         bool[] memory result = new bool[](length);
 
@@ -152,13 +146,10 @@ contract LemonadePoapV1 is
         return (tokenIdTracker.current());
     }
 
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        virtual
-        override(ERC721, IERC721)
-        returns (bool isOperator)
-    {
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view virtual override(ERC721, IERC721) returns (bool isOperator) {
         if (
             AccessRegistry(accessRegistry).hasRole(
                 TRUSTED_OPERATOR_ROLE,
@@ -171,13 +162,9 @@ contract LemonadePoapV1 is
         return super.isApprovedForAll(owner, operator);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(IERC165, ERC721)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(IERC165, ERC721) returns (bool) {
         return
             interfaceId == type(IERC2981).interfaceId ||
             interfaceId == type(ILemonadePoapV1).interfaceId ||
@@ -185,36 +172,26 @@ contract LemonadePoapV1 is
             super.supportsInterface(interfaceId);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
-    {
-        require(
-            _exists(tokenId),
-            "LemonadePoap: URI query for nonexistent token"
-        );
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
+        if (!_exists(tokenId)) {
+            revert NotFound();
+        }
 
         return tokenURI_;
     }
 
-    function getRaribleV2Royalties(uint256)
-        public
-        view
-        override
-        returns (LibPart.Part[] memory)
-    {
+    function getRaribleV2Royalties(
+        uint256
+    ) public view override returns (LibPart.Part[] memory) {
         return royalties;
     }
 
-    function royaltyInfo(uint256, uint256 price)
-        public
-        view
-        override
-        returns (address receiver, uint256 royaltyAmount)
-    {
+    function royaltyInfo(
+        uint256,
+        uint256 price
+    ) public view override returns (address receiver, uint256 royaltyAmount) {
         uint256 length = royalties.length;
 
         if (length == 0) {

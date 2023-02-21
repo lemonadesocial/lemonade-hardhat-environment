@@ -65,11 +65,10 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         }
     }
 
-    function _mint(address claimer, uint256 tokenId_)
-        internal
-        virtual
-        override
-    {
+    function _mint(
+        address claimer,
+        uint256 tokenId_
+    ) internal virtual override {
         if (tokenId_ == 0) {
             return super._mint(claimer, tokenId_);
         }
@@ -100,14 +99,9 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         address owner = collection_.ownerOf(tokenId);
 
-        require(
-            owner == from,
-            "LemonadePoapV1Unique: transfer from incorrect owner"
-        );
-        require(
-            msg.sender == owner || isApprovedForAll(owner, msg.sender),
-            "LemonadePoapV1Unique: transfer caller is not owner nor approved"
-        );
+        if (msg.sender != owner && !isApprovedForAll(owner, msg.sender)) {
+            revert Forbidden();
+        }
 
         collection_.transferFrom(from, to, tokenId);
     }
