@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.20.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.19.0...v2.20.0) (2023-02-21)
+
+
+### Features
+
+* **LemonadePoapV1ChainlinkRequest:** check mint before request ([6e57bef](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6e57bef18a6782c2bbdba26200830f993ccbd225))
+* **LemonadePoapV1:** use custom errors with revert and try catch ([18a2a6e](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/18a2a6efca047458bdacb43f845e820ebd8f0134))
+
 ## [2.19.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.18.0...v2.19.0) (2023-02-01)
 
 
