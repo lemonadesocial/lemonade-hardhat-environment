@@ -56,7 +56,7 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     ) internal virtual returns (string memory err) {
         uint256 tokenId = tokenIdTracker.current();
 
-        if (maxSupply != 0 && tokenId == maxSupply) {
+        if (tokenId == maxSupply) {
             return "FestivalHeadsV1: all tokens claimed";
         }
         if (claimed[claimer]) {
