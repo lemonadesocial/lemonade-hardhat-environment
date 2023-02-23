@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.21.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.20.0...v2.21.0) (2023-02-23)
+
+
+### Features
+
+* **FestivalHeadsV1:** consider race between max supply change and mint ([60a3f15](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/60a3f15f6764f804037f9fa19f088c318650af43))
+* **FestivalHeadsV1:** don't consider max supply for operator mint ([67275d4](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/67275d499c765e86dde7729a31abf8dbacaf1794))
+* **FestivalHeadsV1:** don't consider max supply of zero as unlimited ([7d4d2b2](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/7d4d2b271d83eb7ec98690511ee7eff3e2ff46fd))
+
 ## [2.20.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.19.0...v2.20.0) (2023-02-21)
 
 
