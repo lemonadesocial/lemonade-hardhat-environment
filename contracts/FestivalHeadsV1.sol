@@ -198,10 +198,7 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     ) public onlyFestivalHeadsOperator {
         uint256 nextTokenId = tokenIdTracker.current();
 
-        require(
-            tokenId <= nextTokenId && tokenId != maxSupply,
-            "FestivalHeadsV1: token out of range"
-        );
+        require(tokenId <= nextTokenId, "FestivalHeadsV1: token out of range");
 
         _mint(claimer, tokenId);
 
