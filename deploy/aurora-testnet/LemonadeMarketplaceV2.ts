@@ -6,7 +6,7 @@ const FEE_VALUE = '200';
 const deployFunction: DeployFunction = async function ({ deployments: { deploy }, getNamedAccounts }) {
   const { deployer: from } = await getNamedAccounts();
 
-  await deploy('LemonadeMarketplaceV1', {
+  await deploy('LemonadeMarketplaceV2', {
     args: [FEE_ACCOUNT, FEE_VALUE],
     from,
     log: true,
