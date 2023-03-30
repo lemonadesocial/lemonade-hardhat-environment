@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.22.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.21.0...v2.22.0) (2023-03-30)
+
+
+### Features
+
+* add celo and gnosis chains ([b7d55f0](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/b7d55f00124d504e98fa272f3fdd97ff70fccd3d))
+* update aurora and aurora testnet deployments ([b6ec4bc](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/b6ec4bc1c978ae274939ed02690291ec0e10b0cd))
+
 ## [2.21.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.20.0...v2.21.0) (2023-02-23)
 
 
