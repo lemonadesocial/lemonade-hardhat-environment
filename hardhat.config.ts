@@ -30,7 +30,9 @@ const config: HardhatUserConfig = {
       'arbitrum-nova':  '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'arbitrum-one':   '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'bnb':            '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'celo':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'gnosis':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'optimism':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'polygon':        '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'moonbeam':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
@@ -80,6 +82,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/bnb-testnet'],
     },
+    'celo': {
+      url: process.env.NETWORK_CELO_URL || 'https://forno.celo.org/',
+      chainId: 42220,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/celo'],
+    },
     'development': {
       url: 'http://127.0.0.1:8545/',
       chainId: 31337,
@@ -91,6 +99,12 @@ const config: HardhatUserConfig = {
       chainId: 1,
       accounts,
       deploy: ['deploy/__all__', 'deploy/ethereum'],
+    },
+    'gnosis': {
+      url: process.env.NETWORK_GNOSIS_URL || 'https://rpc.gnosischain.com/',
+      chainId: 100,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/gnosis'],
     },
     'mumbai': {
       url: process.env.NETWORK_MUMBAI_URL || 'https://rpc-mumbai.matic.today',
