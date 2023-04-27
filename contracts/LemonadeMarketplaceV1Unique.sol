@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 
 import "./LemonadeMarketplaceV1.sol";
 import "./unique/ICollection.sol";
+import "./unique/LibPartAdapter.sol";
+
 
 contract LemonadeMarketplaceV1Unique is LemonadeMarketplaceV1 {
     constructor(address feeAccount, uint96 feeValue)
@@ -27,10 +29,7 @@ contract LemonadeMarketplaceV1Unique is LemonadeMarketplaceV1 {
         try
             ICollection(tokenContract).property(tokenId, ROYALTIES_PROPERTY)
         returns (bytes memory data) {
-            LibPart.Part[] memory royalties = abi.decode(
-                data,
-                (LibPart.Part[])
-            );
+            LibPart.Part[] memory royalties = LibPartAdapter.decode(data);
             return (true, royalties);
         } catch {
             return (false, new LibPart.Part[](0));

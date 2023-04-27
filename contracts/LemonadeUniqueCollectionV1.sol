@@ -6,6 +6,7 @@ import "./ERC721LemonadeV1.sol";
 import "./rarible/LibPart.sol";
 import "./unique/ICollection.sol";
 import "./unique/ICollectionHelpers.sol";
+import "./unique/LibPartAdapter.sol";
 
 contract LemonadeUniqueCollectionV1 is IMintable {
     address public collection;
@@ -61,8 +62,7 @@ contract LemonadeUniqueCollectionV1 is IMintable {
     ) public override returns (uint256) {
         uint256 tokenId = mintToCaller(tokenURI);
 
-        // todo - change royalties impl
-        bytes memory royaltiesBytes = abi.encode(royalties);
+        bytes memory royaltiesBytes = LibPartAdapter.encode(royalties);
         Property[] memory properties = new Property[](1);
         properties[0] = Property({key: ROYALTIES_PROPERTY, value: royaltiesBytes});
 

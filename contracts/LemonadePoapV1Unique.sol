@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "./LemonadePoapV1.sol";
 import "./unique/ICollection.sol";
 import "./unique/ICollectionHelpers.sol";
+import "./unique/LibPartAdapter.sol";
 
 contract LemonadePoapV1Unique is LemonadePoapV1 {
     using Counters for Counters.Counter;
@@ -65,8 +66,7 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
             collection_.setTokenPropertyPermissions(permissionsArray);
 
-            // todo - change royalties impl
-            royaltiesBytes = abi.encode(royalties);
+            royaltiesBytes = LibPartAdapter.encode(royalties);
         }
     }
 
