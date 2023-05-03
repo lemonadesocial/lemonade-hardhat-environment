@@ -78,6 +78,7 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
             TokenPropertyPermission[]
                 memory permissionsArray = new TokenPropertyPermission[](1);
+
             permissionsArray[0] = TokenPropertyPermission({
                 key: ROYALTIES_PROPERTY,
                 permissions: permissions
@@ -103,6 +104,7 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         if (royaltiesBytes.length > 0) {
             Property[] memory properties = new Property[](1);
+
             properties[0] = Property({
                 key: ROYALTIES_PROPERTY,
                 value: royaltiesBytes

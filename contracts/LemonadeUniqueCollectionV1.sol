@@ -3,7 +3,6 @@
 pragma solidity ^0.8.0;
 
 import "./ERC721LemonadeV1.sol";
-import "./rarible/LibPart.sol";
 import "./unique/ICollection.sol";
 import "./unique/ICollectionHelpers.sol";
 import "./unique/LibPartAdapter.sol";
@@ -57,6 +56,7 @@ contract LemonadeUniqueCollectionV1 is IMintable {
 
         TokenPropertyPermission[]
             memory permissionsArray = new TokenPropertyPermission[](1);
+
         permissionsArray[0] = TokenPropertyPermission({
             key: ROYALTIES_PROPERTY,
             permissions: permissions
@@ -77,11 +77,11 @@ contract LemonadeUniqueCollectionV1 is IMintable {
     ) public override returns (uint256) {
         uint256 tokenId = mintToCaller(tokenURI);
 
-        bytes memory royaltiesBytes = LibPartAdapter.encode(royalties);
         Property[] memory properties = new Property[](1);
+
         properties[0] = Property({
             key: ROYALTIES_PROPERTY,
-            value: royaltiesBytes
+            value: LibPartAdapter.encode(royalties)
         });
 
         ICollection(collection).setProperties(tokenId, properties);

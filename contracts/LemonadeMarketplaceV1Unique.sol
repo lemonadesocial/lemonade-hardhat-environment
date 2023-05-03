@@ -27,8 +27,7 @@ contract LemonadeMarketplaceV1Unique is LemonadeMarketplaceV1 {
         try
             ICollection(tokenContract).property(tokenId, ROYALTIES_PROPERTY)
         returns (bytes memory data) {
-            LibPart.Part[] memory royalties = LibPartAdapter.decode(data);
-            return (true, royalties);
+            return (true, LibPartAdapter.decode(data));
         } catch {
             return (false, new LibPart.Part[](0));
         }
