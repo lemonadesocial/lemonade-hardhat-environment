@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "./LemonadePoapV1.sol";
 import "./unique/ICollection.sol";
 import "./unique/ICollectionHelpers.sol";
+import "./unique/LibPartAdapter.sol";
 
 contract LemonadePoapV1Unique is LemonadePoapV1 {
     using Counters for Counters.Counter;
@@ -50,18 +51,22 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         ICollection collection_ = ICollection(collection);
 
-        collection_.addCollectionAdmin(address(this));
-        collection_.changeCollectionOwner(msg.sender);
+        collection_.addCollectionAdminCross(CrossAddress({ eth: address(this), sub: 0 }));
+        collection_.changeCollectionOwnerCross(CrossAddress({ eth: msg.sender, sub: 0 }));
 
         if (royalties.length > 0) {
-            collection_.setTokenPropertyPermission(
-                ROYALTIES_PROPERTY,
-                false,
-                true,
-                false
-            );
+            PropertyPermission[] memory permissions = new PropertyPermission[](3);
 
-            royaltiesBytes = abi.encode(royalties);
+            permissions[0] = PropertyPermission({code: TokenPermissionField.Mutable, value: false});
+            permissions[1] = PropertyPermission({code: TokenPermissionField.CollectionAdmin, value: true});
+            permissions[2] = PropertyPermission({code: TokenPermissionField.TokenOwner, value: false});
+
+            TokenPropertyPermission[] memory permissionsArray = new TokenPropertyPermission[](1);
+            permissionsArray[0] = TokenPropertyPermission({key: ROYALTIES_PROPERTY, permissions: permissions});
+
+            collection_.setTokenPropertyPermissions(permissionsArray);
+
+            royaltiesBytes = LibPartAdapter.encode(royalties);
         }
     }
 
@@ -78,11 +83,10 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
         uint256 tokenId = collection_.mint(claimer);
 
         if (royaltiesBytes.length > 0) {
-            collection_.setProperty(
-                tokenId,
-                ROYALTIES_PROPERTY,
-                royaltiesBytes
-            );
+            Property[] memory properties = new Property[](1);
+            properties[0] = Property({key: ROYALTIES_PROPERTY, value: royaltiesBytes});
+
+            collection_.setProperties(tokenId, properties);
         }
     }
 
