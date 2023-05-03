@@ -29,6 +29,7 @@ const config: HardhatUserConfig = {
       'aurora':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'arbitrum-nova':  '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'arbitrum-one':   '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'avalanche':      '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'bnb':            '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'celo':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
@@ -69,6 +70,12 @@ const config: HardhatUserConfig = {
       chainId: 1313161555,
       accounts,
       deploy: ['deploy/__all__', 'deploy/aurora-testnet'],
+    },
+    'avalanche': {
+      url: process.env.NETWORK_AVALANCHE_URL || 'https://api.avax.network/ext/bc/C/rpc',
+      chainId: 43114,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/avalanche'],
     },
     'bnb': {
       url: process.env.NETWORK_BNB_URL || 'https://bsc-dataseed.binance.org/',
