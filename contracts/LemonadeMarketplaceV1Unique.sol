@@ -6,18 +6,16 @@ import "./LemonadeMarketplaceV1.sol";
 import "./unique/ICollection.sol";
 import "./unique/LibPartAdapter.sol";
 
-
 contract LemonadeMarketplaceV1Unique is LemonadeMarketplaceV1 {
-    constructor(address feeAccount, uint96 feeValue)
-        LemonadeMarketplaceV1(feeAccount, feeValue)
-    {}
+    constructor(
+        address feeAccount,
+        uint96 feeValue
+    ) LemonadeMarketplaceV1(feeAccount, feeValue) {}
 
-    function getRaribleV2Royalties(address tokenContract, uint256 tokenId)
-        public
-        view
-        override
-        returns (bool, LibPart.Part[] memory)
-    {
+    function getRaribleV2Royalties(
+        address tokenContract,
+        uint256 tokenId
+    ) public view override returns (bool, LibPart.Part[] memory) {
         if (!isCollection(tokenContract)) {
             return
                 LemonadeMarketplaceV1.getRaribleV2Royalties(

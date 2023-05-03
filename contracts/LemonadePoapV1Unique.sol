@@ -51,18 +51,37 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         ICollection collection_ = ICollection(collection);
 
-        collection_.addCollectionAdminCross(CrossAddress({ eth: address(this), sub: 0 }));
-        collection_.changeCollectionOwnerCross(CrossAddress({ eth: msg.sender, sub: 0 }));
+        collection_.addCollectionAdminCross(
+            CrossAddress({eth: address(this), sub: 0})
+        );
+        collection_.changeCollectionOwnerCross(
+            CrossAddress({eth: msg.sender, sub: 0})
+        );
 
         if (royalties.length > 0) {
-            PropertyPermission[] memory permissions = new PropertyPermission[](3);
+            PropertyPermission[] memory permissions = new PropertyPermission[](
+                3
+            );
 
-            permissions[0] = PropertyPermission({code: TokenPermissionField.Mutable, value: false});
-            permissions[1] = PropertyPermission({code: TokenPermissionField.CollectionAdmin, value: true});
-            permissions[2] = PropertyPermission({code: TokenPermissionField.TokenOwner, value: false});
+            permissions[0] = PropertyPermission({
+                code: TokenPermissionField.Mutable,
+                value: false
+            });
+            permissions[1] = PropertyPermission({
+                code: TokenPermissionField.CollectionAdmin,
+                value: true
+            });
+            permissions[2] = PropertyPermission({
+                code: TokenPermissionField.TokenOwner,
+                value: false
+            });
 
-            TokenPropertyPermission[] memory permissionsArray = new TokenPropertyPermission[](1);
-            permissionsArray[0] = TokenPropertyPermission({key: ROYALTIES_PROPERTY, permissions: permissions});
+            TokenPropertyPermission[]
+                memory permissionsArray = new TokenPropertyPermission[](1);
+            permissionsArray[0] = TokenPropertyPermission({
+                key: ROYALTIES_PROPERTY,
+                permissions: permissions
+            });
 
             collection_.setTokenPropertyPermissions(permissionsArray);
 
@@ -84,7 +103,10 @@ contract LemonadePoapV1Unique is LemonadePoapV1 {
 
         if (royaltiesBytes.length > 0) {
             Property[] memory properties = new Property[](1);
-            properties[0] = Property({key: ROYALTIES_PROPERTY, value: royaltiesBytes});
+            properties[0] = Property({
+                key: ROYALTIES_PROPERTY,
+                value: royaltiesBytes
+            });
 
             collection_.setProperties(tokenId, properties);
         }
