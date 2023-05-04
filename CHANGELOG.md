@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.23.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.22.0...v2.23.0) (2023-05-04)
+
+
+### Features
+
+* add avalanche chain ([55ade1b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/55ade1bb0f71d711bba8cb668e66f92498e0c316))
+* add unique chain ([416f1f8](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/416f1f836bf2e9292751bfa35ca24cc7d8cdcf12))
+* **LemonadePoapV1Unique:** use updated ICollection methods ([a63081b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a63081baa05e5a8163ca7a9b3523abef9262c42b))
+* **LemonadeUniqueCollectionV1:** use updated ICollection methods ([a923c4d](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a923c4d195db9429dad9ad878dd41efe58012a8a))
+* **LibPartAdapter:** use Unique LibPartAdapter library ([85bc65b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/85bc65bf705816ef6a12f4a8099753973b066d89))
+* remove sapphire chain ([53ff370](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/53ff370b1b336a966e0e28ebdb3e5452356a6d23))
+* update opal deployments ([60701fa](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/60701fab8ea2429010dc614c381f35979ba371cb))
+* update unique collection interface ([76a0dd5](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/76a0dd54d221c77cf211bc5f23ef7d40ebcfd3b0))
+
 ## [2.22.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.21.0...v2.22.0) (2023-03-30)
 
 
