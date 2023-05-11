@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.24.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.23.0...v2.24.0) (2023-05-11)
+
+
+### Features
+
+* add astar chain ([8469b4f](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/8469b4f00fba098a0ee8e5d6b1c56d8a708a2c78))
+
 ## [2.23.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.22.0...v2.23.0) (2023-05-04)
 
 
