@@ -25,6 +25,14 @@ interface IFestivalHeadsV1 is IERC721 {
 contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     using Counters for Counters.Counter;
 
+    error AllClaimed();
+    error AlreadyClaimed();
+    error Forbidden();
+    error NotFound();
+
+    event ClaimFailed(string reason);
+    event ClaimFailedBytes(bytes reason);
+
     uint256 public maxSupply;
     address public immutable accessRegistry;
     address public chainlinkRequest;
@@ -32,8 +40,6 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     Counters.Counter public tokenIdTracker;
     mapping(address => bool) public claimed;
     mapping(uint256 => string) public tokenURIs;
-
-    event ClaimFailed(string reason);
 
     constructor(
         string memory name,
@@ -50,60 +56,68 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
         chainlinkRequest = chainlinkRequest_;
     }
 
-    function _mint(
+    function _checkBeforeMint(
         address claimer,
-        string memory tokenURI_
-    ) internal virtual returns (string memory err) {
-        uint256 tokenId = tokenIdTracker.current();
-
+        uint256 tokenId
+    ) internal virtual {
         if (tokenId >= maxSupply) {
-            return "FestivalHeadsV1: all tokens claimed";
+            revert AllClaimed();
         }
         if (claimed[claimer]) {
-            return "FestivalHeadsV1: already claimed";
+            revert AlreadyClaimed();
         }
+    }
 
+    function _mint(address claimer, string memory tokenURI_) internal virtual {
+        uint256 tokenId = tokenIdTracker.current();
+
+        _checkBeforeMint(claimer, tokenId);
         _mint(claimer, tokenId);
 
         claimed[claimer] = true;
         tokenURIs[tokenId] = tokenURI_;
         tokenIdTracker.increment();
-        return "";
     }
 
     function claimTo(address claimer, string memory tokenURI_) public virtual {
-        require(
-            AccessRegistry(accessRegistry).hasRole(
+        if (
+            !AccessRegistry(accessRegistry).hasRole(
                 TRUSTED_CLAIMER_ROLE,
                 _msgSender()
-            ),
-            "FestivalHeadsV1: missing trusted claimer role"
-        );
+            )
+        ) {
+            revert Forbidden();
+        }
 
         if (chainlinkRequest == address(0)) {
-            string memory err = _mint(claimer, tokenURI_);
-
-            if (bytes(err).length > 0) {
-                revert(err);
-            }
-        } else {
-            bytes memory state = abi.encode(claimer, tokenURI_);
-
-            ChainlinkRequest(chainlinkRequest).requestBytes(
-                this.fulfillClaim.selector,
-                state
-            );
+            return _mint(claimer, tokenURI_);
         }
+
+        _checkBeforeMint(claimer, tokenIdTracker.current());
+
+        bytes memory state = abi.encode(claimer, tokenURI_);
+
+        ChainlinkRequest(chainlinkRequest).requestBytes(
+            this.fulfillClaim.selector,
+            state
+        );
+    }
+
+    function fulfillMint(address claimer, string memory tokenURI_) external {
+        if (_msgSender() != address(this)) {
+            revert Forbidden();
+        }
+
+        _mint(claimer, tokenURI_);
     }
 
     function fulfillClaim(
         bytes memory state,
         bytes memory bytesData
     ) public virtual {
-        require(
-            _msgSender() == chainlinkRequest,
-            "FestivalHeadsV1: caller must be access request"
-        );
+        if (_msgSender() != chainlinkRequest) {
+            revert Forbidden();
+        }
 
         (bool ok, string memory err) = abi.decode(bytesData, (bool, string));
 
@@ -113,7 +127,13 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
                 (address, string)
             );
 
-            err = _mint(claimer, tokenURI_);
+            try this.fulfillMint(claimer, tokenURI_) {
+                /* no-op */
+            } catch Error(string memory reason) {
+                err = reason;
+            } catch (bytes memory reason) {
+                emit ClaimFailedBytes(reason);
+            }
         }
         if (bytes(err).length > 0) {
             emit ClaimFailed(err);
@@ -162,10 +182,9 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     function tokenURI(
         uint256 tokenId
     ) public view virtual override returns (string memory) {
-        require(
-            _exists(tokenId),
-            "FestivalHeadsV1: URI query for nonexistent token"
-        );
+        if (!_exists(tokenId)) {
+            revert NotFound();
+        }
 
         return tokenURIs[tokenId];
     }
@@ -198,7 +217,9 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     ) public onlyFestivalHeadsOperator {
         uint256 nextTokenId = tokenIdTracker.current();
 
-        require(tokenId <= nextTokenId, "FestivalHeadsV1: token out of range");
+        if (tokenId > nextTokenId) {
+            revert NotFound();
+        }
 
         _mint(claimer, tokenId);
 
@@ -211,13 +232,14 @@ contract FestivalHeadsV1 is ERC721, Ownable, IFestivalHeadsV1 {
     }
 
     modifier onlyFestivalHeadsOperator() {
-        require(
-            AccessRegistry(accessRegistry).hasRole(
+        if (
+            !AccessRegistry(accessRegistry).hasRole(
                 FESTIVAL_HEADS_OPERATOR_ROLE,
                 _msgSender()
-            ),
-            "FestivalHeadsV1: missing festival heads operator role"
-        );
+            )
+        ) {
+            revert Forbidden();
+        }
         _;
     }
 }
