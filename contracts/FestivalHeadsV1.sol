@@ -9,7 +9,9 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-bytes32 constant FESTIVAL_HEADS_OPERATOR_ROLE = keccak256("FESTIVAL_HEADS_OPERATOR_ROLE");
+bytes32 constant FESTIVAL_HEADS_OPERATOR_ROLE = keccak256(
+    "FESTIVAL_HEADS_OPERATOR_ROLE"
+);
 bytes32 constant TRUSTED_CLAIMER_ROLE = keccak256("TRUSTED_CLAIMER_ROLE");
 
 interface IFestivalHeadsV1 is IERC721 {
