@@ -121,7 +121,7 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/gnosis'],
     },
     'mumbai': {
-      url: process.env.NETWORK_MUMBAI_URL || 'https://rpc-mumbai.matic.today',
+      url: process.env.NETWORK_MUMBAI_URL || 'https://rpc-mumbai.maticvigil.com/',
       chainId: 80001,
       accounts,
       deploy: ['deploy/__all__', 'deploy/mumbai'],
@@ -145,7 +145,7 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/optimism-goerli'],
     },
     'polygon': {
-      url: process.env.NETWORK_POLYGON_URL || 'https://polygon-rpc.com/',
+      url: process.env.NETWORK_POLYGON_URL || 'https://rpc-mainnet.maticvigil.com/',
       chainId: 137,
       accounts,
       deploy: ['deploy/__all__', 'deploy/polygon'],
