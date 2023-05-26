@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.25.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.24.0...v2.25.0) (2023-05-26)
+
+
+### Features
+
+* add mumbai and polygon festival heads operator ([f862298](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f862298bf6800ae5219028d754418621fa5db2ea))
+* **FestivalHeadsV1:** use custom errors with revert and try catch ([900f517](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/900f5175223800bee66a678101e451c9975f6af7))
+
+
+### Bug Fixes
+
+* add missing access registry polygon deployment ([9d4b369](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9d4b3690df382671b1db3be2b15944be9f524a11))
+
 ## [2.24.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.23.0...v2.24.0) (2023-05-11)
 
 
