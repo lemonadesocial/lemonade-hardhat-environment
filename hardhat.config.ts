@@ -29,7 +29,7 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: process.env.PRIVATE_KEY ? {
-      'default':      0,
+      'default':        0,
     } : {
       'default':        '0xFB756b44060e426731e54e9F433c43c75ee90d9f',
       'aurora':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
@@ -40,6 +40,7 @@ const config: HardhatUserConfig = {
       'base':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'bnb':            '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'celo':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'development':    '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
       'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'gnosis':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'optimism':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
@@ -119,7 +120,7 @@ const config: HardhatUserConfig = {
     'development': {
       url: 'http://127.0.0.1:8545/',
       chainId: 31337,
-      accounts,
+      accounts: ['0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'],
       deploy: ['deploy/__all__', 'deploy/development'],
     },
     'ethereum': {
