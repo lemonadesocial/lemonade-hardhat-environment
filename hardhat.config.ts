@@ -1,6 +1,7 @@
 import '@nomiclabs/hardhat-ethers';
 import "@nomiclabs/hardhat-etherscan";
 import '@nomiclabs/hardhat-waffle';
+import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
 import { HardhatUserConfig } from 'hardhat/config';
 import * as dotenv from 'dotenv';
@@ -20,6 +21,11 @@ const config: HardhatUserConfig = {
       polygon: process.env.ETHERSCAN_POLYGON_API_KEY || '',
       polygonMumbai: process.env.ETHERSCAN_POLYGON_API_KEY || '',
     },
+  },
+  platform: {
+    apiKey: process.env.PLATFORM_API_KEY || '',
+    apiSecret: process.env.PLATFORM_API_SECRET || '',
+    usePlatformDeploy: false,
   },
   namedAccounts: {
     deployer: process.env.PRIVATE_KEY ? {
