@@ -40,6 +40,7 @@ const config: HardhatUserConfig = {
       'polygon':        '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'moonbeam':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'unique':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'zero':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
     },
   },
   networks: {
@@ -180,6 +181,12 @@ const config: HardhatUserConfig = {
       chainId: 8880,
       accounts,
       deploy: ['deploy/__all__', 'deploy/unique'],
+    },
+    'zero': {
+      url: process.env.NETWORK_ZERO_URL || 'https://zero.alt.technology/',
+      chainId: 4000003,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/zero'],
     },
   },
   solidity: {
