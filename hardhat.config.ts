@@ -31,6 +31,7 @@ const config: HardhatUserConfig = {
       'arbitrum-one':   '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'astar':          '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'avalanche':      '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'base':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'bnb':            '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'celo':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
       'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
@@ -83,6 +84,12 @@ const config: HardhatUserConfig = {
       chainId: 43114,
       accounts,
       deploy: ['deploy/__all__', 'deploy/avalanche'],
+    },
+    'base': {
+      url: process.env.NETWORK_BASE_URL || 'https://mainnet.base.org/',
+      chainId: 8453,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/base'],
     },
     'bnb': {
       url: process.env.NETWORK_BNB_URL || 'https://bsc-dataseed.binance.org/',
