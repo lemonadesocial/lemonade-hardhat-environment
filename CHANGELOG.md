@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.26.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.25.0...v2.26.0) (2023-08-11)
+
+
+### Features
+
+* add base chain ([6210d15](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6210d15e35fab3d65dee036fbe15d62dfc9d8fd8))
+* add zero chain ([f3d2f78](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f3d2f78c64cb5ec3097033d2a18ddb21eae31e53))
+
 ## [2.25.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.24.0...v2.25.0) (2023-05-26)
 
 
