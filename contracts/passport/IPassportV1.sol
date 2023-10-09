@@ -18,13 +18,15 @@ interface IPassportV1 is
         address payable indexed sender,
         uint256 value,
         address payable referrer,
-        uint256 tokenId
+        uint256 tokenId,
+        bool success
     );
     event ExecuteReserve(
         uint256 indexed paymentId,
         address payable indexed sender,
         uint256 value,
-        bool referred
+        bool referred,
+        bool success
     );
     event Purchase(
         uint256 paymentId,

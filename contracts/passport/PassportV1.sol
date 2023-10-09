@@ -115,22 +115,11 @@ abstract contract PassportV1 is
         uint160 roundIds,
         Assignment[] calldata assignments
     ) public payable override {
-        uint256 count;
-        uint256 length = assignments.length;
-
-        for (uint256 i; i < length; ) {
-            count += assignments[i].count;
-
-            unchecked {
-                ++i;
-            }
-        }
-
         (
             uint256 paymentId,
             Payment memory payment,
             uint256 unused
-        ) = _createPayment(roundIds, count);
+        ) = _createPayment(roundIds, countAssignments(assignments));
 
         emit Reserve(paymentId, payment.sender, payment.value, assignments);
 
@@ -316,6 +305,10 @@ abstract contract PassportV1 is
         return _updatedAts[tokenId];
     }
 
+    function _afterExecutePurchase(bool success) internal virtual {}
+
+    function _afterExecuteReserve(bool success) internal virtual {}
+
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -375,44 +368,59 @@ abstract contract PassportV1 is
     }
 
     function _executePurchase(bytes memory params) internal {
-        (uint256 paymentId, address payable referrer, uint256 tokenId) = abi
-            .decode(params, (uint256, address, uint256));
+        (
+            uint256 paymentId,
+            address payable referrer,
+            uint256 tokenId,
+            bool success
+        ) = abi.decode(params, (uint256, address, uint256, bool));
 
         Payment memory payment = _requirePaymentDelete(paymentId);
-
-        _mint(payment.sender, tokenId);
 
         emit ExecutePurchase(
             paymentId,
             payment.sender,
             payment.value,
             referrer,
-            tokenId
+            tokenId,
+            success
         );
 
-        if (referrer != address(0)) {
-            uint256 n = (payment.value * PAYMENT_REFERRER_PERCENTAGE) / 100;
+        if (success) {
+            _mint(payment.sender, tokenId);
 
-            _sendValue(payment.sender, n);
-            _sendValue(referrer, n);
+            if (referrer != address(0)) {
+                uint256 n = (payment.value * PAYMENT_REFERRER_PERCENTAGE) / 100;
 
-            payment.value -= n + n;
+                _sendValue(payment.sender, n);
+                _sendValue(referrer, n);
+
+                payment.value -= n + n;
+            }
         }
 
-        _sendValue(treasury, payment.value);
+        _sendValue(success ? treasury : payment.sender, payment.value);
+
+        _afterExecutePurchase(success);
     }
 
     function _executeReserve(bytes memory params) internal {
-        (uint256 paymentId, bool referred) = abi.decode(
+        (uint256 paymentId, bool referred, bool success) = abi.decode(
             params,
-            (uint256, bool)
+            (uint256, bool, bool)
         );
 
         Payment memory payment = _requirePaymentDelete(paymentId);
 
-        emit ExecuteReserve(paymentId, payment.sender, payment.value, referred);
+        emit ExecuteReserve(
+            paymentId,
+            payment.sender,
+            payment.value,
+            referred,
+            success
+        );
 
-        if (referred) {
+        if (success && referred) {
             uint256 n = (payment.value * PAYMENT_REFERRER_PERCENTAGE) / 100;
 
             _sendValue(payment.sender, n);
@@ -420,7 +428,9 @@ abstract contract PassportV1 is
             payment.value -= n;
         }
 
-        _sendValue(treasury, payment.value);
+        _sendValue(success ? treasury : payment.sender, payment.value);
+
+        _afterExecuteReserve(success);
     }
 
     function _execute(bytes32 method, bytes memory params) internal virtual {

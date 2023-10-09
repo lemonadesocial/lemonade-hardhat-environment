@@ -56,4 +56,16 @@ contract PassportV1Call is GatewayV1Call, PassportV1 {
     ) internal override(GatewayV1Call, PassportV1) {
         PassportV1._execute(method, params);
     }
+
+    function _afterExecutePurchase(bool success) internal pure override {
+        if (!success) {
+            revert Forbidden();
+        }
+    }
+
+    function _afterExecuteReserve(bool success) internal pure override {
+        if (!success) {
+            revert Forbidden();
+        }
+    }
 }

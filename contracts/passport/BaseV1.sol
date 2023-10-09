@@ -59,7 +59,9 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     function grant(
         Assignment[] calldata assignments
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _reserve(assignments);
+        if (!_tryReserve(assignments)) {
+            revert Forbidden();
+        }
     }
 
     function balanceOf(
@@ -70,9 +72,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         }
     }
 
-    function networkOf(
-        uint256 tokenId
-    ) public view override returns (bytes32) {
+    function networkOf(uint256 tokenId) public view override returns (bytes32) {
         if (_owners[tokenId] == address(0)) {
             revert NotFound();
         }
@@ -151,7 +151,9 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     function _assign(address sender, Assignment[] memory assignments) internal {
         uint256 count = _increaseOwnedReservations(assignments);
 
-        _requireReservationsDecrease(sender, count);
+        if (!_tryReservationsDecrease(sender, count)) {
+            revert Forbidden();
+        }
     }
 
     function _callContract(
@@ -180,12 +182,18 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         uint256 gasFee,
         address refundAddress
     ) internal returns (uint256 tokenId) {
-        tokenId = _mint(network, sender);
+        tokenId = _tokenIdCounter;
 
-        _requireReservationsDecrease(sender, 1);
+        if (
+            !_tryReservationsDecrease(sender, 1) ||
+            !_tryMint(network, sender, tokenId)
+        ) {
+            revert Forbidden();
+        }
 
         unchecked {
-            --_totalReservations;
+            _totalReservations--;
+            _tokenIdCounter = tokenId + 1;
         }
 
         _callContract(
@@ -224,18 +232,33 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
             delete referrer;
         }
 
-        uint256 tokenId = _mint(network, sender);
+        bool success;
+        uint256 tokenId = _tokenIdCounter;
 
-        if (tokenId + _totalReservations > maxSupply) {
-            revert Forbidden();
+        if (
+            _totalReservations + tokenId <= maxSupply &&
+            _tryMint(network, sender, tokenId)
+        ) {
+            success = true;
+
+            unchecked {
+                _tokenIdCounter = tokenId + 1;
+            }
         }
 
-        emit ExecutePurchase(network, purchaseId, sender, referrer, tokenId);
+        emit ExecutePurchase(
+            network,
+            purchaseId,
+            sender,
+            referrer,
+            tokenId,
+            success
+        );
 
         _callContract(
             network,
             PURCHASE_METHOD,
-            abi.encode(purchaseId, referrer, tokenId),
+            abi.encode(purchaseId, referrer, tokenId, success),
             0,
             address(0)
         );
@@ -248,14 +271,14 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
             Assignment[] memory assignments
         ) = abi.decode(params, (uint256, address, Assignment[]));
 
-        _reserve(assignments);
+        bool success = _tryReserve(assignments);
 
-        emit ExecuteReserve(network, paymentId, sender, assignments);
+        emit ExecuteReserve(network, paymentId, sender, assignments, success);
 
         _callContract(
             network,
             RESERVE_METHOD,
-            abi.encode(paymentId, _ownedTokens[sender] != 0),
+            abi.encode(paymentId, _ownedTokens[sender] != 0, success),
             0,
             address(0)
         );
@@ -301,16 +324,13 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         }
     }
 
-    function _mint(
+    function _tryMint(
         bytes32 network,
-        address to
-    ) internal returns (uint256 tokenId) {
+        address to,
+        uint256 tokenId
+    ) internal returns (bool success) {
         if (_ownedTokens[to] != 0) {
-            revert Forbidden();
-        }
-
-        unchecked {
-            tokenId = _tokenIdCounter++;
+            return false;
         }
 
         _ownedTokens[to] = tokenId;
@@ -318,32 +338,41 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         _networks[tokenId] = network;
 
         emit Mint(network, to, tokenId);
+
+        return true;
     }
 
-    function _requireReservationsDecrease(
+    function _tryReservationsDecrease(
         address owner,
         uint256 count
-    ) internal {
+    ) internal returns (bool success) {
         uint256 ownedReservations = _ownedReservations[owner];
 
         if (ownedReservations < count) {
-            revert Forbidden();
+            return false;
         }
 
         unchecked {
             _ownedReservations[owner] = ownedReservations - count;
         }
+
+        return true;
     }
 
-    function _reserve(Assignment[] memory assignments) internal {
-        uint256 count = _increaseOwnedReservations(assignments);
+    function _tryReserve(
+        Assignment[] memory assignments
+    ) internal returns (bool success) {
+        uint256 totalReservations_ = _totalReservations +
+            countAssignments(assignments);
 
-        uint256 totalReservations_ = _totalReservations + count;
-
-        if (totalSupply() + totalReservations_ > maxSupply) {
-            revert Forbidden();
+        if (totalReservations_ + totalSupply() > maxSupply) {
+            return false;
         }
 
         _totalReservations = totalReservations_;
+
+        _increaseOwnedReservations(assignments);
+
+        return true;
     }
 }

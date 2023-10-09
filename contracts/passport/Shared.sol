@@ -16,3 +16,17 @@ struct Assignment {
     address to;
     uint256 count;
 }
+
+function countAssignments(
+    Assignment[] memory assignments
+) pure returns (uint256 count) {
+    uint256 length = assignments.length;
+
+    for (uint256 i; i < length; ) {
+        count += assignments[i].count;
+
+        unchecked {
+            ++i;
+        }
+    }
+}

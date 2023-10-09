@@ -23,13 +23,15 @@ interface IBaseV1 is IERC165Upgradeable {
         uint256 indexed paymentId,
         address indexed sender,
         address referrer,
-        uint256 tokenId
+        uint256 tokenId,
+        bool success
     );
     event ExecuteReserve(
         bytes32 indexed network,
         uint256 indexed paymentId,
         address indexed sender,
-        Assignment[] assignments
+        Assignment[] assignments,
+        bool success
     );
     event Mint(bytes32 indexed network, address indexed to, uint256 tokenId);
 
