@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 
 import "./IDrawerV1.sol";
 import "./IPassportV1.sol";
+import "./IPassportV1Purchaser.sol";
+import "./IPassportV1Reserver.sol";
 import "./Shared.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
@@ -27,6 +29,7 @@ abstract contract PassportV1 is
     struct Payment {
         address payable sender;
         uint256 value;
+        bytes data;
     }
     mapping(uint256 => Payment) private _payments;
 
@@ -93,13 +96,14 @@ abstract contract PassportV1 is
 
     function purchase(
         uint160 roundIds,
-        address payable referrer
+        address payable referrer,
+        bytes calldata data
     ) public payable override whenNotToken {
         (
             uint256 paymentId,
             Payment memory payment,
             uint256 unused
-        ) = _createPayment(roundIds, 1);
+        ) = _createPayment(roundIds, 1, data);
 
         emit Purchase(paymentId, payment.sender, payment.value, referrer);
 
@@ -113,13 +117,14 @@ abstract contract PassportV1 is
 
     function reserve(
         uint160 roundIds,
-        Assignment[] calldata assignments
+        Assignment[] calldata assignments,
+        bytes calldata data
     ) public payable override {
         (
             uint256 paymentId,
             Payment memory payment,
             uint256 unused
-        ) = _createPayment(roundIds, countAssignments(assignments));
+        ) = _createPayment(roundIds, countAssignments(assignments), data);
 
         emit Reserve(paymentId, payment.sender, payment.value, assignments);
 
@@ -334,14 +339,16 @@ abstract contract PassportV1 is
 
     function _createPayment(
         uint160 roundIds,
-        uint256 count
+        uint256 count,
+        bytes calldata data
     )
         internal
         returns (uint256 paymentId, Payment memory payment, uint256 unused)
     {
         payment = Payment({
             sender: payable(_msgSender()),
-            value: count * priceAt(roundIds)
+            value: count * priceAt(roundIds),
+            data: data
         });
 
         if (msg.value < payment.value) {
@@ -354,6 +361,13 @@ abstract contract PassportV1 is
         }
 
         _payments[paymentId] = payment;
+    }
+
+    function _doHook(address target, bytes memory data) internal {
+        if (target.code.length > 0) {
+            (bool success, ) = target.call(data);
+            success;
+        }
     }
 
     function _executeClaim(bytes memory params) internal {
@@ -402,6 +416,15 @@ abstract contract PassportV1 is
         _sendValue(success ? treasury : payment.sender, payment.value);
 
         _afterExecutePurchase(success);
+
+        _doHook(
+            payment.sender,
+            abi.encodeWithSelector(
+                IPassportV1Purchaser.onPassportV1Purchased.selector,
+                success,
+                payment.data
+            )
+        );
     }
 
     function _executeReserve(bytes memory params) internal {
@@ -431,6 +454,15 @@ abstract contract PassportV1 is
         _sendValue(success ? treasury : payment.sender, payment.value);
 
         _afterExecuteReserve(success);
+
+        _doHook(
+            payment.sender,
+            abi.encodeWithSelector(
+                IPassportV1Reserver.onPassportV1Reserved.selector,
+                success,
+                payment.data
+            )
+        );
     }
 
     function _execute(bytes32 method, bytes memory params) internal virtual {

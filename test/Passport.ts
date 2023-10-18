@@ -113,7 +113,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, { value: value.sub(1) }))
+        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, [], { value: value.sub(1) }))
           .to.be.revertedWith('Forbidden');
       });
 
@@ -122,7 +122,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, { value }))
+        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, [], { value }))
           .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[1].address, 1);
       });
 
@@ -149,7 +149,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, { value }))
+        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, [], { value }))
           .to.be.revertedWith('Forbidden');
       });
     });
@@ -160,7 +160,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[2]).reserve(roundIds, [[signers[2].address, 2]], { value: value.mul(2) }))
+        await expect(passportV1Call.connect(signers[2]).reserve(roundIds, [[signers[2].address, 2]], [], { value: value.mul(2) }))
           .to.emit(passportV1Call, 'ExecuteReserve');
       });
 
@@ -183,7 +183,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[2]).purchase(roundIds, ethers.constants.AddressZero, { value }))
+        await expect(passportV1Call.connect(signers[2]).purchase(roundIds, ethers.constants.AddressZero, [], { value }))
           .to.be.revertedWith('Forbidden');
       });
 
@@ -245,7 +245,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        const tx = await passportV1Call.connect(signers[4]).purchase(roundIds, signers[5].address, { value });
+        const tx = await passportV1Call.connect(signers[4]).purchase(roundIds, signers[5].address, [], { value });
 
         await expect(tx)
           .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[4].address, 4);
@@ -268,7 +268,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        const tx = await passportV1Call.connect(signers[5]).reserve(roundIds, [[signers[5].address, 1]], { value });
+        const tx = await passportV1Call.connect(signers[5]).reserve(roundIds, [[signers[5].address, 1]], [], { value });
 
         await expect(tx)
           .to.emit(passportV1Call, 'ExecuteReserve');
@@ -288,7 +288,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        const tx = await passportV1Call.connect(signers[5]).purchase(roundIds, signers[4].address, { value });
+        const tx = await passportV1Call.connect(signers[5]).purchase(roundIds, signers[4].address, [], { value });
 
         await expect(tx)
           .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[5].address, 5);
@@ -310,7 +310,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        const tx = await passportV1Call.connect(signers[5]).reserve(roundIds, [[signers[5].address, 1]], { value });
+        const tx = await passportV1Call.connect(signers[5]).reserve(roundIds, [[signers[5].address, 1]], [], { value });
 
         await expect(tx)
           .to.emit(passportV1Call, 'ExecuteReserve');

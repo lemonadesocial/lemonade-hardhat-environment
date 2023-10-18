@@ -54,12 +54,14 @@ interface IPassportV1 is
 
     function purchase(
         uint160 roundIds,
-        address payable referrer
+        address payable referrer,
+        bytes calldata data
     ) external payable;
 
     function reserve(
         uint160 roundIds,
-        Assignment[] calldata assignments
+        Assignment[] calldata assignments,
+        bytes calldata data
     ) external payable;
 
     function setProperty(bytes32 key, bytes calldata value) external;
