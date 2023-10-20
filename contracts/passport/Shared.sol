@@ -30,3 +30,11 @@ function countAssignments(
         }
     }
 }
+
+function sendValue(address payable recipient, uint256 amount) {
+    (bool success, ) = recipient.call{value: amount}("");
+
+    if (!success) {
+        revert SendValueFailed();
+    }
+}

@@ -166,7 +166,7 @@ abstract contract PassportV1 is
         address payable recipient,
         uint256 amount
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _sendValue(recipient, amount);
+        sendValue(recipient, amount);
     }
 
     function withdrawPayment(
@@ -174,7 +174,7 @@ abstract contract PassportV1 is
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         Payment memory payment = _requirePaymentDelete(paymentId);
 
-        _sendValue(payment.sender, payment.value);
+        sendValue(payment.sender, payment.value);
     }
 
     function createdAt(
@@ -406,14 +406,14 @@ abstract contract PassportV1 is
             if (referrer != address(0)) {
                 uint256 n = (payment.value * PAYMENT_REFERRER_PERCENTAGE) / 100;
 
-                _sendValue(payment.sender, n);
-                _sendValue(referrer, n);
+                sendValue(payment.sender, n);
+                sendValue(referrer, n);
 
                 payment.value -= n + n;
             }
         }
 
-        _sendValue(success ? treasury : payment.sender, payment.value);
+        sendValue(success ? treasury : payment.sender, payment.value);
 
         _afterExecutePurchase(success);
 
@@ -446,12 +446,12 @@ abstract contract PassportV1 is
         if (success && referred) {
             uint256 n = (payment.value * PAYMENT_REFERRER_PERCENTAGE) / 100;
 
-            _sendValue(payment.sender, n);
+            sendValue(payment.sender, n);
 
             payment.value -= n;
         }
 
-        _sendValue(success ? treasury : payment.sender, payment.value);
+        sendValue(success ? treasury : payment.sender, payment.value);
 
         _afterExecuteReserve(success);
 
@@ -512,14 +512,6 @@ abstract contract PassportV1 is
         }
 
         _updatedAts[tokenId] = block.timestamp;
-    }
-
-    function _sendValue(address payable recipient, uint256 amount) internal {
-        (bool success, ) = recipient.call{value: amount}("");
-
-        if (!success) {
-            revert SendValueFailed();
-        }
     }
 
     function _price(
