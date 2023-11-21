@@ -34,7 +34,7 @@ abstract contract PassportV1 is
     mapping(uint256 => Payment) private _payments;
 
     uint256[] private _allTokens;
-    mapping(address => uint256) private _ownedTokens;
+    mapping(address => uint256) private _tokens;
 
     mapping(uint256 => uint256) private _createdAts;
     mapping(uint256 => uint256) private _updatedAts;
@@ -281,7 +281,7 @@ abstract contract PassportV1 is
         address owner,
         uint256 index
     ) public view override returns (uint256 tokenId) {
-        tokenId = _ownedTokens[owner];
+        tokenId = _tokens[owner];
 
         if (tokenId == 0 || index > 0) {
             revert NotFound();
@@ -320,12 +320,12 @@ abstract contract PassportV1 is
         uint256 tokenId,
         uint256
     ) internal override {
-        if (from != address(0) || _ownedTokens[to] != 0) {
+        if (from != address(0) || _tokens[to] != 0) {
             revert Forbidden();
         }
 
         _allTokens.push(tokenId);
-        _ownedTokens[to] = tokenId;
+        _tokens[to] = tokenId;
 
         _createdAts[tokenId] = block.timestamp;
     }
@@ -505,7 +505,7 @@ abstract contract PassportV1 is
     }
 
     function _requireTokenUpdate() internal returns (uint256 tokenId) {
-        tokenId = _ownedTokens[_msgSender()];
+        tokenId = _tokens[_msgSender()];
 
         if (tokenId == 0) {
             revert Forbidden();
@@ -561,7 +561,7 @@ abstract contract PassportV1 is
     }
 
     modifier whenNotToken() {
-        uint256 tokenId = _ownedTokens[_msgSender()];
+        uint256 tokenId = _tokens[_msgSender()];
 
         if (tokenId != 0) {
             revert Forbidden();
