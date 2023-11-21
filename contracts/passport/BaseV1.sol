@@ -13,10 +13,10 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     uint256 public maxSupply;
 
     uint256 private _tokenIdCounter;
-    mapping(address => uint256) private _ownedTokens;
+    mapping(address => uint256) private _tokens;
 
     uint256 private _totalReservations;
-    mapping(address => uint256) private _ownedReservations;
+    mapping(address => uint256) private _reservations;
 
     mapping(uint256 => address) private _owners;
     mapping(uint256 => bytes32) private _networks;
@@ -67,7 +67,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     function balanceOf(
         address owner
     ) public view override returns (uint256 balance) {
-        if (_ownedTokens[owner] != 0) {
+        if (_tokens[owner] != 0) {
             balance = 1;
         }
     }
@@ -93,7 +93,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     function reservations(
         address owner
     ) public view override returns (uint256) {
-        return _ownedReservations[owner];
+        return _reservations[owner];
     }
 
     function supportsInterface(
@@ -131,7 +131,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         address owner,
         uint256 index
     ) public view override returns (uint256 tokenId) {
-        tokenId = _ownedTokens[owner];
+        tokenId = _tokens[owner];
 
         if (tokenId == 0 || index > 0) {
             revert NotFound();
@@ -149,7 +149,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     }
 
     function _assign(address sender, Assignment[] memory assignments) internal {
-        uint256 count = _increaseOwnedReservations(assignments);
+        uint256 count = _increaseReservations(assignments);
 
         if (!_tryReservationsDecrease(sender, count)) {
             revert Forbidden();
@@ -228,7 +228,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         (uint256 purchaseId, address sender, address payable referrer) = abi
             .decode(params, (uint256, address, address));
 
-        if (_ownedTokens[referrer] == 0) {
+        if (_tokens[referrer] == 0) {
             delete referrer;
         }
 
@@ -278,7 +278,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         _callContract(
             network,
             RESERVE_METHOD,
-            abi.encode(paymentId, _ownedTokens[sender] != 0, success),
+            abi.encode(paymentId, _tokens[sender] != 0, success),
             0,
             address(0)
         );
@@ -306,7 +306,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         _execute(callNetwork, method, params);
     }
 
-    function _increaseOwnedReservations(
+    function _increaseReservations(
         Assignment[] memory assignments
     ) internal returns (uint256 count) {
         uint256 length = assignments.length;
@@ -314,7 +314,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         for (uint256 i; i < length; ) {
             Assignment memory assignment = assignments[i];
 
-            _ownedReservations[assignment.to] += assignment.count;
+            _reservations[assignment.to] += assignment.count;
 
             count += assignment.count;
 
@@ -329,11 +329,11 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         address to,
         uint256 tokenId
     ) internal returns (bool success) {
-        if (_ownedTokens[to] != 0) {
+        if (_tokens[to] != 0) {
             return false;
         }
 
-        _ownedTokens[to] = tokenId;
+        _tokens[to] = tokenId;
         _owners[tokenId] = to;
         _networks[tokenId] = network;
 
@@ -346,14 +346,14 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         address owner,
         uint256 count
     ) internal returns (bool success) {
-        uint256 ownedReservations = _ownedReservations[owner];
+        uint256 reservations_ = _reservations[owner];
 
-        if (ownedReservations < count) {
+        if (reservations_ < count) {
             return false;
         }
 
         unchecked {
-            _ownedReservations[owner] = ownedReservations - count;
+            _reservations[owner] = reservations_ - count;
         }
 
         return true;
@@ -371,7 +371,7 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
 
         _totalReservations = totalReservations_;
 
-        _increaseOwnedReservations(assignments);
+        _increaseReservations(assignments);
 
         return true;
     }
