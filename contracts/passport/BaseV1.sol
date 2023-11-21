@@ -13,10 +13,11 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     uint256 public maxSupply;
 
     uint256 private _tokenIdCounter;
-    mapping(address => uint256) private _tokens;
-
     uint256 private _totalReservations;
+
+    mapping(address => uint256) private _referrals;
     mapping(address => uint256) private _reservations;
+    mapping(address => uint256) private _tokens;
 
     mapping(uint256 => address) private _owners;
     mapping(uint256 => bytes32) private _networks;
@@ -59,7 +60,9 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     function grant(
         Assignment[] calldata assignments
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (!_tryReserve(assignments)) {
+        (bool success, ) = _tryReserve(assignments);
+
+        if (!success) {
             revert Forbidden();
         }
     }
@@ -88,6 +91,12 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         if (owner == address(0)) {
             revert NotFound();
         }
+    }
+
+    function referrals(
+        address referrer
+    ) public view override returns (uint256) {
+        return _referrals[referrer];
     }
 
     function reservations(
@@ -228,10 +237,6 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         (uint256 purchaseId, address sender, address payable referrer) = abi
             .decode(params, (uint256, address, address));
 
-        if (_tokens[referrer] == 0) {
-            delete referrer;
-        }
-
         bool success;
         uint256 tokenId = _tokenIdCounter;
 
@@ -243,6 +248,14 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
 
             unchecked {
                 _tokenIdCounter = tokenId + 1;
+            }
+        }
+
+        if (_tokens[referrer] == 0) {
+            delete referrer;
+        } else if (success) {
+            unchecked {
+                ++_referrals[referrer];
             }
         }
 
@@ -271,7 +284,11 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
             Assignment[] memory assignments
         ) = abi.decode(params, (uint256, address, Assignment[]));
 
-        bool success = _tryReserve(assignments);
+        (bool success, uint256 count) = _tryReserve(assignments);
+
+        if (success) {
+            _referrals[sender] += count;
+        }
 
         emit ExecuteReserve(network, paymentId, sender, assignments, success);
 
@@ -361,18 +378,16 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
 
     function _tryReserve(
         Assignment[] memory assignments
-    ) internal returns (bool success) {
+    ) internal returns (bool success, uint256) {
         uint256 totalReservations_ = _totalReservations +
             countAssignments(assignments);
 
         if (totalReservations_ + totalSupply() > maxSupply) {
-            return false;
+            return (false, 0);
         }
 
         _totalReservations = totalReservations_;
 
-        _increaseReservations(assignments);
-
-        return true;
+        return (true, _increaseReservations(assignments));
     }
 }
