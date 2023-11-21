@@ -413,6 +413,12 @@ describe('Passport', () => {
 
         expect(await baseV1.reservations(signers[5].address)).to.eq(0);
       });
+
+      it('should have referrals', async () => {
+        const { signers, baseV1 } = await loadFixture(deployFixture);
+
+        expect(await baseV1.referrals(signers[5].address)).to.eq(2);
+      });
     });
 
     describe('signer 6', () => {

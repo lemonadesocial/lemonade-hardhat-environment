@@ -45,6 +45,8 @@ interface IBaseV1 is IERC165Upgradeable {
 
     function ownerOf(uint256 tokenId) external view returns (address owner);
 
+    function referrals(address referrer) external view returns (uint256);
+
     function reservations(address owner) external view returns (uint256);
 
     function token(address owner) external view returns (uint256);
