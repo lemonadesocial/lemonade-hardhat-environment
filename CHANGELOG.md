@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.27.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.26.0...v2.27.0) (2023-11-23)
+
+
+### Features
+
+* add openzeppelin hardhat upgrades ([e119487](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e119487a893607fe2843da72aae545fad92f3f64))
+* add upgrade scripts ([1819fbb](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/1819fbb277dc2876e26b0efbd62fbeaea160d272))
+* **Passport:** add crowdfund contract ([e023ae2](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e023ae2a1b4131b8b6826fb9360af2ca17d9e86f))
+* **Passport:** add passport contracts ([a533291](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a53329101676c94f9831a1e1b5c67ace2d3a3fe8))
+* **Passport:** add passport purchased and reserved hooks ([7d5f2fe](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/7d5f2fec0dead1fac03a38628d42eae4a9f4896d))
+* **Passport:** add passport refunds ([c81cc8a](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/c81cc8a7dee50361406dba22e0d6ef84b092b5de))
+* **passport:** add referral tracking ([b135303](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/b13530316fc5d572454a09db9f67aa49bf14f77a))
+* update development chain ([3f0fbbb](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/3f0fbbb1db4dda41bcb5b9bf9ec3a63c471a19d5))
+* upgrade dependencies ([ec6260d](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/ec6260d780bc24c35bae373697e6edb700e33bb4))
+
 ## [2.26.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.25.0...v2.26.0) (2023-08-11)
 
 
