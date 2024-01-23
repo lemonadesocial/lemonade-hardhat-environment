@@ -6,9 +6,8 @@ import "./GatewayV1Axelar.sol";
 import "./GatewayV1Call.sol";
 import "./IBaseV1.sol";
 import "./Shared.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
-contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
+contract BaseV1 is GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     bytes32 public callNetwork;
     uint256 public maxSupply;
 
@@ -103,23 +102,6 @@ contract BaseV1 is ERC165Upgradeable, GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         address owner
     ) public view override returns (uint256) {
         return _reservations[owner];
-    }
-
-    function supportsInterface(
-        bytes4 interfaceId
-    )
-        public
-        view
-        override(
-            AccessControlUpgradeable,
-            ERC165Upgradeable,
-            IERC165Upgradeable
-        )
-        returns (bool)
-    {
-        return
-            interfaceId == type(IBaseV1).interfaceId ||
-            super.supportsInterface(interfaceId);
     }
 
     function token(address owner) public view override returns (uint256) {

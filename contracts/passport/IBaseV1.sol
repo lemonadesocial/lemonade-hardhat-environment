@@ -3,9 +3,8 @@
 pragma solidity ^0.8.0;
 
 import "./Shared.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
-interface IBaseV1 is IERC165Upgradeable {
+interface IBaseV1 {
     event Assign(address sender, Assignment[] assignments);
     event Claim(address sender, bytes32 network, uint256 tokenId);
     event ExecuteAssign(
