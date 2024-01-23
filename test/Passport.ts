@@ -66,6 +66,7 @@ describe('Passport', () => {
       ethers.utils.parseEther('1'),
       priceFeed1.address,
       priceFeed2.address,
+      5,
       signers[0].address,
       ethers.constants.AddressZero
     ]);

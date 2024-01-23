@@ -17,6 +17,7 @@ contract PassportV1Axelar is GatewayV1Axelar, PassportV1 {
         uint256 priceAmount,
         AggregatorV3Interface priceFeed1,
         AggregatorV3Interface priceFeed2,
+        uint256 incentive,
         address payable treasury,
         IDrawerV1 drawer
     ) public initializer {
@@ -27,6 +28,7 @@ contract PassportV1Axelar is GatewayV1Axelar, PassportV1 {
             priceAmount,
             priceFeed1,
             priceFeed2,
+            incentive,
             treasury,
             drawer
         );

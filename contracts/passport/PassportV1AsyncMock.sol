@@ -13,6 +13,7 @@ contract PassportV1AsyncMock is GatewayV1Call, PassportV1 {
         uint256 priceAmount,
         AggregatorV3Interface priceFeed1,
         AggregatorV3Interface priceFeed2,
+        uint256 incentive,
         address payable treasury,
         IDrawerV1 drawer
     ) public initializer {
@@ -23,6 +24,7 @@ contract PassportV1AsyncMock is GatewayV1Call, PassportV1 {
             priceAmount,
             priceFeed1,
             priceFeed2,
+            incentive,
             treasury,
             drawer
         );
