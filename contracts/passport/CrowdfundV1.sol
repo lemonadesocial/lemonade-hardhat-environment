@@ -6,10 +6,8 @@ import "./ICrowdfundV1.sol";
 import "./IPassportV1.sol";
 import "./IPassportV1Reserver.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract CrowdfundV1 is
-    Initializable,
     AccessControlUpgradeable,
     ICrowdfundV1,
     IPassportV1Reserver

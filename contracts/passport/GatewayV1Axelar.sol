@@ -9,8 +9,8 @@ import "@axelar-network/axelar-gmp-sdk-solidity/contracts/interfaces/IAxelarGate
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 abstract contract GatewayV1Axelar is
-    IAxelarExecutable,
-    AccessControlUpgradeable
+    AccessControlUpgradeable,
+    IAxelarExecutable
 {
     IAxelarGateway public override gateway;
     IAxelarGasService public gasService;
