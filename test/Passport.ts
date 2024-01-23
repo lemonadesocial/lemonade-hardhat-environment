@@ -490,21 +490,21 @@ describe('Passport', () => {
           const { signers, crowdfundV1 } = await loadFixture(deployFixture);
 
           await expect(crowdfundV1.connect(signers[8]).create('title', 'description', [[signers[10].address, 1]]))
-            .to.emit(crowdfundV1, 'Create').withNamedArgs({ campaignId: 1 });
+            .to.emit(crowdfundV1, 'Create').withNamedArgs({ campaignId: 0 });
         });
 
         it('should have state', async () => {
           const { crowdfundV1 } = await loadFixture(deployFixture);
 
-          expect(await crowdfundV1.state(1)).to.equal(0);
+          expect(await crowdfundV1.state(0)).to.equal(0);
         });
 
         it('should not execute without fund', async () => {
           const { signers, crowdfundV1 } = await loadFixture(deployFixture);
 
-          const [roundIds] = await crowdfundV1.goal(1);
+          const [roundIds] = await crowdfundV1.goal(0);
 
-          await expect(crowdfundV1.connect(signers[8]).execute(1, roundIds))
+          await expect(crowdfundV1.connect(signers[8]).execute(0, roundIds))
             .to.be.revertedWith('Forbidden');
         });
 
@@ -513,7 +513,7 @@ describe('Passport', () => {
 
           const [_, price] = await passportV1Call.price();
 
-          await expect(crowdfundV1.connect(signers[8]).fund(1, { value: price.add(100) }))
+          await expect(crowdfundV1.connect(signers[8]).fund(0, { value: price.add(100) }))
             .to.emit(crowdfundV1, 'Fund');
         });
       });
@@ -524,9 +524,9 @@ describe('Passport', () => {
 
           const verify = await expectBalances(signers[0].address, signers[8].address);
 
-          const [roundIds, amount] = await crowdfundV1.goal(1);
+          const [roundIds, amount] = await crowdfundV1.goal(0);
 
-          await expect(crowdfundV1.connect(signers[9]).execute(1, roundIds))
+          await expect(crowdfundV1.connect(signers[9]).execute(0, roundIds))
             .to.emit(passportV1Call, 'ExecuteReserve')
             .to.emit(crowdfundV1, 'Execute');
 
@@ -539,7 +539,7 @@ describe('Passport', () => {
         it('should have state', async () => {
           const { crowdfundV1 } = await loadFixture(deployFixture);
 
-          expect(await crowdfundV1.state(1)).to.equal(2);
+          expect(await crowdfundV1.state(0)).to.equal(2);
         });
       });
     });
@@ -550,7 +550,7 @@ describe('Passport', () => {
           const { signers, crowdfundV1 } = await loadFixture(deployFixture);
 
           await expect(crowdfundV1.connect(signers[1]).create('title', 'description', [[signers[10].address, 1]]))
-            .to.emit(crowdfundV1, 'Create').withNamedArgs({ campaignId: 2 });
+            .to.emit(crowdfundV1, 'Create').withNamedArgs({ campaignId: 1 });
         });
       });
 
@@ -560,7 +560,7 @@ describe('Passport', () => {
 
           const [_, price] = await passportV1Call.price();
 
-          await expect(crowdfundV1.connect(signers[2]).fund(2, { value: price }))
+          await expect(crowdfundV1.connect(signers[2]).fund(1, { value: price }))
             .to.emit(crowdfundV1, 'Fund');
         });
       });
@@ -571,14 +571,14 @@ describe('Passport', () => {
 
           const [_, price] = await passportV1Call.price();
 
-          await expect(crowdfundV1.connect(signers[3]).fund(2, { value: price }))
+          await expect(crowdfundV1.connect(signers[3]).fund(1, { value: price }))
             .to.emit(crowdfundV1, 'Fund');
         });
 
         it('should not refund without creator', async () => {
           const { signers, crowdfundV1 } = await loadFixture(deployFixture);
 
-          await expect(crowdfundV1.connect(signers[3]).refund(2))
+          await expect(crowdfundV1.connect(signers[3]).refund(1))
             .to.be.revertedWith('Forbidden');
         });
       });
@@ -589,7 +589,7 @@ describe('Passport', () => {
 
           const verify = await expectBalances(signers[2].address, signers[3].address);
 
-          await crowdfundV1.connect(signers[1]).refund(2);
+          await crowdfundV1.connect(signers[1]).refund(1);
 
           const [_, price] = await passportV1Call.price();
 
@@ -602,13 +602,13 @@ describe('Passport', () => {
         it('should have state', async () => {
           const { crowdfundV1 } = await loadFixture(deployFixture);
 
-          expect(await crowdfundV1.state(2)).to.equal(3);
+          expect(await crowdfundV1.state(1)).to.equal(3);
         });
 
         it('should not refund again', async () => {
           const { signers, crowdfundV1 } = await loadFixture(deployFixture);
 
-          await expect(crowdfundV1.connect(signers[1]).refund(2))
+          await expect(crowdfundV1.connect(signers[1]).refund(1))
             .to.be.revertedWith('Forbidden');
         });
       });
