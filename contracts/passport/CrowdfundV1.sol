@@ -74,10 +74,12 @@ contract CrowdfundV1 is
         uint256 campaignId,
         uint160 roundIds
     ) public payable override whenExists(campaignId) {
-        uint256 price = countAssignments(_assignments[campaignId]) *
+        Assignment[] memory assignments_ = _assignments[campaignId];
+
+        uint256 price = countAssignments(assignments_) *
             passport.priceAt(roundIds);
 
-        Campaign storage campaign = _campaigns[campaignId];
+        Campaign memory campaign = _campaigns[campaignId];
 
         if (campaign.state != State.PENDING || campaign.total < price) {
             revert Forbidden();
@@ -90,7 +92,7 @@ contract CrowdfundV1 is
 
         passport.reserve{value: price + msg.value}(
             roundIds,
-            _assignments[campaignId],
+            assignments_,
             abi.encode(campaignId)
         );
 
@@ -100,7 +102,9 @@ contract CrowdfundV1 is
     function fund(
         uint256 campaignId
     ) public payable override whenExists(campaignId) {
-        if (_campaigns[campaignId].state != State.PENDING || msg.value == 0) {
+        Campaign memory campaign = _campaigns[campaignId];
+
+        if (campaign.state != State.PENDING || msg.value == 0) {
             revert Forbidden();
         }
 
@@ -111,7 +115,7 @@ contract CrowdfundV1 is
             _campaigns[campaignId].contributors.push(contributor);
         }
 
-        _campaigns[campaignId].total += msg.value;
+        _campaigns[campaignId].total = campaign.total + msg.value;
         _contributions[campaignId][contributor] = contribution + msg.value;
 
         emit Fund(campaignId, msg.value);
@@ -126,8 +130,8 @@ contract CrowdfundV1 is
         Campaign memory campaign = _campaigns[campaignId];
 
         if (
-            _msgSender() != address(passport) ||
-            campaign.state != State.EXECUTED
+            campaign.state != State.EXECUTED ||
+            _msgSender() != address(passport)
         ) {
             revert Forbidden();
         }
@@ -147,7 +151,7 @@ contract CrowdfundV1 is
         Campaign memory campaign = _campaigns[campaignId];
 
         if (
-            _msgSender() != campaign.creator || campaign.state != State.PENDING
+            campaign.state != State.PENDING || _msgSender() != campaign.creator
         ) {
             revert Forbidden();
         }
@@ -231,18 +235,14 @@ contract CrowdfundV1 is
     }
 
     function _refund(uint256 campaignId) internal {
-        Campaign memory campaign = _campaigns[campaignId];
-
-        if (campaign.state == State.REFUNDED) {
-            revert Forbidden();
-        }
-
         _campaigns[campaignId].state = State.REFUNDED;
 
-        uint256 length = campaign.contributors.length;
+        address payable[] memory contributors_ = _campaigns[campaignId]
+            .contributors;
+        uint256 length = contributors_.length;
 
         for (uint256 i; i < length; ) {
-            address payable contributor = campaign.contributors[i];
+            address payable contributor = contributors_[i];
 
             sendValue(contributor, _contributions[campaignId][contributor]);
 
