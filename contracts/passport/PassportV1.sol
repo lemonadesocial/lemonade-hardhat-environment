@@ -11,7 +11,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
-uint256 constant PAYMENT_PRICE_MAX_AGE = 3600;
+uint256 constant PRICE_MAX_AGE = 1 hours;
 
 abstract contract PassportV1 is
     AccessControlUpgradeable,
@@ -489,7 +489,7 @@ abstract contract PassportV1 is
             roundId
         );
 
-        if (timestamp < block.timestamp - PAYMENT_PRICE_MAX_AGE) {
+        if (timestamp < block.timestamp - PRICE_MAX_AGE) {
             revert Forbidden();
         }
 
