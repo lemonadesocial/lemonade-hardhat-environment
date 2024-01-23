@@ -73,7 +73,7 @@ contract CrowdfundV1 is
     function execute(
         uint256 campaignId,
         uint160 roundIds
-    ) public payable override {
+    ) public payable override whenExists(campaignId) {
         uint256 price = countAssignments(_assignments[campaignId]) *
             passport.priceAt(roundIds);
 
