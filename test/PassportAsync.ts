@@ -28,6 +28,7 @@ describe('PassportAsync', () => {
       ethers.utils.parseEther('1'),
       ethers.constants.AddressZero,
       ethers.constants.AddressZero,
+      5,
       signers[0].address,
       ethers.constants.AddressZero
     ]);

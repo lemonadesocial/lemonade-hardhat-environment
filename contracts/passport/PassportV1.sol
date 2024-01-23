@@ -12,7 +12,6 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
 uint256 constant PAYMENT_PRICE_MAX_AGE = 3600;
-uint256 constant PAYMENT_REFERRER_PERCENTAGE = 5;
 
 abstract contract PassportV1 is
     AccessControlUpgradeable,
@@ -22,6 +21,7 @@ abstract contract PassportV1 is
     uint256 public priceAmount;
     AggregatorV3Interface public priceFeed1;
     AggregatorV3Interface public priceFeed2;
+    uint256 public incentive;
     address payable public treasury;
     IDrawerV1 public drawer;
 
@@ -46,6 +46,7 @@ abstract contract PassportV1 is
         uint256 priceAmount_,
         AggregatorV3Interface priceFeed1_,
         AggregatorV3Interface priceFeed2_,
+        uint256 incentive_,
         address payable treasury_,
         IDrawerV1 drawer_
     ) internal onlyInitializing {
@@ -54,6 +55,7 @@ abstract contract PassportV1 is
             priceAmount_,
             priceFeed1_,
             priceFeed2_,
+            incentive_,
             treasury_,
             drawer_
         );
@@ -63,12 +65,14 @@ abstract contract PassportV1 is
         uint256 priceAmount_,
         AggregatorV3Interface priceFeed1_,
         AggregatorV3Interface priceFeed2_,
+        uint256 incentive_,
         address payable treasury_,
         IDrawerV1 drawer_
     ) internal onlyInitializing {
         priceAmount = priceAmount_;
         priceFeed1 = priceFeed1_;
         priceFeed2 = priceFeed2_;
+        incentive = incentive_;
         treasury = treasury_;
         drawer = drawer_;
     }
@@ -404,7 +408,7 @@ abstract contract PassportV1 is
             _mint(payment.sender, tokenId);
 
             if (referrer != address(0)) {
-                uint256 n = (payment.value * PAYMENT_REFERRER_PERCENTAGE) / 100;
+                uint256 n = (payment.value * incentive) / 100;
 
                 sendValue(payment.sender, n);
                 sendValue(referrer, n);
@@ -444,7 +448,7 @@ abstract contract PassportV1 is
         );
 
         if (success && referred) {
-            uint256 n = (payment.value * PAYMENT_REFERRER_PERCENTAGE) / 100;
+            uint256 n = (payment.value * incentive) / 100;
 
             sendValue(payment.sender, n);
 
@@ -570,5 +574,5 @@ abstract contract PassportV1 is
         _;
     }
 
-    uint256[38] private __gap;
+    uint256[37] private __gap;
 }
