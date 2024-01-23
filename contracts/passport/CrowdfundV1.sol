@@ -42,7 +42,7 @@ contract CrowdfundV1 is
         Assignment[] memory assignments_
     ) public override returns (uint256 campaignId) {
         unchecked {
-            campaignId = ++_campaignIdCounter;
+            campaignId = _campaignIdCounter++;
         }
 
         address payable creator_ = payable(_msgSender());

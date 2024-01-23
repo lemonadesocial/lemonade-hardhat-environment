@@ -69,7 +69,7 @@ describe('PassportAsync', () => {
         const { signers, crowdfundV1 } = await loadFixture(deployFixture);
 
         await expect(crowdfundV1.connect(signers[0]).create('title', 'description', [[signers[0].address, 2]]))
-          .to.emit(crowdfundV1, 'Create').withNamedArgs({ campaignId: 1 });
+          .to.emit(crowdfundV1, 'Create').withNamedArgs({ campaignId: 0 });
       });
     });
 
@@ -79,7 +79,7 @@ describe('PassportAsync', () => {
 
         const [_, value] = await passportV1Call.price();
 
-        await expect(crowdfundV1.connect(signers[1]).fund(1, { value }))
+        await expect(crowdfundV1.connect(signers[1]).fund(0, { value }))
           .to.emit(crowdfundV1, 'Fund');
       });
     });
@@ -90,7 +90,7 @@ describe('PassportAsync', () => {
 
         const [_, value] = await passportV1Call.price();
 
-        await expect(crowdfundV1.connect(signers[2]).fund(1, { value }))
+        await expect(crowdfundV1.connect(signers[2]).fund(0, { value }))
           .to.emit(crowdfundV1, 'Fund');
       });
     });
@@ -101,9 +101,9 @@ describe('PassportAsync', () => {
 
         const verify = await expectBalances(signers[1].address, signers[2].address);
 
-        const [roundIds, amount] = await crowdfundV1.goal(1);
+        const [roundIds, amount] = await crowdfundV1.goal(0);
 
-        await expect(crowdfundV1.connect(signers[3]).execute(1, roundIds))
+        await expect(crowdfundV1.connect(signers[3]).execute(0, roundIds))
           .to.emit(passportV1Call, 'ExecuteReserve').withNamedArgs({ success: false })
           .to.emit(crowdfundV1, 'Execute');
 
