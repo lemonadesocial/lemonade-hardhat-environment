@@ -272,12 +272,21 @@ contract BaseV1 is GatewayV1Axelar, GatewayV1Call, IBaseV1 {
             _referrals[sender] += count;
         }
 
-        emit ExecuteReserve(network, paymentId, sender, assignments, success);
+        bool referred = _tokens[sender] != 0;
+
+        emit ExecuteReserve(
+            network,
+            paymentId,
+            sender,
+            assignments,
+            referred,
+            success
+        );
 
         _callContract(
             network,
             RESERVE_METHOD,
-            abi.encode(paymentId, _tokens[sender] != 0, success),
+            abi.encode(paymentId, referred, success),
             0,
             address(0)
         );
