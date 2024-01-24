@@ -30,6 +30,7 @@ interface IBaseV1 {
         uint256 indexed paymentId,
         address indexed sender,
         Assignment[] assignments,
+        bool referred,
         bool success
     );
     event Mint(bytes32 indexed network, address indexed to, uint256 tokenId);
