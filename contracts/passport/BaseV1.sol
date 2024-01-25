@@ -196,6 +196,28 @@ contract BaseV1 is GatewayV1Axelar, GatewayV1Call, IBaseV1 {
         );
     }
 
+    function _execute(bytes32 method, bytes memory params) internal override {
+        _execute(callNetwork, method, params);
+    }
+
+    function _execute(
+        bytes32 network,
+        bytes32 method,
+        bytes memory params
+    ) internal override {
+        if (method == ASSIGN_METHOD) {
+            _executeAssign(network, params);
+        } else if (method == CLAIM_METHOD) {
+            _executeClaim(network, params);
+        } else if (method == PURCHASE_METHOD) {
+            _executePurchase(network, params);
+        } else if (method == RESERVE_METHOD) {
+            _executeReserve(network, params);
+        } else {
+            revert NotImplemented();
+        }
+    }
+
     function _executeAssign(bytes32 network, bytes memory params) internal {
         (address sender, Assignment[] memory assignments) = abi.decode(
             params,
@@ -290,28 +312,6 @@ contract BaseV1 is GatewayV1Axelar, GatewayV1Call, IBaseV1 {
             0,
             address(0)
         );
-    }
-
-    function _execute(
-        bytes32 network,
-        bytes32 method,
-        bytes memory params
-    ) internal override {
-        if (method == ASSIGN_METHOD) {
-            _executeAssign(network, params);
-        } else if (method == CLAIM_METHOD) {
-            _executeClaim(network, params);
-        } else if (method == PURCHASE_METHOD) {
-            _executePurchase(network, params);
-        } else if (method == RESERVE_METHOD) {
-            _executeReserve(network, params);
-        } else {
-            revert NotImplemented();
-        }
-    }
-
-    function _execute(bytes32 method, bytes memory params) internal override {
-        _execute(callNetwork, method, params);
     }
 
     function _increaseReservations(

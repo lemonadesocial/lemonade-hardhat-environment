@@ -187,28 +187,6 @@ abstract contract PassportV1 is
         return _createdAts[tokenId];
     }
 
-    function property(
-        uint256 tokenId,
-        bytes32 key
-    ) public view override whenMinted(tokenId) returns (bytes memory) {
-        return _properties[tokenId][key];
-    }
-
-    function propertyBatch(
-        uint256 tokenId,
-        bytes32[] calldata keys
-    ) public view override whenMinted(tokenId) returns (bytes[] memory values) {
-        uint256 length = keys.length;
-
-        for (uint256 i; i < length; ) {
-            values[i] = _properties[tokenId][keys[i]];
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     function price() public view override returns (uint160 roundIds, uint256) {
         int256 answer1;
         int256 answer2;
@@ -245,6 +223,28 @@ abstract contract PassportV1 is
         }
 
         return _price(answer1, answer2);
+    }
+
+    function property(
+        uint256 tokenId,
+        bytes32 key
+    ) public view override whenMinted(tokenId) returns (bytes memory) {
+        return _properties[tokenId][key];
+    }
+
+    function propertyBatch(
+        uint256 tokenId,
+        bytes32[] calldata keys
+    ) public view override whenMinted(tokenId) returns (bytes[] memory values) {
+        uint256 length = keys.length;
+
+        for (uint256 i; i < length; ) {
+            values[i] = _properties[tokenId][keys[i]];
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     function supportsInterface(
@@ -374,6 +374,18 @@ abstract contract PassportV1 is
         }
     }
 
+    function _execute(bytes32 method, bytes memory params) internal virtual {
+        if (method == CLAIM_METHOD) {
+            _executeClaim(params);
+        } else if (method == PURCHASE_METHOD) {
+            _executePurchase(params);
+        } else if (method == RESERVE_METHOD) {
+            _executeReserve(params);
+        } else {
+            revert NotImplemented();
+        }
+    }
+
     function _executeClaim(bytes memory params) internal {
         (address sender, uint256 tokenId) = abi.decode(
             params,
@@ -469,33 +481,6 @@ abstract contract PassportV1 is
         );
     }
 
-    function _execute(bytes32 method, bytes memory params) internal virtual {
-        if (method == CLAIM_METHOD) {
-            _executeClaim(params);
-        } else if (method == PURCHASE_METHOD) {
-            _executePurchase(params);
-        } else if (method == RESERVE_METHOD) {
-            _executeReserve(params);
-        } else {
-            revert NotImplemented();
-        }
-    }
-
-    function _getRoundAnswer(
-        AggregatorV3Interface priceFeed,
-        uint80 roundId
-    ) internal view returns (int256) {
-        (, int256 answer, , uint256 timestamp, ) = priceFeed.getRoundData(
-            roundId
-        );
-
-        if (timestamp < block.timestamp - PRICE_MAX_AGE) {
-            revert Forbidden();
-        }
-
-        return answer;
-    }
-
     function _requirePaymentDelete(
         uint256 paymentId
     ) internal returns (Payment memory state) {
@@ -516,6 +501,21 @@ abstract contract PassportV1 is
         }
 
         _updatedAts[tokenId] = block.timestamp;
+    }
+
+    function _getRoundAnswer(
+        AggregatorV3Interface priceFeed,
+        uint80 roundId
+    ) internal view returns (int256) {
+        (, int256 answer, , uint256 timestamp, ) = priceFeed.getRoundData(
+            roundId
+        );
+
+        if (timestamp < block.timestamp - PRICE_MAX_AGE) {
+            revert Forbidden();
+        }
+
+        return answer;
     }
 
     function _price(
