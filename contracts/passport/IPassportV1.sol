@@ -70,6 +70,10 @@ interface IPassportV1 is
 
     function createdAt(uint256 tokenId) external view returns (uint256);
 
+    function price() external view returns (uint160 roundIds, uint256);
+
+    function priceAt(uint160 roundIds) external view returns (uint256);
+
     function property(
         uint256 tokenId,
         bytes32 key
@@ -79,10 +83,6 @@ interface IPassportV1 is
         uint256 tokenId,
         bytes32[] calldata keys
     ) external view returns (bytes[] memory values);
-
-    function price() external view returns (uint160 roundIds, uint256);
-
-    function priceAt(uint160 roundIds) external view returns (uint256);
 
     function token(address owner) external view returns (uint256);
 

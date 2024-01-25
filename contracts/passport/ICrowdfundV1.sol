@@ -5,13 +5,6 @@ pragma solidity ^0.8.0;
 import "./IPassportV1.sol";
 
 interface ICrowdfundV1 {
-    enum State {
-        PENDING,
-        EXECUTED,
-        CONFIRMED,
-        REFUNDED
-    }
-
     event Create(
         address payable creator,
         string title,
@@ -21,6 +14,13 @@ interface ICrowdfundV1 {
     );
     event Fund(uint256 indexed campaignId, uint256 amount);
     event Execute(uint256 indexed campaignId);
+
+    enum State {
+        PENDING,
+        EXECUTED,
+        CONFIRMED,
+        REFUNDED
+    }
 
     function create(
         string memory title_,
