@@ -10,7 +10,6 @@ bytes32 constant RESERVE_METHOD = keccak256("RESERVE_METHOD");
 error Forbidden();
 error NotFound();
 error NotImplemented();
-error SendValueFailed();
 
 struct Assignment {
     address to;
@@ -28,13 +27,5 @@ function countAssignments(
         unchecked {
             ++i;
         }
-    }
-}
-
-function sendValue(address payable recipient, uint256 amount) {
-    (bool success, ) = recipient.call{value: amount}("");
-
-    if (!success) {
-        revert SendValueFailed();
     }
 }

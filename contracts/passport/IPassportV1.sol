@@ -17,7 +17,7 @@ interface IPassportV1 is
         uint256 indexed paymentId,
         address payable indexed sender,
         uint256 value,
-        address payable referrer,
+        address referrer,
         uint256 tokenId,
         bool success
     );
@@ -28,11 +28,12 @@ interface IPassportV1 is
         bool referred,
         bool success
     );
+    event Payout(address payable indexed recipient, uint256 amount);
     event Purchase(
         uint256 paymentId,
         address payable sender,
         uint256 value,
-        address payable referrer
+        address referrer
     );
     event Reserve(
         uint256 paymentId,
@@ -54,7 +55,7 @@ interface IPassportV1 is
 
     function purchase(
         uint160 roundIds,
-        address payable referrer,
+        address referrer,
         bytes calldata data
     ) external payable;
 

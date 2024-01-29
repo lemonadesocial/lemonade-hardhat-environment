@@ -6,7 +6,7 @@ import "./IPassportV1.sol";
 
 interface ICrowdfundV1 {
     event Create(
-        address payable creator,
+        address creator,
         string title,
         string description,
         Assignment[] assignments,
@@ -40,7 +40,7 @@ interface ICrowdfundV1 {
 
     function contributors(
         uint256 campaignId
-    ) external view returns (address payable[] memory);
+    ) external view returns (address[] memory);
 
     function creator(uint256 campaignId) external view returns (address);
 

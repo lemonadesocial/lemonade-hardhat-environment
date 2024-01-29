@@ -46,7 +46,7 @@ describe('PassportAsync', () => {
       it('should reserve and refund without supply', async () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
-        const verify = await expectBalances(signers[0].address);
+        const verify = await expectBalances([signers[0].address], passportV1Call);
 
         const [roundIds, price] = await passportV1Call.price();
 
@@ -57,9 +57,9 @@ describe('PassportAsync', () => {
 
         const receipt = await tx.wait();
 
-        await verify(
+        await verify([
           (n) => n.sub(receipt.gasUsed.mul(receipt.effectiveGasPrice)),
-        );
+        ]);
       });
     });
   });
@@ -100,7 +100,7 @@ describe('PassportAsync', () => {
       it('should execute and refund without supply', async () => {
         const { signers, passportV1Call, crowdfundV1 } = await loadFixture(deployFixture);
 
-        const verify = await expectBalances(signers[1].address, signers[2].address);
+        const verify = await expectBalances([signers[1].address, signers[2].address], crowdfundV1);
 
         const [roundIds, amount] = await crowdfundV1.goal(0);
 
@@ -108,10 +108,10 @@ describe('PassportAsync', () => {
           .to.emit(passportV1Call, 'ExecuteReserve').withNamedArgs({ success: false })
           .to.emit(crowdfundV1, 'Execute');
 
-        await verify(
+        await verify([
           (n) => n.add(amount.div(2)),
           (n) => n.add(amount.div(2)),
-        );
+        ]);
       });
     });
   });
