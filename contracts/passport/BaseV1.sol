@@ -238,8 +238,10 @@ contract BaseV1 is GatewayV1Axelar, GatewayV1Call, IBaseV1 {
     }
 
     function _executePurchase(bytes32 network, bytes memory params) internal {
-        (uint256 purchaseId, address sender, address payable referrer) = abi
-            .decode(params, (uint256, address, address));
+        (uint256 purchaseId, address sender, address referrer) = abi.decode(
+            params,
+            (uint256, address, address)
+        );
 
         bool success;
         uint256 tokenId = _tokenIdCounter;

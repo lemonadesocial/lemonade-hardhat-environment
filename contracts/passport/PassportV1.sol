@@ -9,15 +9,20 @@ import "./IPassportV1Reserver.sol";
 import "./Shared.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PullPaymentUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 uint256 constant PRICE_MAX_AGE = 1 hours;
 
 abstract contract PassportV1 is
     AccessControlUpgradeable,
     ERC721Upgradeable,
+    PullPaymentUpgradeable,
     IPassportV1
 {
+    using AddressUpgradeable for address payable;
+
     uint256 public priceAmount;
     AggregatorV3Interface public priceFeed1;
     AggregatorV3Interface public priceFeed2;
@@ -59,6 +64,7 @@ abstract contract PassportV1 is
             treasury_,
             drawer_
         );
+        __PullPayment_init_unchained();
     }
 
     function __PassportV1_init_unchained(
@@ -100,7 +106,7 @@ abstract contract PassportV1 is
 
     function purchase(
         uint160 roundIds,
-        address payable referrer,
+        address referrer,
         bytes calldata data
     ) public payable override whenNotToken {
         (
@@ -167,10 +173,10 @@ abstract contract PassportV1 is
     }
 
     function withdraw(
-        address payable recipient,
+        address recipient,
         uint256 amount
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        sendValue(recipient, amount);
+        _asyncTransfer(recipient, amount);
     }
 
     function withdrawPayment(
@@ -178,7 +184,7 @@ abstract contract PassportV1 is
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         Payment memory payment = _requirePaymentDelete(paymentId);
 
-        sendValue(payment.sender, payment.value);
+        _asyncTransfer(payment.sender, payment.value);
     }
 
     function createdAt(
@@ -374,6 +380,12 @@ abstract contract PassportV1 is
         }
     }
 
+    function _doTransfer(address payable recipient, uint256 amount) internal {
+        recipient.sendValue(amount);
+
+        emit Payout(recipient, amount);
+    }
+
     function _execute(bytes32 method, bytes memory params) internal virtual {
         if (method == CLAIM_METHOD) {
             _executeClaim(params);
@@ -400,7 +412,7 @@ abstract contract PassportV1 is
     function _executePurchase(bytes memory params) internal {
         (
             uint256 paymentId,
-            address payable referrer,
+            address referrer,
             uint256 tokenId,
             bool success
         ) = abi.decode(params, (uint256, address, uint256, bool));
@@ -422,16 +434,14 @@ abstract contract PassportV1 is
             if (referrer != address(0)) {
                 uint256 n = (payment.value * incentive) / 100;
 
-                sendValue(payment.sender, n);
-                sendValue(referrer, n);
+                _doTransfer(payment.sender, n);
+                _asyncTransfer(referrer, n);
 
                 payment.value -= n + n;
             }
         }
 
-        sendValue(success ? treasury : payment.sender, payment.value);
-
-        _afterExecutePurchase(success);
+        _doTransfer(success ? treasury : payment.sender, payment.value);
 
         _doHook(
             payment.sender,
@@ -441,6 +451,8 @@ abstract contract PassportV1 is
                 payment.data
             )
         );
+
+        _afterExecutePurchase(success);
     }
 
     function _executeReserve(bytes memory params) internal {
@@ -462,14 +474,12 @@ abstract contract PassportV1 is
         if (success && referred) {
             uint256 n = (payment.value * incentive) / 100;
 
-            sendValue(payment.sender, n);
+            _doTransfer(payment.sender, n);
 
             payment.value -= n;
         }
 
-        sendValue(success ? treasury : payment.sender, payment.value);
-
-        _afterExecuteReserve(success);
+        _doTransfer(success ? treasury : payment.sender, payment.value);
 
         _doHook(
             payment.sender,
@@ -479,6 +489,8 @@ abstract contract PassportV1 is
                 payment.data
             )
         );
+
+        _afterExecuteReserve(success);
     }
 
     function _requirePaymentDelete(

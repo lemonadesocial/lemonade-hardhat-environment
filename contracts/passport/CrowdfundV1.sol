@@ -6,9 +6,11 @@ import "./ICrowdfundV1.sol";
 import "./IPassportV1.sol";
 import "./IPassportV1Reserver.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PullPaymentUpgradeable.sol";
 
 contract CrowdfundV1 is
     AccessControlUpgradeable,
+    PullPaymentUpgradeable,
     ICrowdfundV1,
     IPassportV1Reserver
 {
@@ -17,10 +19,10 @@ contract CrowdfundV1 is
     uint256 private _campaignIdCounter;
     struct Campaign {
         State state;
-        address payable creator;
+        address creator;
         string title;
         string description;
-        address payable[] contributors;
+        address[] contributors;
         uint256 total;
         uint256 unused;
     }
@@ -29,6 +31,8 @@ contract CrowdfundV1 is
     mapping(uint256 => mapping(address => uint256)) private _contributions;
 
     function initialize(IPassportV1 passport_) public initializer {
+        __PullPayment_init();
+
         passport = passport_;
 
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
@@ -45,14 +49,14 @@ contract CrowdfundV1 is
             campaignId = _campaignIdCounter++;
         }
 
-        address payable creator_ = payable(_msgSender());
+        address creator_ = _msgSender();
 
         _campaigns[campaignId] = Campaign({
             state: State.PENDING,
             creator: creator_,
             title: title_,
             description: description_,
-            contributors: new address payable[](0),
+            contributors: new address[](0),
             total: 0,
             unused: 0
         });
@@ -108,7 +112,7 @@ contract CrowdfundV1 is
             revert Forbidden();
         }
 
-        address payable contributor = payable(_msgSender());
+        address contributor = _msgSender();
         uint256 contribution = _contributions[campaignId][contributor];
 
         if (contribution == 0) {
@@ -140,7 +144,7 @@ contract CrowdfundV1 is
             _campaigns[campaignId].state = State.CONFIRMED;
 
             if (campaign.unused > 0) {
-                sendValue(campaign.creator, campaign.unused);
+                _asyncTransfer(campaign.creator, campaign.unused);
             }
         } else {
             _refund(campaignId);
@@ -160,10 +164,10 @@ contract CrowdfundV1 is
     }
 
     function withdraw(
-        address payable recipient,
+        address recipient,
         uint256 amount
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        sendValue(recipient, amount);
+        _asyncTransfer(recipient, amount);
     }
 
     function assignments(
@@ -180,13 +184,7 @@ contract CrowdfundV1 is
 
     function contributors(
         uint256 campaignId
-    )
-        public
-        view
-        override
-        whenExists(campaignId)
-        returns (address payable[] memory)
-    {
+    ) public view override whenExists(campaignId) returns (address[] memory) {
         return _campaigns[campaignId].contributors;
     }
 
@@ -237,14 +235,16 @@ contract CrowdfundV1 is
     function _refund(uint256 campaignId) internal {
         _campaigns[campaignId].state = State.REFUNDED;
 
-        address payable[] memory contributors_ = _campaigns[campaignId]
-            .contributors;
+        address[] memory contributors_ = _campaigns[campaignId].contributors;
         uint256 length = contributors_.length;
 
         for (uint256 i; i < length; ) {
-            address payable contributor = contributors_[i];
+            address contributor = contributors_[i];
 
-            sendValue(contributor, _contributions[campaignId][contributor]);
+            _asyncTransfer(
+                contributor,
+                _contributions[campaignId][contributor]
+            );
 
             unchecked {
                 ++i;

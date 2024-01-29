@@ -253,7 +253,7 @@ describe('Passport', () => {
       it('should purchase with invalid referral without cashback', async () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
-        const verify = await expectBalances(signers[0].address, signers[4].address, signers[5].address);
+        const verify = await expectBalances([signers[0].address, signers[4].address, signers[5].address], passportV1Call);
 
         const [roundIds, value] = await passportV1Call.price();
 
@@ -264,11 +264,11 @@ describe('Passport', () => {
 
         const receipt = await tx.wait();
 
-        await verify(
+        await verify([
           (n) => n.add(value),
           (n) => n.sub(value).sub(receipt.gasUsed.mul(receipt.effectiveGasPrice)),
           (n) => n,
-        );
+        ]);
       });
     });
 
@@ -276,7 +276,7 @@ describe('Passport', () => {
       it('should reserve without passport without cashback', async () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
-        const verify = await expectBalances(signers[0].address, signers[5].address);
+        const verify = await expectBalances([signers[0].address, signers[5].address], passportV1Call);
 
         const [roundIds, value] = await passportV1Call.price();
 
@@ -287,16 +287,16 @@ describe('Passport', () => {
 
         const receipt = await tx.wait();
 
-        await verify(
+        await verify([
           (n) => n.add(value),
           (n) => n.sub(value).sub(receipt.gasUsed.mul(receipt.effectiveGasPrice)),
-        );
+        ]);
       });
 
       it('should purchase with referral with cashback', async () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
-        const verify = await expectBalances(signers[0].address, signers[4].address, signers[5].address);
+        const verify = await expectBalances([signers[0].address, signers[4].address, signers[5].address], passportV1Call);
 
         const [roundIds, value] = await passportV1Call.price();
 
@@ -308,17 +308,17 @@ describe('Passport', () => {
         const receipt = await tx.wait();
 
         const cashback = value.mul(5).div(100);
-        await verify(
+        await verify([
           (n) => n.add(value).sub(cashback).sub(cashback),
           (n) => n.add(cashback),
           (n) => n.sub(value).sub(receipt.gasUsed.mul(receipt.effectiveGasPrice)).add(cashback),
-        );
+        ]);
       });
 
       it('should reserve with cashback with passport', async () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
-        const verify = await expectBalances(signers[0].address, signers[5].address);
+        const verify = await expectBalances([signers[0].address, signers[5].address], passportV1Call);
 
         const [roundIds, value] = await passportV1Call.price();
 
@@ -330,10 +330,10 @@ describe('Passport', () => {
         const receipt = await tx.wait();
 
         const cashback = value.mul(5).div(100);
-        await verify(
+        await verify([
           (n) => n.add(value).sub(cashback),
           (n) => n.sub(value).sub(receipt.gasUsed.mul(receipt.effectiveGasPrice)).add(cashback),
-        );
+        ]);
       });
     });
 
@@ -341,16 +341,16 @@ describe('Passport', () => {
       it('should withdraw', async () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
-        const verify = await expectBalances(passportV1Call.address, signers[1].address);
+        const verify = await expectBalances([passportV1Call.address, signers[1].address], passportV1Call);
 
         const balance = await ethers.provider.getBalance(passportV1Call.address);
 
         await passportV1Call.connect(signers[0]).withdraw(signers[1].address, balance);
 
-        await verify(
+        await verify([
           (n) => n.sub(balance),
           (n) => n.add(balance),
-        );
+        ]);
       });
     });
   });
@@ -523,7 +523,7 @@ describe('Passport', () => {
         it('should execute and refund additional', async () => {
           const { signers, passportV1Call, crowdfundV1 } = await loadFixture(deployFixture);
 
-          const verify = await expectBalances(signers[0].address, signers[8].address);
+          const verify = await expectBalances([signers[0].address, signers[8].address], crowdfundV1);
 
           const [roundIds, amount] = await crowdfundV1.goal(0);
 
@@ -531,10 +531,10 @@ describe('Passport', () => {
             .to.emit(passportV1Call, 'ExecuteReserve')
             .to.emit(crowdfundV1, 'Execute');
 
-          await verify(
+          await verify([
             (n) => n.add(amount),
             (n) => n.add(100),
-          );
+          ]);
         });
 
         it('should have state', async () => {
@@ -588,16 +588,16 @@ describe('Passport', () => {
         it('should refund', async () => {
           const { signers, passportV1Call, crowdfundV1 } = await loadFixture(deployFixture);
 
-          const verify = await expectBalances(signers[2].address, signers[3].address);
+          const verify = await expectBalances([signers[2].address, signers[3].address], crowdfundV1);
 
           await crowdfundV1.connect(signers[1]).refund(1);
 
           const [_, price] = await passportV1Call.price();
 
-          await verify(
+          await verify([
             (n) => n.add(price),
             (n) => n.add(price),
-          );
+          ]);
         });
 
         it('should have state', async () => {
