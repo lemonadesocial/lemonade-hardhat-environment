@@ -69,6 +69,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/arbitrum-one'],
     },
+    'arbitrum-sepolia': {
+      url: process.env.NETWORK_ARBITRUM_SEPOLIA_URL || 'https://sepolia-rollup.arbitrum.io/rpc',
+      chainId: 421614,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/arbitrum-sepolia'],
+    },
     'aurora': {
       url: process.env.NETWORK_AURORA_URL || 'https://mainnet.aurora.dev/',
       chainId: 1313161554,
@@ -182,6 +188,12 @@ const config: HardhatUserConfig = {
       chainId: 1284,
       accounts,
       deploy: ['deploy/__all__', 'deploy/moonbeam'],
+    },
+    'sepolia': {
+      url: process.env.NETWORK_SEPOLIA_URL || 'https://ethereum-sepolia.publicnode.com/',
+      chainId: 11155111,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/sepolia'],
     },
     'unique': {
       url: process.env.NETWORK_UNIQUE_URL || 'https://rpc.unique.network/',
