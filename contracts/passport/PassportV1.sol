@@ -146,6 +146,12 @@ abstract contract PassportV1 is
         );
     }
 
+    function setDrawer(
+        IDrawerV1 drawer_
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        drawer = drawer_;
+    }
+
     function setProperty(bytes32 key, bytes calldata value) public override {
         uint256 tokenId = _requireTokenUpdate();
 
