@@ -14,8 +14,6 @@ contract LemonadeEscrowFactoryV1 is Ownable {
         address[] memory delegates,
         address[] memory payees,
         uint256[] memory shares,
-        uint64 startTime,
-        uint64 endTime,
         uint16 hostRefundPercent,
         RefundPolicy[] memory refundPolicies
     ) external {
@@ -24,8 +22,6 @@ contract LemonadeEscrowFactoryV1 is Ownable {
             delegates,
             payees,
             shares,
-            startTime,
-            endTime,
             hostRefundPercent,
             refundPolicies
         );

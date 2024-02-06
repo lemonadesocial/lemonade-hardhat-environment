@@ -8,7 +8,7 @@ struct RefundPolicy {
 
 struct Deposit {
     address token;
-    uint256 amount;
+    uint128 amount;
 }
 
 interface ILemonadeEscrow {
@@ -22,7 +22,7 @@ interface ILemonadeEscrow {
     function deposit(
         uint256 paymentId,
         address token,
-        uint256 depositAmount
+        uint128 depositAmount
     ) external payable;
 
     /**
