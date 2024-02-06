@@ -15,27 +15,6 @@ contract LemonadeEscrowV1 is
     PaymentSplitter,
     AccessControlEnumerable
 {
-    error PaymentHadCancelled();
-    error EscrowHadClosed();
-    error AccessDenied();
-    error InvalidHostRefundPercent();
-    error InvalidRefundPercent();
-    error InvalidRefundPolicies();
-    error InvalidAmount();
-    error CannotClaimRefund();
-    error NoDepositFound();
-    error InvalidDepositAmount();
-
-    event GuestDeposit(
-        address guest,
-        uint256 paymentId,
-        address token,
-        uint256 amount
-    );
-    event GuestClaimRefund(address guest, uint256 paymentId);
-    event EscrowClosed();
-    event PaymentCancelled(uint256 paymentId, bool byGuest);
-
     bool internal _closed;
     uint16 internal _hostRefundPercent;
     RefundPolicy[] internal _refundPolicies;
@@ -105,23 +84,8 @@ contract LemonadeEscrowV1 is
         }
     }
 
-    //- modifiers
-
-    modifier onlyDelegate() {
-        if (!hasRole(ESCROW_DELEGATE_ROLE, _msgSender())) {
-            revert AccessDenied();
-        }
-        _;
-    }
-
-    modifier escrowOpen() {
-        if (_closed) {
-            revert EscrowHadClosed();
-        }
-        _;
-    }
-
     //-- public write functions
+    
     function deposit(
         uint256 paymentId,
         address token,
@@ -133,23 +97,24 @@ contract LemonadeEscrowV1 is
             revert InvalidAmount();
         }
 
-        bool isErc20 = token != address(0);
-
-        if ((isErc20 && value != 0) || (!isErc20 && value != amount)) {
-            revert InvalidDepositAmount();
-        }
-
         if (_paymentCancelled[paymentId]) {
             revert PaymentHadCancelled();
         }
 
-        if (isErc20) {
-            IERC20(token).transferFrom(msg.sender, address(this), amount);
+        bool isErc20 = token != address(0);
+        if ((isErc20 && value != 0) || (!isErc20 && value != amount)) {
+            revert InvalidDepositAmount();
         }
 
-        _deposits[msg.sender][paymentId].push(Deposit(token, amount));
+        address sender = _msgSender();
 
-        emit GuestDeposit(msg.sender, paymentId, token, amount);
+        if (isErc20) {
+            IERC20(token).transferFrom(sender, address(this), amount);
+        }
+
+        _deposits[sender][paymentId].push(Deposit(token, amount));
+
+        emit GuestDeposit(sender, paymentId, token, amount);
     }
 
     function cancelByGuest(uint256 paymentId) external override escrowOpen {
@@ -158,33 +123,32 @@ contract LemonadeEscrowV1 is
         }
 
         //-- calculate refund percent based on policy
-        uint16 percent = 0;
+        uint16 percent;
 
         uint256 refundPoliciesLength = _refundPolicies.length;
 
-        if (refundPoliciesLength > 0) {
-            RefundPolicy memory policy;
+        for (uint256 i; i < refundPoliciesLength; ) {
+            RefundPolicy memory policy = _refundPolicies[
+                _refundPolicies.length - 1 - i
+            ];
 
-            for (uint256 i; i < refundPoliciesLength; ) {
-                policy = _refundPolicies[_refundPolicies.length - 1 - i];
+            if (block.timestamp < policy.timestamp) {
+                percent = policy.percent;
+            }
 
-                if (block.timestamp <= policy.timestamp) {
-                    percent = policy.percent;
-                }
-
-                unchecked {
-                    ++i;
-                }
+            unchecked {
+                ++i;
             }
         }
 
         //-- perform refund
         _paymentCancelled[paymentId] = true;
-        _refundWithPercent(msg.sender, paymentId, percent);
+        _refundWithPercent(_msgSender(), paymentId, percent);
 
         emit PaymentCancelled(paymentId, true);
     }
 
+    //-- pausable
     function closeEscrow() external override onlyDelegate escrowOpen {
         _closed = true;
 
@@ -198,14 +162,16 @@ contract LemonadeEscrowV1 is
     }
 
     function claimRefund(uint256 paymentId) external override {
+        address sender = _msgSender();
+
         if (!canClaimRefund(paymentId)) {
             revert CannotClaimRefund();
         }
 
         //-- perform refund with _hostRefundPercent
-        _refundWithPercent(msg.sender, paymentId, _hostRefundPercent);
+        _refundWithPercent(sender, paymentId, _hostRefundPercent);
 
-        emit GuestClaimRefund(msg.sender, paymentId);
+        emit GuestClaimRefund(sender, paymentId);
     }
 
     //-- public read functions
@@ -252,26 +218,43 @@ contract LemonadeEscrowV1 is
             revert NoDepositFound();
         }
 
+        address sender = _msgSender();
+
         //-- clear deposit array to prevent reentrance
-        delete _deposits[msg.sender][paymentId];
+        delete _deposits[sender][paymentId];
 
         uint256 depositsLength = deposits.length;
-        Deposit memory dep;
 
         for (uint16 i = 0; i < depositsLength; ) {
-            dep = deposits[i];
+            Deposit memory dep = deposits[i];
 
             uint256 amount = (dep.amount * percent) / 100;
 
             if (dep.token == address(0)) {
-                payable(msg.sender).transfer(amount);
+                payable(sender).transfer(amount);
             } else {
-                IERC20(dep.token).transfer(msg.sender, amount);
+                IERC20(dep.token).transfer(sender, amount);
             }
 
             unchecked {
                 ++i;
             }
         }
+    }
+
+    //- modifiers
+
+    modifier onlyDelegate() {
+        if (!hasRole(ESCROW_DELEGATE_ROLE, _msgSender())) {
+            revert AccessDenied();
+        }
+        _;
+    }
+
+    modifier escrowOpen() {
+        if (_closed) {
+            revert EscrowHadClosed();
+        }
+        _;
     }
 }

@@ -13,6 +13,27 @@ struct Deposit {
 }
 
 interface ILemonadeEscrow {
+    error PaymentHadCancelled();
+    error EscrowHadClosed();
+    error AccessDenied();
+    error InvalidHostRefundPercent();
+    error InvalidRefundPercent();
+    error InvalidRefundPolicies();
+    error InvalidAmount();
+    error CannotClaimRefund();
+    error NoDepositFound();
+    error InvalidDepositAmount();
+
+    event GuestDeposit(
+        address guest,
+        uint256 paymentId,
+        address token,
+        uint256 amount
+    );
+    event GuestClaimRefund(address guest, uint256 paymentId);
+    event EscrowClosed();
+    event PaymentCancelled(uint256 paymentId, bool byGuest);
+
     /**
      * Deposit an amount of ERC20 / native token to the payment.
      * Incase of ERC20 deposit, guest have to approve the allowance to the contract before calling this.
