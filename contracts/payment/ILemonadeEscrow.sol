@@ -13,16 +13,17 @@ struct Deposit {
 }
 
 interface ILemonadeEscrow {
-    error PaymentHadCancelled();
-    error EscrowHadClosed();
     error AccessDenied();
+    error CannotClaimRefund();
+    error EscrowHadClosed();
+    error InvalidAmount();
+    error InvalidDepositAmount();
     error InvalidHostRefundPercent();
     error InvalidRefundPercent();
     error InvalidRefundPolicies();
-    error InvalidAmount();
-    error CannotClaimRefund();
+    error InvalidSigner();
     error NoDepositFound();
-    error InvalidDepositAmount();
+    error PaymentHadCancelled();
 
     event GuestDeposit(
         address guest,
@@ -63,7 +64,7 @@ interface ILemonadeEscrow {
      * Refund amount affected by policies. If escrow is closed then must call claimRefund instead.
      * @param paymentId id of the payment
      */
-    function cancelByGuest(uint256 paymentId) external;
+    function cancelByGuest(uint256 paymentId, bytes calldata signature) external;
 
     /**
      * Host cancel all the payments. Guests will have to call refund manually.
@@ -81,7 +82,7 @@ interface ILemonadeEscrow {
      * This can only be called after host has cancel the payment.
      * @param paymentId id of the payment to claim
      */
-    function claimRefund(uint256 paymentId) external;
+    function claimRefund(uint256 paymentId, bytes calldata signature) external;
 
     /**
      * Check if the caller can claim refund for the payment.

@@ -2,11 +2,28 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+import "./ILemonadeEscrowFactory.sol";
 import "./ILemonadeEscrow.sol";
 import "./LemonadeEscrowV1.sol";
 
-contract LemonadeEscrowFactoryV1 {
+contract LemonadeEscrowFactoryV1 is Ownable, ILemonadeEscrowFactory {
+    address _signer;
+
     event EscrowCreated(address escrow);
+
+    constructor(address _initialSigner) {
+        setSigner(_initialSigner);
+    }
+
+    function setSigner(address signer) public onlyOwner {
+        _signer = signer;
+    }
+
+    function getSigner() public view override returns (address) {
+        return _signer;
+    }
 
     function createEscrow(
         address owner,
@@ -22,7 +39,8 @@ contract LemonadeEscrowFactoryV1 {
             payees,
             shares,
             hostRefundPercent,
-            refundPolicies
+            refundPolicies,
+            address(this)
         );
 
         emit EscrowCreated(address(escrow));

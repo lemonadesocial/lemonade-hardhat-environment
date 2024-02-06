@@ -4,9 +4,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import "./ILemonadeEscrow.sol";
+import "./ILemonadeEscrowFactory.sol";
 
 bytes32 constant ESCROW_DELEGATE_ROLE = keccak256("ESCROW_DELEGATE_ROLE");
 
@@ -15,11 +16,16 @@ contract LemonadeEscrowV1 is
     PaymentSplitter,
     AccessControlEnumerable
 {
+    using ECDSA for bytes;
+    using ECDSA for bytes32;
+
     bool public _closed;
     uint16 public _hostRefundPercent;
-    RefundPolicy[] internal _refundPolicies;
-    mapping(uint256 => bool) internal _paymentCancelled; //-- map paymentId
-    mapping(address => mapping(uint256 => Deposit[])) internal _deposits; //-- map user -> paymentId
+
+    RefundPolicy[] _refundPolicies;
+    mapping(uint256 => bool) _paymentCancelled; //-- map paymentId
+    mapping(address => mapping(uint256 => Deposit[])) _deposits; //-- map user -> paymentId
+    ILemonadeEscrowFactory _factory;
 
     constructor(
         address owner,
@@ -27,7 +33,8 @@ contract LemonadeEscrowV1 is
         address[] memory payees,
         uint256[] memory shares,
         uint16 hostRefundPercent,
-        RefundPolicy[] memory refundPolicies
+        RefundPolicy[] memory refundPolicies,
+        address factory
     ) PaymentSplitter(payees, shares) {
         if (hostRefundPercent > 100) {
             revert InvalidHostRefundPercent();
@@ -82,6 +89,8 @@ contract LemonadeEscrowV1 is
                 ++i;
             }
         }
+
+        _factory = ILemonadeEscrowFactory(factory);
     }
 
     //-- public write functions
@@ -117,7 +126,10 @@ contract LemonadeEscrowV1 is
         emit GuestDeposit(sender, paymentId, token, amount);
     }
 
-    function cancelByGuest(uint256 paymentId) external override escrowOpen {
+    function cancelByGuest(
+        uint256 paymentId,
+        bytes calldata signature
+    ) external override escrowOpen {
         if (_paymentCancelled[paymentId]) {
             revert PaymentHadCancelled();
         }
@@ -143,12 +155,11 @@ contract LemonadeEscrowV1 is
 
         //-- perform refund
         _paymentCancelled[paymentId] = true;
-        _refundWithPercent(_msgSender(), paymentId, percent);
+        _refundWithPercent(_msgSender(), paymentId, percent, signature);
 
         emit PaymentCancelled(paymentId, true);
     }
 
-    //-- pausable
     function closeEscrow() external override onlyDelegate escrowOpen {
         _closed = true;
 
@@ -161,7 +172,10 @@ contract LemonadeEscrowV1 is
         emit PaymentCancelled(paymentId, false);
     }
 
-    function claimRefund(uint256 paymentId) external override {
+    function claimRefund(
+        uint256 paymentId,
+        bytes calldata signature
+    ) external override {
         address sender = _msgSender();
 
         if (!canClaimRefund(paymentId)) {
@@ -169,7 +183,7 @@ contract LemonadeEscrowV1 is
         }
 
         //-- perform refund with _hostRefundPercent
-        _refundWithPercent(sender, paymentId, _hostRefundPercent);
+        _refundWithPercent(sender, paymentId, _hostRefundPercent, signature);
 
         emit GuestClaimRefund(sender, paymentId);
     }
@@ -213,6 +227,22 @@ contract LemonadeEscrowV1 is
     }
 
     //-- internal & private functions
+    function _assertRefundSigner(
+        address guest,
+        uint256 paymentId,
+        bytes memory signature
+    ) internal {
+        address actualSigner = abi
+            .encode(guest, paymentId)
+            .toEthSignedMessageHash()
+            .recover(signature);
+
+        address expectedSigner = _factory.getSigner();
+
+        if (actualSigner != expectedSigner) {
+            revert InvalidSigner();
+        }
+    }
 
     function _assertValidRefundPercent(
         RefundPolicy memory policy
@@ -225,13 +255,10 @@ contract LemonadeEscrowV1 is
     function _refundWithPercent(
         address guest,
         uint256 paymentId,
-        uint16 percent
+        uint16 percent,
+        bytes memory signature
     ) internal {
-        /**
-         * Note that, in theory, a same ERC20 transfer can happen multiple times because the deposit array can contain multiple deposits for a same token.
-         * But the reason for this is because user had perform multiple deposits with the same payment and same token.
-         * This function should only trigger by user. So it's up to user to optimize his calls.
-         *  */
+        _assertRefundSigner(guest, paymentId, signature);
 
         if (percent == 0) return;
 
@@ -241,10 +268,8 @@ contract LemonadeEscrowV1 is
             revert NoDepositFound();
         }
 
-        address sender = _msgSender();
-
         //-- clear deposit array to prevent reentrance
-        delete _deposits[sender][paymentId];
+        delete _deposits[guest][paymentId];
 
         uint256 depositsLength = deposits.length;
 
@@ -254,9 +279,9 @@ contract LemonadeEscrowV1 is
             uint256 amount = (dep.amount * percent) / 100;
 
             if (dep.token == address(0)) {
-                payable(sender).transfer(amount);
+                payable(guest).transfer(amount);
             } else {
-                IERC20(dep.token).transfer(sender, amount);
+                IERC20(dep.token).transfer(guest, amount);
             }
 
             unchecked {
