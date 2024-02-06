@@ -1,28 +1,30 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 struct RefundPolicy {
-    uint32 timestamp;
+    uint256 timestamp;
     uint16 percent;
 }
 
 struct Deposit {
     address token;
-    uint128 amount;
+    uint256 amount;
 }
 
 interface ILemonadeEscrow {
     /**
      * Deposit an amount of ERC20 / native token to the payment.
      * Incase of ERC20 deposit, guest have to approve the allowance to the contract before calling this.
+     * Revert if both ERC20 and native token are sent at a same time.
      * @param paymentId id of the payment to deposit
      * @param token contract address of token, zero address for native token
-     * @param depositAmount the amount to deposit, if native token then this must match msg.value
+     * @param amount the amount to deposit, if native token then this must match msg.value
      */
     function deposit(
         uint256 paymentId,
         address token,
-        uint128 depositAmount
+        uint256 amount
     ) external payable;
 
     /**

@@ -1,23 +1,36 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+import "hardhat/console.sol";
 
-import "./DelegateManager.sol";
 import "./ILemonadeEscrow.sol";
+
+bytes32 constant ESCROW_DELEGATE_ROLE = keccak256("ESCROW_DELEGATE_ROLE");
 
 contract LemonadeEscrowV1 is
     ILemonadeEscrow,
-    Ownable,
     PaymentSplitter,
-    DelegateManager
+    AccessControlEnumerable
 {
+    error PaymentHadCancelled();
+    error EscrowHadClosed();
+    error AccessDenied();
+    error InvalidHostRefundPercent();
+    error InvalidRefundPercent();
+    error InvalidRefundPolicies();
+    error InvalidAmount();
+    error CannotClaimRefund();
+    error NoDepositFound();
+    error InvalidDepositAmount();
+
     event GuestDeposit(
         address guest,
         uint256 paymentId,
         address token,
-        uint128 amount
+        uint256 amount
     );
     event GuestClaimRefund(address guest, uint256 paymentId);
     event EscrowClosed();
@@ -26,9 +39,8 @@ contract LemonadeEscrowV1 is
     bool internal _closed;
     uint16 internal _hostRefundPercent;
     RefundPolicy[] internal _refundPolicies;
-
-    mapping(uint256 => bool) _paymentCancelled; //-- map paymentId
-    mapping(address => mapping(uint256 => Deposit[])) _deposits; //-- map user -> paymentId
+    mapping(uint256 => bool) internal _paymentCancelled; //-- map paymentId
+    mapping(address => mapping(uint256 => Deposit[])) internal _deposits; //-- map user -> paymentId
 
     constructor(
         address owner,
@@ -37,77 +49,101 @@ contract LemonadeEscrowV1 is
         uint256[] memory shares,
         uint16 hostRefundPercent,
         RefundPolicy[] memory refundPolicies
-    ) PaymentSplitter(payees, shares) DelegateManager(delegates) {
-        require(hostRefundPercent <= 100, "Invalid hostRefundPercent");
-
-        //-- check valid refundPolicies
-        if (refundPolicies.length == 1) {
-            _assertValidRefundPercent(refundPolicies[0]);
-        } else if (refundPolicies.length > 1) {
-            _assertValidRefundPercent(refundPolicies[0]);
-
-            for (uint16 i = 0; i < refundPolicies.length - 1; i++) {
-                require(
-                    refundPolicies[i].timestamp <
-                        refundPolicies[i + 1].timestamp &&
-                        refundPolicies[i].percent >
-                        refundPolicies[i + 1].percent,
-                    "Invalid refund policy order & percent"
-                );
-
-                _assertValidRefundPercent(refundPolicies[i + 1]);
-            }
+    ) PaymentSplitter(payees, shares) {
+        if (hostRefundPercent > 100) {
+            revert InvalidHostRefundPercent();
         }
 
         _hostRefundPercent = hostRefundPercent;
 
-        for (uint16 i = 0; i < refundPolicies.length; i++) {
-            _refundPolicies.push(refundPolicies[i]);
+        //-- check valid refundPolicies
+        uint256 refundPoliciesLength = refundPolicies.length;
+
+        if (refundPoliciesLength == 1) {
+            RefundPolicy memory policy = refundPolicies[0];
+
+            _assertValidRefundPercent(policy);
+            _refundPolicies.push(policy);
+        } else if (refundPoliciesLength > 1) {
+            RefundPolicy memory current;
+            RefundPolicy memory next;
+
+            next = refundPolicies[0];
+
+            _assertValidRefundPercent(next);
+            _refundPolicies.push(next);
+
+            for (uint256 i = 1; i < refundPoliciesLength; ) {
+                current = next;
+                next = refundPolicies[i];
+
+                if (
+                    current.timestamp >= next.timestamp ||
+                    current.percent <= next.percent
+                ) {
+                    revert InvalidRefundPolicies();
+                }
+
+                _assertValidRefundPercent(next);
+                _refundPolicies.push(next);
+
+                unchecked {
+                    ++i;
+                }
+            }
         }
 
-        _transferOwnership(owner);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(ESCROW_DELEGATE_ROLE, owner);
+
+        uint256 delegatesLength = delegates.length;
+        for (uint256 i; i < delegatesLength; ) {
+            _grantRole(ESCROW_DELEGATE_ROLE, delegates[i]);
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     //- modifiers
 
-    modifier onlyOwnerOrDelegate() {
-        require(
-            msg.sender == owner() || isDelegate(msg.sender),
-            "Must be owner or delegate"
-        );
+    modifier onlyDelegate() {
+        if (!hasRole(ESCROW_DELEGATE_ROLE, _msgSender())) {
+            revert AccessDenied();
+        }
         _;
     }
 
     modifier escrowOpen() {
-        require(!_closed, "Escrow had been closed");
+        if (_closed) {
+            revert EscrowHadClosed();
+        }
         _;
     }
 
     //-- public write functions
-
-    function addDelegates(
-        address[] memory addresses
-    ) public override onlyOwner {
-        return super.addDelegates(addresses);
-    }
-
-    function removeDelegates(
-        address[] memory addresses
-    ) public override onlyOwner {
-        return super.removeDelegates(addresses);
-    }
-
     function deposit(
         uint256 paymentId,
         address token,
-        uint128 amount
+        uint256 amount
     ) external payable override escrowOpen {
-        require(!_paymentCancelled[paymentId], "Payment had been cancelled");
-        require(amount > 0, "Amount must not be zero");
+        uint256 value = msg.value;
 
-        if (token == address(0)) {
-            require(msg.value == amount, "Amount not matched");
-        } else {
+        if (amount == 0) {
+            revert InvalidAmount();
+        }
+
+        bool isErc20 = token != address(0);
+
+        if ((isErc20 && value != 0) || (!isErc20 && value != amount)) {
+            revert InvalidDepositAmount();
+        }
+
+        if (_paymentCancelled[paymentId]) {
+            revert PaymentHadCancelled();
+        }
+
+        if (isErc20) {
             IERC20(token).transferFrom(msg.sender, address(this), amount);
         }
 
@@ -117,22 +153,27 @@ contract LemonadeEscrowV1 is
     }
 
     function cancelByGuest(uint256 paymentId) external override escrowOpen {
-        require(
-            !_paymentCancelled[paymentId],
-            "Payment had already been cancelled"
-        );
+        if (_paymentCancelled[paymentId]) {
+            revert PaymentHadCancelled();
+        }
 
         //-- calculate refund percent based on policy
         uint16 percent = 0;
 
-        if (_refundPolicies.length > 0) {
-            for (uint16 i = 0; i < _refundPolicies.length; i++) {
-                RefundPolicy memory policy = _refundPolicies[
-                    _refundPolicies.length - 1 - i
-                ];
+        uint256 refundPoliciesLength = _refundPolicies.length;
+
+        if (refundPoliciesLength > 0) {
+            RefundPolicy memory policy;
+
+            for (uint256 i; i < refundPoliciesLength; ) {
+                policy = _refundPolicies[_refundPolicies.length - 1 - i];
 
                 if (block.timestamp <= policy.timestamp) {
                     percent = policy.percent;
+                }
+
+                unchecked {
+                    ++i;
                 }
             }
         }
@@ -144,23 +185,22 @@ contract LemonadeEscrowV1 is
         emit PaymentCancelled(paymentId, true);
     }
 
-    function closeEscrow() external override onlyOwnerOrDelegate escrowOpen {
+    function closeEscrow() external override onlyDelegate escrowOpen {
         _closed = true;
 
         emit EscrowClosed();
     }
 
-    function cancel(uint256 paymentId) external override onlyOwnerOrDelegate {
+    function cancel(uint256 paymentId) external override onlyDelegate {
         _paymentCancelled[paymentId] = true;
 
         emit PaymentCancelled(paymentId, false);
     }
 
     function claimRefund(uint256 paymentId) external override {
-        require(
-            canClaimRefund(paymentId),
-            "Payment is not cancelled or escrow is not closed"
-        );
+        if (!canClaimRefund(paymentId)) {
+            revert CannotClaimRefund();
+        }
 
         //-- perform refund with _hostRefundPercent
         _refundWithPercent(msg.sender, paymentId, _hostRefundPercent);
@@ -188,7 +228,9 @@ contract LemonadeEscrowV1 is
     function _assertValidRefundPercent(
         RefundPolicy memory policy
     ) internal pure {
-        require(policy.percent <= 100, "Invalid refund percent");
+        if (policy.percent > 100) {
+            revert InvalidRefundPercent();
+        }
     }
 
     function _refundWithPercent(
@@ -206,13 +248,18 @@ contract LemonadeEscrowV1 is
 
         Deposit[] memory deposits = getDeposits(paymentId, guest);
 
-        require(deposits.length > 0, "No deposit found");
+        if (deposits.length == 0) {
+            revert NoDepositFound();
+        }
 
         //-- clear deposit array to prevent reentrance
         delete _deposits[msg.sender][paymentId];
 
-        for (uint16 i = 0; i < deposits.length; i++) {
-            Deposit memory dep = deposits[i];
+        uint256 depositsLength = deposits.length;
+        Deposit memory dep;
+
+        for (uint16 i = 0; i < depositsLength; ) {
+            dep = deposits[i];
 
             uint256 amount = (dep.amount * percent) / 100;
 
@@ -220,6 +267,10 @@ contract LemonadeEscrowV1 is
                 payable(msg.sender).transfer(amount);
             } else {
                 IERC20(dep.token).transfer(msg.sender, amount);
+            }
+
+            unchecked {
+                ++i;
             }
         }
     }
