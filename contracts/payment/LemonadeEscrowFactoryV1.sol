@@ -25,8 +25,6 @@ contract LemonadeEscrowFactoryV1 {
             refundPolicies
         );
 
-        address escrowAddress = address(escrow);
-
-        emit EscrowCreated(escrowAddress);
+        emit EscrowCreated(address(escrow));
     }
 }

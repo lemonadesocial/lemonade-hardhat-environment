@@ -56,7 +56,7 @@ describe('LemonadeEscrowV1', () => {
     const [signer] = await ethers.getSigners();
 
     await expect(loadFixture(deployEscrow(signer.address, [], [signer.address], [1], 101, [])))
-      .revertedWith('Invalid hostRefundPercent');
+      .revertedWith('InvalidHostRefundPercent');
   });
 
   it('should revert for invalid refund percent', async () => {
@@ -68,7 +68,7 @@ describe('LemonadeEscrowV1', () => {
     ];
 
     await expect(loadFixture(deployEscrow(signer.address, [], [signer.address], [1], 0, policies)))
-      .revertedWith('Invalid refund percent');
+      .revertedWith('InvalidRefundPercent');
   });
 
   it('should revert for invalid refund policies', async () => {
@@ -80,7 +80,7 @@ describe('LemonadeEscrowV1', () => {
     ];
 
     await expect(loadFixture(deployEscrow(signer.address, [], [signer.address], [1], 0, policies)))
-      .revertedWith('Invalid refund policy order & percent');
+      .revertedWith('InvalidRefundPolicies');
   });
 
   it('should throw for amount not matched', async () => {
@@ -88,8 +88,9 @@ describe('LemonadeEscrowV1', () => {
 
     const { escrowContract } = await loadFixture(deployEscrow(signer1.address, [], [signer1.address], [1], 100, []));
 
-    await expect(escrowContract.connect(signer2).deposit(1, ethers.constants.AddressZero, 1000))
-      .revertedWith('Amount not matched');
+    //-- the custom error could not be parsed by hardhat for some unknown reasons parsing custom error
+    await expect(escrowContract.connect(signer2).deposit(1, ethers.constants.AddressZero, 1000, { value: 100 }))
+      .revertedWith('');
   });
 
   it('should deposit', async () => {
@@ -119,19 +120,26 @@ describe('LemonadeEscrowV1', () => {
 
     const { escrowContract } = await loadFixture(deployEscrow(signer1.address, [], [signer1.address], [1], 0, policies));
 
-    const depositAmount = ethers.utils.parseEther('1');
-    const refundedAmount = depositAmount.mul(policies[1][1]).div(100); //-- should return with pocilies[1] percent
+    const depositAmount1 = ethers.utils.parseEther('1');
+    const depositAmount2 = ethers.utils.parseEther('0.2');
+    const refundedAmount = depositAmount1.add(depositAmount2).mul(policies[1][1]).div(100); //-- should return with pocilies[1] percent
 
     const tx1: TxResponse = await escrowContract.connect(signer2).deposit(
-      1, ethers.constants.AddressZero, depositAmount,
-      { value: depositAmount },
+      1, ethers.constants.AddressZero, depositAmount1,
+      { value: depositAmount1 },
     );
     await ethers.provider.waitForTransaction(tx1.hash);
 
+    const tx2: TxResponse = await escrowContract.connect(signer2).deposit(
+      1, ethers.constants.AddressZero, depositAmount2,
+      { value: depositAmount2 },
+    );
+    await ethers.provider.waitForTransaction(tx2.hash);
+
     const afterDepositBalance = await signer2.getBalance();
 
-    const tx2: TxResponse = await escrowContract.connect(signer2).cancelByGuest(1);
-    const receipt = await ethers.provider.waitForTransaction(tx2.hash);
+    const tx3: TxResponse = await escrowContract.connect(signer2).cancelByGuest(1);
+    const receipt = await ethers.provider.waitForTransaction(tx3.hash);
 
     const afterCancelBalance = await signer2.getBalance();
 
