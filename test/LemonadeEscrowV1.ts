@@ -141,7 +141,7 @@ describe('LemonadeEscrowV1', () => {
 
     const signature = await signer.signMessage(
       ethers.utils.arrayify(
-        escrowContract.interface._abiCoder.encode(['address', 'uint256'], [signer2.address, paymentId])
+        escrowContract.interface._abiCoder.encode(['uint256'], [paymentId])
       )
     );
 
@@ -180,7 +180,7 @@ describe('LemonadeEscrowV1', () => {
 
     const signature = await signer.signMessage(
       ethers.utils.arrayify(
-        escrowContract.interface._abiCoder.encode(['address', 'uint256'], [signer2.address, paymentId])
+        escrowContract.interface._abiCoder.encode(['uint256'], [paymentId])
       )
     );
 

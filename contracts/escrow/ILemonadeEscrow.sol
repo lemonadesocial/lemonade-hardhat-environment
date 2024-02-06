@@ -52,11 +52,9 @@ interface ILemonadeEscrow {
     /**
      * Return the all deposits of a guest for a specific payment
      * @param paymentId id of the payment
-     * @param guest wallet address of guest
      */
     function getDeposits(
-        uint256 paymentId,
-        address guest
+        uint256 paymentId
     ) external view returns (Deposit[] memory);
 
     /**
