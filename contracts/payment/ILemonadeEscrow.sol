@@ -88,4 +88,9 @@ interface ILemonadeEscrow {
      * @param paymentId id of the payment to check
      */
     function canClaimRefund(uint256 paymentId) external view returns (bool);
+
+    /**
+     * Return the refund policies
+     */
+    function getRefundPolicies() external view returns (RefundPolicy[] memory);
 }
