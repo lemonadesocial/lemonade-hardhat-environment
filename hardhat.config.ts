@@ -183,6 +183,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/moonbeam'],
     },
+    'sepolia': {
+      url: process.env.NETWORK_SEPOLIA_URL || 'https://ethereum-sepolia.publicnode.com/',
+      chainId: 11155111,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/sepolia'],
+    },
     'unique': {
       url: process.env.NETWORK_UNIQUE_URL || 'https://rpc.unique.network/',
       chainId: 8880,
