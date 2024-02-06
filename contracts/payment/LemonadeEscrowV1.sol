@@ -15,9 +15,9 @@ contract LemonadeEscrowV1 is
     PaymentSplitter,
     AccessControlEnumerable
 {
-    bool internal _closed;
-    uint16 internal _hostRefundPercent;
-    RefundPolicy[] internal _refundPolicies;
+    bool public _closed;
+    uint16 public _hostRefundPercent;
+    RefundPolicy[] public _refundPolicies;
     mapping(uint256 => bool) internal _paymentCancelled; //-- map paymentId
     mapping(address => mapping(uint256 => Deposit[])) internal _deposits; //-- map user -> paymentId
 
@@ -85,7 +85,7 @@ contract LemonadeEscrowV1 is
     }
 
     //-- public write functions
-    
+
     function deposit(
         uint256 paymentId,
         address token,
