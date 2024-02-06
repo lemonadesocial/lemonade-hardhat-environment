@@ -13,6 +13,16 @@ contract LemonadeEscrowV1 is
     PaymentSplitter,
     DelegateManager
 {
+    event GuestDeposit(
+        address guest,
+        uint256 paymentId,
+        address token,
+        uint256 amount
+    );
+    event GuestClaimRefund(address guest, uint256 paymentId);
+    event EscrowClosed();
+    event PaymentCancelled(uint256 paymentId, bool byGuest);
+
     uint64 internal _startTime;
     uint64 internal _endTime;
 
@@ -44,8 +54,10 @@ contract LemonadeEscrowV1 is
 
             for (uint256 i = 0; i < refundPolicies.length - 1; i++) {
                 require(
-                    refundPolicies[i].timestamp < refundPolicies[i + 1].timestamp 
-                    && refundPolicies[i].percent > refundPolicies[i + 1].percent,
+                    refundPolicies[i].timestamp <
+                        refundPolicies[i + 1].timestamp &&
+                        refundPolicies[i].percent >
+                        refundPolicies[i + 1].percent,
                     "Invalid refund policy order & percent"
                 );
 
@@ -56,7 +68,10 @@ contract LemonadeEscrowV1 is
         _startTime = startTime;
         _endTime = endTime;
         _hostRefundPercent = hostRefundPercent;
-        _refundPolicies = refundPolicies;
+
+        for (uint256 i = 0; i < refundPolicies.length; i++) {
+            _refundPolicies.push(refundPolicies[i]);
+        }
 
         _transferOwnership(owner);
     }
@@ -81,7 +96,7 @@ contract LemonadeEscrowV1 is
         _;
     }
 
-    //-- public & external functions
+    //-- public write functions
 
     function addDelegates(
         address[] memory addresses
@@ -100,6 +115,7 @@ contract LemonadeEscrowV1 is
         address token,
         uint256 amount
     ) external payable override onlyBeforeStart escrowOpen {
+        require(!_paymentCancelled[paymentId], "Payment had been cancelled");
         require(amount > 0, "Amount must not be zero");
 
         if (token == address(0)) {
@@ -109,13 +125,8 @@ contract LemonadeEscrowV1 is
         }
 
         _deposits[msg.sender][paymentId].push(Deposit(token, amount));
-    }
 
-    function getDeposits(
-        uint256 paymentId,
-        address guest
-    ) public view override returns (Deposit[] memory) {
-        return _deposits[guest][paymentId];
+        emit GuestDeposit(msg.sender, paymentId, token, amount);
     }
 
     function cancelByGuest(
@@ -123,7 +134,7 @@ contract LemonadeEscrowV1 is
     ) external override onlyBeforeStart escrowOpen {
         require(
             !_paymentCancelled[paymentId],
-            "Payment had been cancelled by host"
+            "Payment had already been cancelled"
         );
 
         //-- calculate refund percent based on policy
@@ -139,30 +150,47 @@ contract LemonadeEscrowV1 is
 
         //-- perform refund
         _refundWithPercent(msg.sender, paymentId, percent);
+
+        emit PaymentCancelled(paymentId, true);
     }
 
-    function closeEscrow() external override onlyOwnerOrDelegate {
+    function closeEscrow() external override onlyOwnerOrDelegate escrowOpen {
         _closed = true;
+
+        emit EscrowClosed();
     }
 
     function cancel(uint256 paymentId) external override onlyOwnerOrDelegate {
         _paymentCancelled[paymentId] = true;
+
+        emit PaymentCancelled(paymentId, false);
     }
 
     function claimRefund(uint256 paymentId) external override {
         require(
-            _closed || _paymentCancelled[paymentId],
-            "Payment is not cancelled by host"
+            canClaimRefund(paymentId),
+            "Payment is not cancelled or escrow is not closed"
         );
 
         //-- perform refund with _hostRefundPercent
         _refundWithPercent(msg.sender, paymentId, _hostRefundPercent);
+
+        emit GuestClaimRefund(msg.sender, paymentId);
     }
+
+    //-- public read functions
 
     function canClaimRefund(
         uint256 paymentId
-    ) external view override returns (bool) {
-        return _paymentCancelled[paymentId];
+    ) public view override returns (bool) {
+        return _closed || _paymentCancelled[paymentId];
+    }
+
+    function getDeposits(
+        uint256 paymentId,
+        address guest
+    ) public view override returns (Deposit[] memory) {
+        return _deposits[guest][paymentId];
     }
 
     //-- internal & private functions
