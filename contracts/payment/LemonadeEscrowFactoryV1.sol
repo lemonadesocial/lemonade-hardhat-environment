@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+pragma solidity ^0.8.0;
 
 import "./ILemonadeEscrow.sol";
 import "./LemonadeEscrowV1.sol";
 
-contract LemonadeEscrowFactoryV1 is Ownable {
+contract LemonadeEscrowFactoryV1 {
     event EscrowCreated(address escrow);
 
     function createEscrow(
