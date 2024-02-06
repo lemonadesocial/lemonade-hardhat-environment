@@ -256,12 +256,6 @@ contract LemonadeEscrowV1 is
     }
 
     //-- internal & private functions
-    function _loadDeposits(
-        uint256 paymentId
-    ) internal view returns (Deposit[] memory) {
-        return _deposits[paymentId];
-    }
-
     function _assertRefundSigner(
         uint256 paymentId,
         bytes memory signature
@@ -275,14 +269,6 @@ contract LemonadeEscrowV1 is
 
         if (actualSigner != expectedSigner) {
             revert InvalidSigner();
-        }
-    }
-
-    function _assertValidRefundPercent(
-        RefundPolicy memory policy
-    ) internal pure {
-        if (policy.percent > 100) {
-            revert InvalidRefundPercent();
         }
     }
 
@@ -313,7 +299,9 @@ contract LemonadeEscrowV1 is
             uint256 amount = (dep.amount * percent) / 100;
 
             if (dep.token == address(0)) {
-                payable(guest).transfer(amount);
+                (bool success, ) = payable(guest).call{value: amount}("");
+
+                if (!success) revert CannotRefund();
             } else {
                 IERC20(dep.token).transfer(guest, amount);
             }
@@ -321,6 +309,20 @@ contract LemonadeEscrowV1 is
             unchecked {
                 ++i;
             }
+        }
+    }
+
+    function _loadDeposits(
+        uint256 paymentId
+    ) internal view returns (Deposit[] memory) {
+        return _deposits[paymentId];
+    }
+
+    function _assertValidRefundPercent(
+        RefundPolicy memory policy
+    ) internal pure {
+        if (policy.percent > 100) {
+            revert InvalidRefundPercent();
         }
     }
 }
