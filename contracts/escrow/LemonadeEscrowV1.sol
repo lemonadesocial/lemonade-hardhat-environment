@@ -23,8 +23,8 @@ contract LemonadeEscrowV1 is
     uint16 public hostRefundPercent;
 
     RefundPolicy[] _refundPolicies;
-    mapping(uint256 => bool) _paymentCancelled; //-- map paymentId
-    mapping(address => mapping(uint256 => Deposit[])) _deposits; //-- map user -> paymentId
+    mapping(uint256 => bool) _paymentCancelled;
+    mapping(uint256 => Deposit[]) _deposits;
     ILemonadeEscrowFactory _factory;
 
     constructor(
@@ -110,7 +110,7 @@ contract LemonadeEscrowV1 is
     }
 
     //-- public write functions
-    
+
     function deposit(
         uint256 paymentId,
         address token,
@@ -137,7 +137,7 @@ contract LemonadeEscrowV1 is
             IERC20(token).transferFrom(sender, address(this), amount);
         }
 
-        _deposits[sender][paymentId].push(Deposit(token, amount));
+        _deposits[paymentId].push(Deposit(token, amount));
 
         emit GuestDeposit(sender, paymentId, token, amount);
     }
@@ -236,20 +236,18 @@ contract LemonadeEscrowV1 is
     }
 
     function getDeposits(
-        uint256 paymentId,
-        address guest
+        uint256 paymentId
     ) public view override returns (Deposit[] memory) {
-        return _deposits[guest][paymentId];
+        return _deposits[paymentId];
     }
 
     //-- internal & private functions
     function _assertRefundSigner(
-        address guest,
         uint256 paymentId,
         bytes memory signature
     ) internal {
         address actualSigner = abi
-            .encode(guest, paymentId)
+            .encode(paymentId)
             .toEthSignedMessageHash()
             .recover(signature);
 
@@ -274,18 +272,18 @@ contract LemonadeEscrowV1 is
         uint16 percent,
         bytes memory signature
     ) internal {
-        _assertRefundSigner(guest, paymentId, signature);
+        _assertRefundSigner(paymentId, signature);
 
         if (percent == 0) return;
 
-        Deposit[] memory deposits = getDeposits(paymentId, guest);
+        Deposit[] memory deposits = getDeposits(paymentId);
 
         if (deposits.length == 0) {
             revert NoDepositFound();
         }
 
         //-- clear deposit array to prevent reentrance
-        delete _deposits[guest][paymentId];
+        delete _deposits[paymentId];
 
         uint256 depositsLength = deposits.length;
 
