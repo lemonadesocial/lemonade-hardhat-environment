@@ -19,8 +19,8 @@ contract LemonadeEscrowV1 is
     using ECDSA for bytes;
     using ECDSA for bytes32;
 
-    bool public _closed;
-    uint16 public _hostRefundPercent;
+    bool public closed;
+    uint16 public hostRefundPercent;
 
     RefundPolicy[] _refundPolicies;
     mapping(uint256 => bool) _paymentCancelled; //-- map paymentId
@@ -32,15 +32,15 @@ contract LemonadeEscrowV1 is
         address[] memory delegates,
         address[] memory payees,
         uint256[] memory shares,
-        uint16 hostRefundPercent,
+        uint16 refundPercent,
         RefundPolicy[] memory refundPolicies,
         address factory
     ) PaymentSplitter(payees, shares) {
-        if (hostRefundPercent > 100) {
+        if (refundPercent > 100) {
             revert InvalidHostRefundPercent();
         }
 
-        _hostRefundPercent = hostRefundPercent;
+        hostRefundPercent = refundPercent;
 
         //-- check valid refundPolicies
         uint256 refundPoliciesLength = refundPolicies.length;
@@ -93,8 +93,24 @@ contract LemonadeEscrowV1 is
         _factory = ILemonadeEscrowFactory(factory);
     }
 
-    //-- public write functions
+    //- modifiers
 
+    modifier onlyDelegate() {
+        if (!hasRole(ESCROW_DELEGATE_ROLE, _msgSender())) {
+            revert AccessDenied();
+        }
+        _;
+    }
+
+    modifier escrowOpen() {
+        if (closed) {
+            revert EscrowHadClosed();
+        }
+        _;
+    }
+
+    //-- public write functions
+    
     function deposit(
         uint256 paymentId,
         address token,
@@ -161,7 +177,7 @@ contract LemonadeEscrowV1 is
     }
 
     function closeEscrow() external override onlyDelegate escrowOpen {
-        _closed = true;
+        closed = true;
 
         emit EscrowClosed();
     }
@@ -182,8 +198,8 @@ contract LemonadeEscrowV1 is
             revert CannotClaimRefund();
         }
 
-        //-- perform refund with _hostRefundPercent
-        _refundWithPercent(sender, paymentId, _hostRefundPercent, signature);
+        //-- perform refund with hostRefundPercent
+        _refundWithPercent(sender, paymentId, hostRefundPercent, signature);
 
         emit GuestClaimRefund(sender, paymentId);
     }
@@ -216,7 +232,7 @@ contract LemonadeEscrowV1 is
     function canClaimRefund(
         uint256 paymentId
     ) public view override returns (bool) {
-        return _closed || _paymentCancelled[paymentId];
+        return closed || _paymentCancelled[paymentId];
     }
 
     function getDeposits(
@@ -288,21 +304,5 @@ contract LemonadeEscrowV1 is
                 ++i;
             }
         }
-    }
-
-    //- modifiers
-
-    modifier onlyDelegate() {
-        if (!hasRole(ESCROW_DELEGATE_ROLE, _msgSender())) {
-            revert AccessDenied();
-        }
-        _;
-    }
-
-    modifier escrowOpen() {
-        if (_closed) {
-            revert EscrowHadClosed();
-        }
-        _;
     }
 }
