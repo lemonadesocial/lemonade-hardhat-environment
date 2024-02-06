@@ -17,7 +17,7 @@ contract LemonadeEscrowV1 is
 {
     bool public _closed;
     uint16 public _hostRefundPercent;
-    RefundPolicy[] public _refundPolicies;
+    RefundPolicy[] internal _refundPolicies;
     mapping(uint256 => bool) internal _paymentCancelled; //-- map paymentId
     mapping(address => mapping(uint256 => Deposit[])) internal _deposits; //-- map user -> paymentId
 
@@ -175,6 +175,29 @@ contract LemonadeEscrowV1 is
     }
 
     //-- public read functions
+
+    function getRefundPolicies()
+        external
+        view
+        override
+        returns (RefundPolicy[] memory)
+    {
+        uint256 length = _refundPolicies.length;
+
+        RefundPolicy[] memory policies = new RefundPolicy[](length);
+
+        for (uint256 i; i < length; ) {
+            RefundPolicy memory policy = _refundPolicies[i];
+
+            policies[i] = RefundPolicy(policy.timestamp, policy.percent);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return policies;
+    }
 
     function canClaimRefund(
         uint256 paymentId
