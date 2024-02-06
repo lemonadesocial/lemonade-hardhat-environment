@@ -9,20 +9,49 @@ import "./ILemonadeEscrow.sol";
 import "./LemonadeEscrowV1.sol";
 
 contract LemonadeEscrowFactoryV1 is Ownable, ILemonadeEscrowFactory {
-    address _signer;
+    address public _signer;
     address _feeCollector;
     uint256 _feeAmount;
 
     event EscrowCreated(address escrow);
 
     constructor(
-        address _initialSigner,
-        address _initialFeeCollector,
-        uint256 _initialFeeAmount
+        address initialSigner,
+        address initialFeeCollector,
+        uint256 initialFeeAmount
     ) {
-        setSigner(_initialSigner);
-        setFeeCollector(_initialFeeCollector);
-        setFeeAmount(_initialFeeAmount);
+        setSigner(initialSigner);
+        setFeeCollector(initialFeeCollector);
+        setFeeAmount(initialFeeAmount);
+    }
+
+    function createEscrow(
+        address owner,
+        address[] memory delegates,
+        address[] memory payees,
+        uint256[] memory shares,
+        uint16 hostRefundPercent,
+        RefundPolicy[] memory refundPolicies
+    ) external payable {
+        if (_feeAmount > 0 && _feeCollector != address(0)) {
+            (bool success, ) = payable(_feeCollector).call{
+                value: _feeAmount
+            }("");
+
+            if (!success) revert CannotPayFee();
+        }
+
+        ILemonadeEscrow escrow = new LemonadeEscrowV1(
+            owner,
+            delegates,
+            payees,
+            shares,
+            hostRefundPercent,
+            refundPolicies,
+            address(this)
+        );
+
+        emit EscrowCreated(address(escrow));
     }
 
     function setSigner(address signer) public onlyOwner {
@@ -37,40 +66,7 @@ contract LemonadeEscrowFactoryV1 is Ownable, ILemonadeEscrowFactory {
         _feeCollector = feeCollector;
     }
 
-    function getFeeCollector() public view returns (address) {
-        return _feeCollector;
-    }
-
     function setFeeAmount(uint256 feeAmount) public onlyOwner {
         _feeAmount = feeAmount;
-    }
-
-    function getFeeAmount() public view returns (uint256) {
-        return _feeAmount;
-    }
-
-    function createEscrow(
-        address owner,
-        address[] memory delegates,
-        address[] memory payees,
-        uint256[] memory shares,
-        uint16 hostRefundPercent,
-        RefundPolicy[] memory refundPolicies
-    ) external {
-        if (_feeAmount > 0 && _feeCollector != address(0)) {
-            payable(_feeCollector).transfer(_feeAmount);
-        }
-
-        ILemonadeEscrow escrow = new LemonadeEscrowV1(
-            owner,
-            delegates,
-            payees,
-            shares,
-            hostRefundPercent,
-            refundPolicies,
-            address(this)
-        );
-
-        emit EscrowCreated(address(escrow));
     }
 }

@@ -15,6 +15,7 @@ struct Deposit {
 interface ILemonadeEscrow {
     error AccessDenied();
     error CannotClaimRefund();
+    error CannotRefund();
     error EscrowHadClosed();
     error InvalidAmount();
     error InvalidDepositAmount();

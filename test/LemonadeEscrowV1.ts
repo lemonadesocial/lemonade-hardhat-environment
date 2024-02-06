@@ -1,23 +1,24 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { loadFixture } from 'ethereum-waffle';
+import { type SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import assert from 'assert';
 
 interface TxResponse {
   hash: string;
 }
 
-const deployFactory = async () => {
-  const [signer] = await ethers.getSigners();
-
+const deployFactory = async (signer: SignerWithAddress, ...args: unknown[]) => {
   const LemonadeEscrowFactoryV1 = await ethers.getContractFactory('LemonadeEscrowFactoryV1', signer);
-  const escrowFactoryV1 = await LemonadeEscrowFactoryV1.deploy(signer.address, ethers.constants.AddressZero, 0);
+  const escrowFactoryV1 = await LemonadeEscrowFactoryV1.deploy(signer.address, ...args);
 
-  return { signer, escrowFactoryV1 }
+  return { escrowFactoryV1 };
 }
 
 const deployEscrow = (...args: unknown[]) => async () => {
-  const { signer, escrowFactoryV1 } = await deployFactory();
+  const [signer] = await ethers.getSigners();
+
+  const { escrowFactoryV1 } = await deployFactory(signer, ethers.constants.AddressZero, 0);
 
   const response: { hash: string } = await escrowFactoryV1.connect(signer).createEscrow(...args);
 
@@ -44,6 +45,23 @@ const deployEscrow = (...args: unknown[]) => async () => {
 }
 
 describe('LemonadeEscrowV1', () => {
+  it('should deploy factory with fee', async () => {
+    const [signer, feeCollector] = await ethers.getSigners();
+    
+    const feeAmount = ethers.utils.parseEther(Math.random().toFixed(2));
+
+    const { escrowFactoryV1 } = await deployFactory(signer, feeCollector.address, feeAmount);
+
+    //-- create escrow from this factory and check if feeCollector has been credited
+    const balanceBefore = await feeCollector.getBalance();
+
+    await escrowFactoryV1.connect(signer).createEscrow(signer.address, [], [signer.address], [1], 90, [], { value: feeAmount });
+
+    const balanceAfter = await feeCollector.getBalance();
+
+    assert.ok(balanceBefore.add(feeAmount).eq(balanceAfter));
+  });
+
   it('should create escrow contract', async () => {
     const [signer] = await ethers.getSigners();
 
