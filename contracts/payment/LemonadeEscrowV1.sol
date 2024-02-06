@@ -17,14 +17,11 @@ contract LemonadeEscrowV1 is
         address guest,
         uint256 paymentId,
         address token,
-        uint256 amount
+        uint128 amount
     );
     event GuestClaimRefund(address guest, uint256 paymentId);
     event EscrowClosed();
     event PaymentCancelled(uint256 paymentId, bool byGuest);
-
-    uint64 internal _startTime;
-    uint64 internal _endTime;
 
     bool internal _closed;
     uint16 internal _hostRefundPercent;
@@ -38,12 +35,9 @@ contract LemonadeEscrowV1 is
         address[] memory delegates,
         address[] memory payees,
         uint256[] memory shares,
-        uint64 startTime,
-        uint64 endTime,
         uint16 hostRefundPercent,
         RefundPolicy[] memory refundPolicies
     ) PaymentSplitter(payees, shares) DelegateManager(delegates) {
-        require(startTime < endTime, "startTime must be smaller than endTime");
         require(hostRefundPercent <= 100, "Invalid hostRefundPercent");
 
         //-- check valid refundPolicies
@@ -52,7 +46,7 @@ contract LemonadeEscrowV1 is
         } else if (refundPolicies.length > 1) {
             _assertValidRefundPercent(refundPolicies[0]);
 
-            for (uint256 i = 0; i < refundPolicies.length - 1; i++) {
+            for (uint16 i = 0; i < refundPolicies.length - 1; i++) {
                 require(
                     refundPolicies[i].timestamp <
                         refundPolicies[i + 1].timestamp &&
@@ -65,11 +59,9 @@ contract LemonadeEscrowV1 is
             }
         }
 
-        _startTime = startTime;
-        _endTime = endTime;
         _hostRefundPercent = hostRefundPercent;
 
-        for (uint256 i = 0; i < refundPolicies.length; i++) {
+        for (uint16 i = 0; i < refundPolicies.length; i++) {
             _refundPolicies.push(refundPolicies[i]);
         }
 
@@ -77,11 +69,6 @@ contract LemonadeEscrowV1 is
     }
 
     //- modifiers
-
-    modifier onlyBeforeStart() {
-        require(block.timestamp < _startTime, "Only before start");
-        _;
-    }
 
     modifier onlyOwnerOrDelegate() {
         require(
@@ -113,8 +100,8 @@ contract LemonadeEscrowV1 is
     function deposit(
         uint256 paymentId,
         address token,
-        uint256 amount
-    ) external payable override onlyBeforeStart escrowOpen {
+        uint128 amount
+    ) external payable override escrowOpen {
         require(!_paymentCancelled[paymentId], "Payment had been cancelled");
         require(amount > 0, "Amount must not be zero");
 
@@ -129,26 +116,29 @@ contract LemonadeEscrowV1 is
         emit GuestDeposit(msg.sender, paymentId, token, amount);
     }
 
-    function cancelByGuest(
-        uint256 paymentId
-    ) external override onlyBeforeStart escrowOpen {
+    function cancelByGuest(uint256 paymentId) external override escrowOpen {
         require(
             !_paymentCancelled[paymentId],
             "Payment had already been cancelled"
         );
 
         //-- calculate refund percent based on policy
-        uint256 percent = 0;
+        uint16 percent = 0;
 
-        for (uint256 i = _refundPolicies.length - 1; i >= 0; i--) {
-            RefundPolicy memory policy = _refundPolicies[i];
+        if (_refundPolicies.length > 0) {
+            for (uint16 i = 0; i < _refundPolicies.length; i++) {
+                RefundPolicy memory policy = _refundPolicies[
+                    _refundPolicies.length - 1 - i
+                ];
 
-            if (block.timestamp <= policy.timestamp) {
-                percent = policy.percent;
+                if (block.timestamp <= policy.timestamp) {
+                    percent = policy.percent;
+                }
             }
         }
 
         //-- perform refund
+        _paymentCancelled[paymentId] = true;
         _refundWithPercent(msg.sender, paymentId, percent);
 
         emit PaymentCancelled(paymentId, true);
@@ -204,7 +194,7 @@ contract LemonadeEscrowV1 is
     function _refundWithPercent(
         address guest,
         uint256 paymentId,
-        uint256 percent
+        uint16 percent
     ) internal {
         /**
          * Note that, in theory, a same ERC20 transfer can happen multiple times because the deposit array can contain multiple deposits for a same token.
@@ -221,7 +211,7 @@ contract LemonadeEscrowV1 is
         //-- clear deposit array to prevent reentrance
         delete _deposits[msg.sender][paymentId];
 
-        for (uint256 i = 0; i < deposits.length; i++) {
+        for (uint16 i = 0; i < deposits.length; i++) {
             Deposit memory dep = deposits[i];
 
             uint256 amount = (dep.amount * percent) / 100;
