@@ -11,7 +11,7 @@ const deployFactory = async () => {
   const [signer] = await ethers.getSigners();
 
   const LemonadeEscrowFactoryV1 = await ethers.getContractFactory('LemonadeEscrowFactoryV1', signer);
-  const escrowFactoryV1 = await LemonadeEscrowFactoryV1.deploy();
+  const escrowFactoryV1 = await LemonadeEscrowFactoryV1.deploy(signer.address);
 
   return { signer, escrowFactoryV1 }
 }
@@ -40,7 +40,7 @@ const deployEscrow = (...args: unknown[]) => async () => {
 
   const escrowContract = await ethers.getContractAt('LemonadeEscrowV1', escrowAddress);
 
-  return { escrowContract };
+  return { signer, escrowContract };
 }
 
 describe('LemonadeEscrowV1', () => {
@@ -118,33 +118,79 @@ describe('LemonadeEscrowV1', () => {
       [Math.trunc(Date.now() / 1000 + 86400), 30],
     ];
 
-    const { escrowContract } = await loadFixture(deployEscrow(signer1.address, [], [signer1.address], [1], 0, policies));
+    const { signer, escrowContract } = await loadFixture(deployEscrow(signer1.address, [], [signer1.address], [1], 0, policies));
 
-    const depositAmount1 = ethers.utils.parseEther('1');
-    const depositAmount2 = ethers.utils.parseEther('0.2');
-    const refundedAmount = depositAmount1.add(depositAmount2).mul(policies[1][1]).div(100); //-- should return with pocilies[1] percent
+    const depositAmount1 = ethers.utils.parseEther(Math.random().toFixed(1));
+    const depositAmount2 = ethers.utils.parseEther(Math.random().toFixed(1));
+    const refundedAmount = depositAmount1.add(depositAmount2).mul(policies[1][1]).div(100); //-- should return with policies[1] percent
+    const paymentId = 1;
 
     const tx1: TxResponse = await escrowContract.connect(signer2).deposit(
-      1, ethers.constants.AddressZero, depositAmount1,
+      paymentId, ethers.constants.AddressZero, depositAmount1,
       { value: depositAmount1 },
     );
     await ethers.provider.waitForTransaction(tx1.hash);
 
     const tx2: TxResponse = await escrowContract.connect(signer2).deposit(
-      1, ethers.constants.AddressZero, depositAmount2,
+      paymentId, ethers.constants.AddressZero, depositAmount2,
       { value: depositAmount2 },
     );
     await ethers.provider.waitForTransaction(tx2.hash);
 
     const afterDepositBalance = await signer2.getBalance();
 
-    const tx3: TxResponse = await escrowContract.connect(signer2).cancelByGuest(1);
+    const signature = await signer.signMessage(
+      ethers.utils.arrayify(
+        escrowContract.interface._abiCoder.encode(['address', 'uint256'], [signer2.address, paymentId])
+      )
+    );
+
+    const tx3: TxResponse = await escrowContract.connect(signer2).cancelByGuest(paymentId, signature);
     const receipt = await ethers.provider.waitForTransaction(tx3.hash);
 
     const afterCancelBalance = await signer2.getBalance();
 
     const gasFee = receipt.cumulativeGasUsed.mul(receipt.effectiveGasPrice);
     const difference = afterDepositBalance.add(refundedAmount).sub(afterCancelBalance);
+
+    assert.ok(difference.eq(gasFee));
+  });
+
+  it('should refund correct amount after cancel by host', async () => {
+    const [signer1, signer2] = await ethers.getSigners();
+
+    const hostRefundPercent = Math.trunc(Math.random() * 100);
+
+    const { signer, escrowContract } = await loadFixture(deployEscrow(signer1.address, [], [signer1.address], [1], hostRefundPercent, []));
+
+    const depositAmount = ethers.utils.parseEther(Math.random().toFixed(2));
+    const refundedAmount = depositAmount.mul(hostRefundPercent).div(100);
+    const paymentId = 1;
+
+    const tx1: TxResponse = await escrowContract.connect(signer2).deposit(
+      paymentId, ethers.constants.AddressZero, depositAmount,
+      { value: depositAmount },
+    );
+    await ethers.provider.waitForTransaction(tx1.hash);
+
+    const afterDepositBalance = await signer2.getBalance();
+
+    const tx2: TxResponse = await escrowContract.connect(signer1).cancel(paymentId);
+    await ethers.provider.waitForTransaction(tx2.hash);
+
+    const signature = await signer.signMessage(
+      ethers.utils.arrayify(
+        escrowContract.interface._abiCoder.encode(['address', 'uint256'], [signer2.address, paymentId])
+      )
+    );
+
+    const tx3: TxResponse = await escrowContract.connect(signer2).claimRefund(paymentId, signature);
+    const receipt = await ethers.provider.waitForTransaction(tx3.hash);
+
+    const afterClaimBalance = await signer2.getBalance();
+
+    const gasFee = receipt.cumulativeGasUsed.mul(receipt.effectiveGasPrice);
+    const difference = afterDepositBalance.add(refundedAmount).sub(afterClaimBalance);
 
     assert.ok(difference.eq(gasFee));
   });
