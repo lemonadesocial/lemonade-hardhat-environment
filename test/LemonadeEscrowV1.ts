@@ -11,7 +11,7 @@ const deployFactory = async () => {
   const [signer] = await ethers.getSigners();
 
   const LemonadeEscrowFactoryV1 = await ethers.getContractFactory('LemonadeEscrowFactoryV1', signer);
-  const escrowFactoryV1 = await LemonadeEscrowFactoryV1.deploy(signer.address);
+  const escrowFactoryV1 = await LemonadeEscrowFactoryV1.deploy(signer.address, ethers.constants.AddressZero, 0);
 
   return { signer, escrowFactoryV1 }
 }
