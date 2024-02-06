@@ -236,12 +236,32 @@ contract LemonadeEscrowV1 is
     }
 
     function getDeposits(
-        uint256 paymentId
-    ) public view override returns (Deposit[] memory) {
-        return _deposits[paymentId];
+        uint256[] calldata paymentIds
+    ) public view override returns (Deposit[][] memory allPaymentDeposits) {
+        uint256 paymentIdsLength = paymentIds.length;
+
+        allPaymentDeposits = new Deposit[][](paymentIdsLength);
+
+        for (uint16 i = 0; i < paymentIdsLength; ) {
+            Deposit[] memory deposits = _loadDeposits(paymentIds[i]);
+
+            allPaymentDeposits[i] = deposits;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return allPaymentDeposits;
     }
 
     //-- internal & private functions
+    function _loadDeposits(
+        uint256 paymentId
+    ) internal view returns (Deposit[] memory) {
+        return _deposits[paymentId];
+    }
+
     function _assertRefundSigner(
         uint256 paymentId,
         bytes memory signature
@@ -276,7 +296,7 @@ contract LemonadeEscrowV1 is
 
         if (percent == 0) return;
 
-        Deposit[] memory deposits = getDeposits(paymentId);
+        Deposit[] memory deposits = _loadDeposits(paymentId);
 
         if (deposits.length == 0) {
             revert NoDepositFound();

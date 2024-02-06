@@ -50,12 +50,12 @@ interface ILemonadeEscrow {
     ) external payable;
 
     /**
-     * Return the all deposits of a guest for a specific payment
-     * @param paymentId id of the payment
+     * Return the all deposits for the payments
+     * @param paymentIds ids of the payments
      */
     function getDeposits(
-        uint256 paymentId
-    ) external view returns (Deposit[] memory);
+        uint256[] calldata paymentIds
+    ) external view returns (Deposit[][] memory);
 
     /**
      * Cancel and refund the deposit amount to caller, both ERC20 and native token if any.

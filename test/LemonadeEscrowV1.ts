@@ -100,12 +100,21 @@ describe('LemonadeEscrowV1', () => {
 
     const depositAmount = ethers.utils.parseEther('1');
 
-    const tx = await escrowContract.connect(signer2).deposit(
+    const tx1 = await escrowContract.connect(signer2).deposit(
       1, ethers.constants.AddressZero, depositAmount,
       { value: depositAmount },
     );
 
-    await expect(tx)
+    await escrowContract.connect(signer2).deposit(
+      2, ethers.constants.AddressZero, depositAmount,
+      { value: depositAmount },
+    );
+
+    const allDeposits = await escrowContract.getDeposits([1, 2]);
+
+    assert.ok(allDeposits.length === 2 && allDeposits[0].length === 1 && allDeposits[1].length === 1);
+
+    await expect(tx1)
       .emit(escrowContract, 'GuestDeposit')
       .withArgs(signer2.address, 1, ethers.constants.AddressZero, depositAmount);
   });
