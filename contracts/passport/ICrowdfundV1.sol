@@ -13,7 +13,7 @@ interface ICrowdfundV1 {
         uint256 campaignId
     );
     event Fund(uint256 indexed campaignId, uint256 amount);
-    event Execute(uint256 indexed campaignId);
+    event StateChanged(uint256 indexed campaignId, State state);
 
     enum State {
         PENDING,
