@@ -529,7 +529,7 @@ describe('Passport', () => {
 
           await expect(crowdfundV1.connect(signers[9]).execute(0, roundIds))
             .to.emit(passportV1Call, 'ExecuteReserve')
-            .to.emit(crowdfundV1, 'Execute');
+            .to.emit(crowdfundV1, 'StateChanged').withArgs(0, 2);
 
           await verify([
             (n) => n.add(amount),

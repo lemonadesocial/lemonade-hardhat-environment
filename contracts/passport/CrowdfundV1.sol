@@ -89,8 +89,9 @@ contract CrowdfundV1 is
             revert Forbidden();
         }
 
+        _setState(campaignId, State.EXECUTED);
+
         unchecked {
-            _campaigns[campaignId].state = State.EXECUTED;
             _campaigns[campaignId].unused = campaign.total - price;
         }
 
@@ -99,8 +100,6 @@ contract CrowdfundV1 is
             assignments_,
             abi.encode(campaignId)
         );
-
-        emit Execute(campaignId);
     }
 
     function fund(
@@ -141,7 +140,7 @@ contract CrowdfundV1 is
         }
 
         if (success) {
-            _campaigns[campaignId].state = State.CONFIRMED;
+            _setState(campaignId, State.CONFIRMED);
 
             if (campaign.unused > 0) {
                 _asyncTransfer(campaign.creator, campaign.unused);
@@ -233,7 +232,7 @@ contract CrowdfundV1 is
     }
 
     function _refund(uint256 campaignId) internal {
-        _campaigns[campaignId].state = State.REFUNDED;
+        _setState(campaignId, State.REFUNDED);
 
         address[] memory contributors_ = _campaigns[campaignId].contributors;
         uint256 length = contributors_.length;
@@ -250,6 +249,12 @@ contract CrowdfundV1 is
                 ++i;
             }
         }
+    }
+
+    function _setState(uint256 campaignId, State state_) internal {
+        _campaigns[campaignId].state = state_;
+
+        emit StateChanged(campaignId, state_);
     }
 
     modifier whenExists(uint256 campaignId) {

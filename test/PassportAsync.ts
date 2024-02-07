@@ -106,7 +106,7 @@ describe('PassportAsync', () => {
 
         await expect(crowdfundV1.connect(signers[3]).execute(0, roundIds))
           .to.emit(passportV1Call, 'ExecuteReserve').withNamedArgs({ success: false })
-          .to.emit(crowdfundV1, 'Execute');
+          .to.emit(crowdfundV1, 'StateChanged').withArgs(0, 3);
 
         await verify([
           (n) => n.add(amount.div(2)),
