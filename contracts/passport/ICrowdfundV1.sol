@@ -12,7 +12,11 @@ interface ICrowdfundV1 {
         Assignment[] assignments,
         uint256 indexed campaignId
     );
-    event Fund(uint256 indexed campaignId, uint256 amount);
+    event Fund(
+        uint256 indexed campaignId,
+        address indexed contributor,
+        uint256 amount
+    );
     event StateChanged(uint256 indexed campaignId, State state);
 
     enum State {
