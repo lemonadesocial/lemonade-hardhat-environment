@@ -121,7 +121,7 @@ contract CrowdfundV1 is
         _campaigns[campaignId].total = campaign.total + msg.value;
         _contributions[campaignId][contributor] = contribution + msg.value;
 
-        emit Fund(campaignId, msg.value);
+        emit Fund(campaignId, contributor, msg.value);
     }
 
     function onPassportV1Reserved(
