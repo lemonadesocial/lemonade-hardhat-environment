@@ -6,11 +6,11 @@ import "./IPassportV1.sol";
 
 interface ICrowdfundV1 {
     event Create(
-        address creator,
+        address indexed creator,
         string title,
         string description,
         Assignment[] assignments,
-        uint256 campaignId
+        uint256 indexed campaignId
     );
     event Fund(uint256 indexed campaignId, uint256 amount);
     event StateChanged(uint256 indexed campaignId, State state);
