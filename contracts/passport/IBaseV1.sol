@@ -5,8 +5,12 @@ pragma solidity ^0.8.0;
 import "./Shared.sol";
 
 interface IBaseV1 {
-    event Assign(address sender, Assignment[] assignments);
-    event Claim(address sender, bytes32 network, uint256 tokenId);
+    event Assign(address indexed sender, Assignment[] assignments);
+    event Claim(
+        address indexed sender,
+        bytes32 indexed network,
+        uint256 tokenId
+    );
     event ExecuteAssign(
         bytes32 indexed network,
         address indexed sender,
@@ -33,7 +37,11 @@ interface IBaseV1 {
         bool referred,
         bool success
     );
-    event Mint(bytes32 indexed network, address indexed to, uint256 tokenId);
+    event Mint(
+        bytes32 indexed network,
+        address indexed to,
+        uint256 indexed tokenId
+    );
 
     function assign(Assignment[] calldata assignments) external;
 

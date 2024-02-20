@@ -10,8 +10,8 @@ interface IPassportV1 is
     IERC721EnumerableUpgradeable,
     IERC721MetadataUpgradeable
 {
-    event Assign(address sender, Assignment[] assignments);
-    event Claim(address sender);
+    event Assign(address indexed sender, Assignment[] assignments);
+    event Claim(address indexed sender);
     event ExecuteClaim(address indexed sender, uint256 tokenId);
     event ExecutePurchase(
         uint256 indexed paymentId,
@@ -30,14 +30,14 @@ interface IPassportV1 is
     );
     event Payout(address payable indexed recipient, uint256 amount);
     event Purchase(
-        uint256 paymentId,
-        address payable sender,
+        uint256 indexed paymentId,
+        address payable indexed sender,
         uint256 value,
         address referrer
     );
     event Reserve(
-        uint256 paymentId,
-        address payable sender,
+        uint256 indexed paymentId,
+        address payable indexed sender,
         uint256 value,
         Assignment[] assignments
     );
