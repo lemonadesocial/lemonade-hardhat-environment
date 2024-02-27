@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.28.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.27.0...v2.28.0) (2024-02-27)
+
+
+### Features
+
+* add arbitrum sepolia and sepolia chains ([427c9ae](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/427c9ae75af03fcbf0033caa5a2d0b10ccc1b56b))
+* add openzeppelin hardhat upgrades state ([46b841d](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/46b841d1d94a09360c395001274c0f56e9ea77b9))
+* **deps:** upgrade openzeppelin contracts upgradable ([0daa4b3](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/0daa4b3f23b69b86580d5f652e618399293244ba))
+* **passport:** add crowdfund state changed event ([eb9a563](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/eb9a563d445401ddf45dfccd3891f27b544b4124))
+* **passport:** add incentive customization ([bcc872a](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/bcc872a9713f71377bf4792306a307f8d649de89))
+* **passport:** add set drawer function ([5f15ce7](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/5f15ce73cf7bec7b13a783acc7dba2b01d2bd1cb))
+* **passport:** refactor crowdfund contract ([7021e03](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/7021e038a4f7ae367ad9d11fc4b67d411d22d0e0))
+* **passport:** remove introspection from base contract ([0b615ef](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/0b615ef9cb8a9d68586f688b03a3916381cd0cd7))
+* **passport:** start crowdfund campaign id from zero ([080b637](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/080b637546fbbf3ae4e40326338c172cfc20fa0e))
+* **passport:** use pull over push payment strategy ([183a0c6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/183a0c6ada871615e60d8b5d9e82924dbc89f659))
+
+
+### Bug Fixes
+
+* **passport:** add missing contributor to crowdfund fund event ([6a0c270](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/6a0c270235869a573d89123e7da2b48debad6175))
+* **passport:** add missing crowdfund exist check to execute ([1ce7ef6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/1ce7ef6a971ae66acb7b923ea6b4b133a2ef861d))
+* **passport:** add missing indexed keyword to event parameters ([de57b08](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/de57b084b30f51e4ac2ec213d2951163a40baf58))
+* **passport:** add missing referred to base execute reserve event ([5fd4ca6](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/5fd4ca60d87d05a73c26bf25663622cb4cb7a980))
+* **passport:** fix deploy base script ([f02596d](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/f02596dfd12ae138fdd24ddd8b3b5c51c46cf09b))
+
 ## [2.27.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.26.0...v2.27.0) (2023-11-23)
 
 
