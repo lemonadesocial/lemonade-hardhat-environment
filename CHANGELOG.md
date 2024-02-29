@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.29.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.28.0...v2.29.0) (2024-02-29)
+
+
+### Features
+
+* **vinyl-nation:** add drawer contract ([5eda7ab](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/5eda7abd5ae15296c434f1815ee8e84004a6e176))
+* **vinyl-nation:** add openzeppelin hardhat upgrades state ([cd131ee](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/cd131ee36f212c8925129d5cdac972660325b0da))
+
 ## [2.28.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.27.0...v2.28.0) (2024-02-27)
 
 
