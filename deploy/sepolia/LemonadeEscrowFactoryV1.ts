@@ -6,7 +6,7 @@ const deployFunction: DeployFunction = async function ({ deployments: { deploy }
   const { deployer: from } = await getNamedAccounts();
 
   await deploy('LemonadeEscrowFactoryV1', {
-    args: [INITIAL_SIGNER],
+    args: [INITIAL_SIGNER, INITIAL_SIGNER, 0],
     from,
     log: true,
   });
