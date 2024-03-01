@@ -13,7 +13,7 @@ import "@openzeppelin/contracts-upgradeable/security/PullPaymentUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-uint256 constant PRICE_MAX_AGE = 1 hours;
+uint256 constant PRICE_MAX_AGE = 24 hours;
 
 abstract contract PassportV1 is
     AccessControlUpgradeable,
