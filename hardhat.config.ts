@@ -211,7 +211,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.7.0",
+        version: '0.7.0',
         settings: {
           optimizer: {
             enabled: true,
@@ -219,7 +219,7 @@ const config: HardhatUserConfig = {
         },
       },
       {
-        version: "0.8.4",
+        version: '0.8.4',
         settings: {
           optimizer: {
             enabled: true,
@@ -227,6 +227,22 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+    overrides: {
+      'contracts/passport/DrawerV1FunUnitedNations.sol': {
+        version: '0.8.4',
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            details: {
+              yulDetails: {
+                optimizerSteps: 'u',
+              },
+            },
+          },
+        },
+      }
+    },
   },
 };
 
