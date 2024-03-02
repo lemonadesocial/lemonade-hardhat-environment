@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.30.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.29.0...v2.30.0) (2024-03-02)
+
+
+### Features
+
+* **fun-united-nations:** add drawer contract ([9a4004d](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/9a4004ddc183d155039a5ce4d18e5d984430903c))
+* **fun-united-nations:** add openzeppelin hardhat upgrades state ([e47106b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e47106bac7a14709d5353ec5f8970902df1fffbd))
+* **passport:** increase price max age ([2d70307](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/2d70307a692f45c06273a4b0a82ba5f906620905))
+
 ## [2.29.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.28.0...v2.29.0) (2024-02-29)
 
 
