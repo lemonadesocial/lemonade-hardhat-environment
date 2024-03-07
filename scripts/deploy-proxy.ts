@@ -1,14 +1,14 @@
 import { ethers, upgrades } from 'hardhat';
 import * as assert from 'assert';
 
-const { NAME } = process.env;
+const { NAME, ARGS } = process.env;
 
 async function main() {
   assert.ok(NAME);
 
   const contractFactory = await ethers.getContractFactory(NAME);
 
-  const proxy = await upgrades.deployProxy(contractFactory);
+  const proxy = await upgrades.deployProxy(contractFactory, ARGS && JSON.parse(ARGS) || []);
 
   console.log(proxy.address);
 }
