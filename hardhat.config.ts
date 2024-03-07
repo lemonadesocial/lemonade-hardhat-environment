@@ -241,7 +241,21 @@ const config: HardhatUserConfig = {
             },
           },
         },
-      }
+      },
+      'contracts/passport/DrawerV1HerNation.sol': {
+        version: '0.8.4',
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            details: {
+              yulDetails: {
+                optimizerSteps: 'u',
+              },
+            },
+          },
+        },
+      },
     },
   },
 };
