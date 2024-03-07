@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.31.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.30.0...v2.31.0) (2024-03-07)
+
+
+### Features
+
+* add args customization to deploy proxy script ([d160897](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/d16089782c0f7a22b9e955347dc7a73cef6e9a18))
+* **her-nation:** add drawer contract ([b0b0f6b](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/b0b0f6bf61e27fd3a3d6744bbd633b3ec54e8f79))
+* **her-nation:** add openzeppelin hardhat upgrades state ([157fb7a](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/157fb7afa81d9f7cf5a8e22c8aee31123773ff52))
+* **passport:** add payment splitter contract ([91425e8](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/91425e8a477c07828550025a94c6673f174972ed))
+
 ## [2.30.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.29.0...v2.30.0) (2024-03-02)
 
 
