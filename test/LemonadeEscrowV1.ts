@@ -1,3 +1,4 @@
+import { BigNumber } from "ethers";
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { loadFixture } from 'ethereum-waffle';
@@ -67,7 +68,10 @@ describe('LemonadeEscrowV1', () => {
 
     const { escrowContract } = await loadFixture(deployEscrow(signer.address, [], [signer.address], [1], 90, []));
 
+    const payees = await escrowContract.connect(signer).totalPayees();
+
     assert.ok(escrowContract);
+    assert.ok(BigNumber.from(1).eq(payees));
   });
 
   it('should revert for invalid host refund percent', async () => {
