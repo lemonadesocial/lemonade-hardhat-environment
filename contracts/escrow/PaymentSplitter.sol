@@ -26,6 +26,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
  */
 contract PaymentSplitter is Context {
     event PayeeAdded(address account, uint256 shares);
+    event PayeesUpdated();
     event PaymentReleased(address to, uint256 amount);
     event ERC20PaymentReleased(
         IERC20 indexed token,
@@ -215,5 +216,34 @@ contract PaymentSplitter is Context {
         _shares[account] = shares_;
         _totalShares = _totalShares + shares_;
         emit PayeeAdded(account, shares_);
+    }
+
+    function _updatePayees(
+        address[] memory payees,
+        uint256[] memory shares_
+    ) internal {
+        //-- reset total share
+        _totalShares = 0;
+
+        //-- reset payees array
+        delete _payees;
+
+        for (uint256 i = 0; i < payees.length; i++) {
+            address account = payees[i];
+            uint256 shared = shares_[i];
+
+            require(
+                account != address(0),
+                "PaymentSplitter: account is the zero address"
+            );
+
+            require(shared > 0, "PaymentSplitter: shares are 0");
+
+            _payees.push(account);
+            _shares[account] = shared;
+            _totalShares = _totalShares + shared;
+        }
+
+        emit PayeesUpdated();
     }
 }
