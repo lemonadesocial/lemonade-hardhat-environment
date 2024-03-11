@@ -225,4 +225,56 @@ describe('LemonadeEscrowV1', () => {
 
     assert.ok(difference.eq(gasFee));
   });
+
+  it('should update escrow contract', async () => {
+    const [signer] = await ethers.getSigners();
+
+    const [delegate1, delegate2, delegate3] = [ethers.Wallet.createRandom(), ethers.Wallet.createRandom(), ethers.Wallet.createRandom()];
+
+    const { escrowContract } = await loadFixture(
+      deployEscrow(signer.address, [delegate1.address, delegate2.address, delegate3.address], [signer.address], [1], 90, [[Math.trunc(Date.now() / 1000 - 86400), 50]])
+    );
+
+    const updatedDelegates = [delegate1.address, delegate3.address]; //-- remove delegate2
+    const updatedPayees = [signer.address, delegate2.address] //-- add delegate2 as payee
+    const updatedShares = [1, 2];
+    const updatedRefund = 80;
+    const updatedPolicies = [
+      [Math.trunc(Date.now() / 1000 - 86400), 50],
+      [Math.trunc(Date.now() / 1000 + 86400), 30],
+    ];
+
+    const contract = escrowContract.connect(signer);
+
+    const tx: TxResponse = await contract.updateEscrow(updatedDelegates, updatedPayees, updatedShares, updatedRefund, updatedPolicies);
+    await ethers.provider.waitForTransaction(tx.hash);
+
+    //-- check updated values
+    const delegateRoleId = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("ESCROW_DELEGATE_ROLE"));
+    const roleMemberCount = await contract.getRoleMemberCount(delegateRoleId);
+    const payeesCount = await contract.totalPayees();
+
+    const newDelegates = await Promise.all(
+      Array.from(Array(Number(roleMemberCount)).keys()).map((_, index) => contract.getRoleMember(delegateRoleId, index))
+    );
+
+    const newPayees = await Promise.all(
+      Array.from(Array(Number(payeesCount)).keys()).map((_, index) => contract.payee(index))
+    );
+
+    const newShares = await Promise.all(
+      updatedPayees.map((payee) => contract.shares(payee))
+    );
+
+    const [newRefund, newPolicies] = await Promise.all([
+      contract.hostRefundPercent(),
+      contract.getRefundPolicies()
+    ]);
+
+    assert.deepStrictEqual([signer.address, ...updatedDelegates], newDelegates);
+    assert.deepStrictEqual(updatedPayees, newPayees);
+    assert.deepStrictEqual(updatedShares, newShares.map(Number));
+    assert.deepStrictEqual(updatedRefund, Number(newRefund));
+    assert.deepStrictEqual(updatedPolicies, newPolicies.map(([timestamp, percent]: [BigNumber, number]) => [Number(timestamp), percent]));
+  });
 });
