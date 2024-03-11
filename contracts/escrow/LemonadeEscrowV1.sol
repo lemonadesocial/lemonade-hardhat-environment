@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "hardhat/console.sol";
 
 import "./ILemonadeEscrow.sol";
 import "./ILemonadeEscrowFactory.sol";
@@ -36,59 +37,10 @@ contract LemonadeEscrowV1 is
         RefundPolicy[] memory refundPolicies,
         address factory
     ) PaymentSplitter(payees, shares) {
-        if (refundPercent > 100) {
-            revert InvalidHostRefundPercent();
-        }
-
-        hostRefundPercent = refundPercent;
-
-        //-- check valid refundPolicies
-        uint256 refundPoliciesLength = refundPolicies.length;
-
-        if (refundPoliciesLength == 1) {
-            RefundPolicy memory policy = refundPolicies[0];
-
-            _assertValidRefundPercent(policy);
-            _refundPolicies.push(policy);
-        } else if (refundPoliciesLength > 1) {
-            RefundPolicy memory current;
-            RefundPolicy memory next;
-
-            next = refundPolicies[0];
-
-            _assertValidRefundPercent(next);
-            _refundPolicies.push(next);
-
-            for (uint256 i = 1; i < refundPoliciesLength; ) {
-                current = next;
-                next = refundPolicies[i];
-
-                if (
-                    current.timestamp >= next.timestamp ||
-                    current.percent <= next.percent
-                ) {
-                    revert InvalidRefundPolicies();
-                }
-
-                _assertValidRefundPercent(next);
-                _refundPolicies.push(next);
-
-                unchecked {
-                    ++i;
-                }
-            }
-        }
-
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(ESCROW_DELEGATE_ROLE, owner);
 
-        uint256 delegatesLength = delegates.length;
-        for (uint256 i; i < delegatesLength; ) {
-            _grantRole(ESCROW_DELEGATE_ROLE, delegates[i]);
-            unchecked {
-                ++i;
-            }
-        }
+        _setupEscrow(delegates, refundPercent, refundPolicies);
 
         _factory = ILemonadeEscrowFactory(factory);
     }
@@ -102,6 +54,13 @@ contract LemonadeEscrowV1 is
         _;
     }
 
+    modifier onlyOwner() {
+        if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
+            revert AccessDenied();
+        }
+        _;
+    }
+
     modifier escrowOpen() {
         if (closed) {
             revert EscrowHadClosed();
@@ -110,6 +69,46 @@ contract LemonadeEscrowV1 is
     }
 
     //-- public write functions
+
+    function updateEscrow(
+        address[] calldata delegates,
+        address[] calldata payees,
+        uint256[] calldata shares,
+        uint16 refundPercent,
+        RefundPolicy[] calldata refundPolicies
+    ) public onlyOwner escrowOpen {
+        //-- reset refund policies
+        delete _refundPolicies;
+
+        //-- reset delegates
+        uint256 count = getRoleMemberCount(ESCROW_DELEGATE_ROLE);
+        address[] memory members = new address[](count);
+
+        for (uint256 i = 0; i < count; ) {
+            address member = getRoleMember(ESCROW_DELEGATE_ROLE, i);
+            members[i] = member;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        for (uint256 i = 0; i < count; ) {
+            address member = members[i];
+            
+            if (!hasRole(DEFAULT_ADMIN_ROLE, member)) {
+                _revokeRole(ESCROW_DELEGATE_ROLE, member);
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        _setupEscrow(delegates, refundPercent, refundPolicies);
+
+        _resetPayees(payees, shares);
+    }
 
     function deposit(
         uint256 paymentId,
@@ -256,6 +255,64 @@ contract LemonadeEscrowV1 is
     }
 
     //-- internal & private functions
+
+    function _setupEscrow(
+        address[] memory delegates,
+        uint16 refundPercent,
+        RefundPolicy[] memory refundPolicies
+    ) internal {
+        if (refundPercent > 100) {
+            revert InvalidHostRefundPercent();
+        }
+
+        hostRefundPercent = refundPercent;
+
+        //-- check valid refundPolicies
+        uint256 refundPoliciesLength = refundPolicies.length;
+
+        if (refundPoliciesLength == 1) {
+            RefundPolicy memory policy = refundPolicies[0];
+
+            _assertValidRefundPercent(policy);
+            _refundPolicies.push(policy);
+        } else if (refundPoliciesLength > 1) {
+            RefundPolicy memory current;
+            RefundPolicy memory next;
+
+            next = refundPolicies[0];
+
+            _assertValidRefundPercent(next);
+            _refundPolicies.push(next);
+
+            for (uint256 i = 1; i < refundPoliciesLength; ) {
+                current = next;
+                next = refundPolicies[i];
+
+                if (
+                    current.timestamp >= next.timestamp ||
+                    current.percent <= next.percent
+                ) {
+                    revert InvalidRefundPolicies();
+                }
+
+                _assertValidRefundPercent(next);
+                _refundPolicies.push(next);
+
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+
+        uint256 delegatesLength = delegates.length;
+        for (uint256 i; i < delegatesLength; ) {
+            _grantRole(ESCROW_DELEGATE_ROLE, delegates[i]);
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     function _assertRefundSigner(
         uint256 paymentId,
         bytes memory signature
