@@ -123,6 +123,10 @@ contract PaymentSplitter is Context {
         return _erc20Released[token][account];
     }
 
+    function totalPayees() public view returns (uint256) {
+        return _payees.length;
+    }
+
     /**
      * @dev Getter for the address of the payee number `index`.
      */
