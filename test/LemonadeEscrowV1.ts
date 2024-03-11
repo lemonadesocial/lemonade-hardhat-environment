@@ -47,7 +47,7 @@ const deployEscrow = (...args: unknown[]) => async () => {
 describe('LemonadeEscrowV1', () => {
   it('should deploy factory with fee', async () => {
     const [signer, feeCollector] = await ethers.getSigners();
-    
+
     const feeAmount = ethers.utils.parseEther(Math.random().toFixed(2));
 
     const { escrowFactoryV1 } = await deployFactory(signer, feeCollector.address, feeAmount);
