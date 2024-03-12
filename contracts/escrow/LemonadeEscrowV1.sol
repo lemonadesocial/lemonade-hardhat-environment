@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "hardhat/console.sol";
 
 import "./ILemonadeEscrow.sol";
 import "./ILemonadeEscrowFactory.sol";
@@ -25,6 +24,7 @@ contract LemonadeEscrowV1 is
 
     RefundPolicy[] _refundPolicies;
     mapping(uint256 => bool) _paymentCancelled;
+    mapping(uint256 => Deposit[]) _paymentRefund;
     mapping(uint256 => Deposit[]) _deposits;
     ILemonadeEscrowFactory _factory;
 
@@ -95,7 +95,7 @@ contract LemonadeEscrowV1 is
 
         for (uint256 i = 0; i < count; ) {
             address member = members[i];
-            
+
             if (!hasRole(DEFAULT_ADMIN_ROLE, member)) {
                 _revokeRole(ESCROW_DELEGATE_ROLE, member);
             }
@@ -145,8 +145,8 @@ contract LemonadeEscrowV1 is
         uint256 paymentId,
         bytes calldata signature
     ) external override escrowOpen {
-        if (_paymentCancelled[paymentId]) {
-            revert PaymentHadCancelled();
+        if (!canClaimRefund(paymentId)) {
+            revert CannotClaimRefund();
         }
 
         //-- calculate refund percent based on policy
@@ -168,8 +168,7 @@ contract LemonadeEscrowV1 is
             }
         }
 
-        //-- perform refund
-        _paymentCancelled[paymentId] = true;
+        //-- perform refund with the corresponding percent
         _refundWithPercent(_msgSender(), paymentId, percent, signature);
 
         emit PaymentCancelled(paymentId, true);
@@ -179,12 +178,6 @@ contract LemonadeEscrowV1 is
         closed = true;
 
         emit EscrowClosed();
-    }
-
-    function cancel(uint256 paymentId) external override onlyDelegate {
-        _paymentCancelled[paymentId] = true;
-
-        emit PaymentCancelled(paymentId, false);
     }
 
     function claimRefund(
@@ -231,7 +224,7 @@ contract LemonadeEscrowV1 is
     function canClaimRefund(
         uint256 paymentId
     ) public view override returns (bool) {
-        return closed || _paymentCancelled[paymentId];
+        return _deposits[paymentId].length > 0 && !_paymentCancelled[paymentId];
     }
 
     function getDeposits(
@@ -252,6 +245,26 @@ contract LemonadeEscrowV1 is
         }
 
         return allPaymentDeposits;
+    }
+
+    function getRefunds(
+        uint256[] calldata paymentIds
+    ) external view override returns (Deposit[][] memory allRefunds) {
+        uint256 paymentIdsLength = paymentIds.length;
+
+        allRefunds = new Deposit[][](paymentIdsLength);
+
+        for (uint16 i = 0; i < paymentIdsLength; ) {
+            Deposit[] memory deposits = _loadRefunds(paymentIds[i]);
+
+            allRefunds[i] = deposits;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return allRefunds;
     }
 
     //-- internal & private functions
@@ -337,13 +350,11 @@ contract LemonadeEscrowV1 is
     ) internal {
         _assertRefundSigner(paymentId, signature);
 
+        _paymentCancelled[paymentId] = true;
+
         if (percent == 0) return;
 
         Deposit[] memory deposits = _loadDeposits(paymentId);
-
-        if (deposits.length == 0) {
-            revert NoDepositFound();
-        }
 
         //-- clear deposit array to prevent reentrance
         delete _deposits[paymentId];
@@ -357,11 +368,13 @@ contract LemonadeEscrowV1 is
 
             if (dep.token == address(0)) {
                 (bool success, ) = payable(guest).call{value: amount}("");
-
                 if (!success) revert CannotRefund();
             } else {
-                IERC20(dep.token).transfer(guest, amount);
+                bool success = IERC20(dep.token).transfer(guest, amount);
+                if (!success) revert CannotRefund();
             }
+
+            _paymentRefund[paymentId].push(Deposit(dep.token, amount));
 
             unchecked {
                 ++i;
@@ -373,6 +386,12 @@ contract LemonadeEscrowV1 is
         uint256 paymentId
     ) internal view returns (Deposit[] memory) {
         return _deposits[paymentId];
+    }
+
+    function _loadRefunds(
+        uint256 paymentId
+    ) internal view returns (Deposit[] memory) {
+        return _paymentRefund[paymentId];
     }
 
     function _assertValidRefundPercent(
