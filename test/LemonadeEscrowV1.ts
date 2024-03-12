@@ -184,7 +184,11 @@ describe('LemonadeEscrowV1', () => {
     const gasFee = receipt.cumulativeGasUsed.mul(receipt.effectiveGasPrice);
     const difference = afterDepositBalance.add(refundedAmount).sub(afterCancelBalance);
 
+    const [refund] = await escrowContract.connect(signer).getRefunds([paymentId]);
+    const calculatedRefund = (refund as [[string, BigNumber]]).reduce((total, refund) => total.add(refund[1]), BigNumber.from(0));
+
     assert.ok(difference.eq(gasFee));
+    assert.ok(calculatedRefund.eq(refundedAmount));
   });
 
   it('should refund correct amount after cancel by host', async () => {
@@ -205,9 +209,6 @@ describe('LemonadeEscrowV1', () => {
     await ethers.provider.waitForTransaction(tx1.hash);
 
     const afterDepositBalance = await signer2.getBalance();
-
-    const tx2: TxResponse = await escrowContract.connect(signer1).cancel(paymentId);
-    await ethers.provider.waitForTransaction(tx2.hash);
 
     const signature = await signer.signMessage(
       ethers.utils.arrayify(
