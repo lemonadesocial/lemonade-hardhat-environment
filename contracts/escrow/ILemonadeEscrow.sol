@@ -71,7 +71,7 @@ interface ILemonadeEscrow {
      * Refund amount affected by policies. If escrow is closed then must call claimRefund instead.
      * @param paymentId id of the payment
      */
-    function cancelByGuest(uint256 paymentId, bytes calldata signature) external;
+    function cancelAndRefund(uint256 paymentId, bool fullRefund, bytes calldata signature) external;
 
     /**
      * After escrow is closed, guests can no more deposit.
@@ -79,16 +79,10 @@ interface ILemonadeEscrow {
     function closeEscrow() external;
 
     /**
-     * Claim the deposit amount to called, both ERC20 and native token if any.
-     * @param paymentId id of the payment to claim
-     */
-    function claimRefund(uint256 paymentId, bytes calldata signature) external;
-
-    /**
      * Check if the caller can claim refund for the payment.
      * @param paymentId id of the payment to check
      */
-    function canClaimRefund(uint256 paymentId) external view returns (bool);
+    function canRefund(uint256 paymentId) external view returns (bool);
 
     /**
      * Return the refund policies
