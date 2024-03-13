@@ -141,35 +141,43 @@ contract LemonadeEscrowV1 is
         emit GuestDeposit(sender, paymentId, token, amount);
     }
 
-    function cancelByGuest(
+    function cancelAndRefund(
         uint256 paymentId,
+        bool fullRefund,
         bytes calldata signature
     ) external override escrowOpen {
-        if (!canClaimRefund(paymentId)) {
+        if (!canRefund(paymentId)) {
             revert CannotClaimRefund();
         }
 
-        //-- calculate refund percent based on policy
         uint16 percent;
 
-        uint256 refundPoliciesLength = _refundPolicies.length;
+        _assertRefundSigner(paymentId, fullRefund, signature);
 
-        for (uint256 i; i < refundPoliciesLength; ) {
-            RefundPolicy memory policy = _refundPolicies[
-                _refundPolicies.length - 1 - i
-            ];
+        if (fullRefund) {
+            percent = hostRefundPercent;
+        } else {
+            //-- calculate refund percent based on policy
 
-            if (block.timestamp < policy.timestamp) {
-                percent = policy.percent;
-            }
+            uint256 refundPoliciesLength = _refundPolicies.length;
 
-            unchecked {
-                ++i;
+            for (uint256 i; i < refundPoliciesLength; ) {
+                RefundPolicy memory policy = _refundPolicies[
+                    _refundPolicies.length - 1 - i
+                ];
+
+                if (block.timestamp < policy.timestamp) {
+                    percent = policy.percent;
+                }
+
+                unchecked {
+                    ++i;
+                }
             }
         }
 
         //-- perform refund with the corresponding percent
-        _refundWithPercent(_msgSender(), paymentId, percent, signature);
+        _refundWithPercent(_msgSender(), paymentId, percent);
 
         emit PaymentCancelled(paymentId, true);
     }
@@ -178,22 +186,6 @@ contract LemonadeEscrowV1 is
         closed = true;
 
         emit EscrowClosed();
-    }
-
-    function claimRefund(
-        uint256 paymentId,
-        bytes calldata signature
-    ) external override {
-        address sender = _msgSender();
-
-        if (!canClaimRefund(paymentId)) {
-            revert CannotClaimRefund();
-        }
-
-        //-- perform refund with hostRefundPercent
-        _refundWithPercent(sender, paymentId, hostRefundPercent, signature);
-
-        emit GuestClaimRefund(sender, paymentId);
     }
 
     //-- public read functions
@@ -221,9 +213,7 @@ contract LemonadeEscrowV1 is
         return policies;
     }
 
-    function canClaimRefund(
-        uint256 paymentId
-    ) public view override returns (bool) {
+    function canRefund(uint256 paymentId) public view override returns (bool) {
         return _deposits[paymentId].length > 0 && !_paymentCancelled[paymentId];
     }
 
@@ -328,10 +318,11 @@ contract LemonadeEscrowV1 is
 
     function _assertRefundSigner(
         uint256 paymentId,
+        bool fullRefund,
         bytes memory signature
     ) internal {
         address actualSigner = abi
-            .encode(paymentId)
+            .encode(paymentId, fullRefund)
             .toEthSignedMessageHash()
             .recover(signature);
 
@@ -345,11 +336,8 @@ contract LemonadeEscrowV1 is
     function _refundWithPercent(
         address guest,
         uint256 paymentId,
-        uint16 percent,
-        bytes memory signature
+        uint16 percent
     ) internal {
-        _assertRefundSigner(paymentId, signature);
-
         _paymentCancelled[paymentId] = true;
 
         if (percent == 0) return;

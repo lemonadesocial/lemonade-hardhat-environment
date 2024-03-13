@@ -112,7 +112,7 @@ describe('LemonadeEscrowV1', () => {
 
     //-- the custom error could not be parsed by hardhat for some unknown reasons parsing custom error
     await expect(escrowContract.connect(signer2).deposit(1, ethers.constants.AddressZero, 1000, { value: 100 }))
-      .revertedWith('');
+      .revertedWith('InvalidDepositAmount');
   });
 
   it('should deposit', async () => {
@@ -172,11 +172,11 @@ describe('LemonadeEscrowV1', () => {
 
     const signature = await signer.signMessage(
       ethers.utils.arrayify(
-        escrowContract.interface._abiCoder.encode(['uint256'], [paymentId])
+        escrowContract.interface._abiCoder.encode(['uint256', 'bool'], [paymentId, false])
       )
     );
 
-    const tx3: TxResponse = await escrowContract.connect(signer2).cancelByGuest(paymentId, signature);
+    const tx3: TxResponse = await escrowContract.connect(signer2).cancelAndRefund(paymentId, false, signature);
     const receipt = await ethers.provider.waitForTransaction(tx3.hash);
 
     const afterCancelBalance = await signer2.getBalance();
@@ -212,11 +212,11 @@ describe('LemonadeEscrowV1', () => {
 
     const signature = await signer.signMessage(
       ethers.utils.arrayify(
-        escrowContract.interface._abiCoder.encode(['uint256'], [paymentId])
+        escrowContract.interface._abiCoder.encode(['uint256', 'bool'], [paymentId, true])
       )
     );
 
-    const tx3: TxResponse = await escrowContract.connect(signer2).claimRefund(paymentId, signature);
+    const tx3: TxResponse = await escrowContract.connect(signer2).cancelAndRefund(paymentId, true, signature);
     const receipt = await ethers.provider.waitForTransaction(tx3.hash);
 
     const afterClaimBalance = await signer2.getBalance();
