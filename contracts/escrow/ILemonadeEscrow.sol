@@ -24,7 +24,7 @@ interface ILemonadeEscrow {
     error InvalidRefundPolicies();
     error InvalidSigner();
     error NoDepositFound();
-    error PaymentHadCancelled();
+    error PaymentRefunded();
 
     event GuestDeposit(
         address guest,
@@ -35,6 +35,22 @@ interface ILemonadeEscrow {
     event GuestClaimRefund(address guest, uint256 paymentId);
     event EscrowClosed();
     event PaymentCancelled(uint256 paymentId, bool byGuest);
+
+    /**
+     * Update the escrow config
+     * @param delegates array of delegate address
+     * @param payees array of payees
+     * @param shares array of shares of payees
+     * @param refundPercent host refund percent
+     * @param refundPolicies new refund policies
+     */
+    function updateEscrow(
+        address[] calldata delegates,
+        address[] calldata payees,
+        uint256[] calldata shares,
+        uint16 refundPercent,
+        RefundPolicy[] calldata refundPolicies
+    ) external;
 
     /**
      * Deposit an amount of ERC20 / native token to the payment.
@@ -67,11 +83,21 @@ interface ILemonadeEscrow {
     ) external view returns (Deposit[][] memory);
 
     /**
+     * Get the refund timestamp
+     * @param paymentId Id of the payment
+     */
+    function getRefundAt(uint256 paymentId) external view returns (uint256);
+
+    /**
      * Cancel and refund the deposit amount to caller, both ERC20 and native token if any.
      * Refund amount affected by policies. If escrow is closed then must call claimRefund instead.
      * @param paymentId id of the payment
      */
-    function cancelAndRefund(uint256 paymentId, bool fullRefund, bytes calldata signature) external;
+    function cancelAndRefund(
+        uint256 paymentId,
+        bool fullRefund,
+        bytes calldata signature
+    ) external;
 
     /**
      * After escrow is closed, guests can no more deposit.
