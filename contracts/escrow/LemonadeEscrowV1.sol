@@ -23,7 +23,7 @@ contract LemonadeEscrowV1 is
     uint16 public hostRefundPercent;
 
     RefundPolicy[] _refundPolicies;
-    mapping(uint256 => bool) _paymentCancelled;
+    mapping(uint256 => uint256) _paymentRefundAt;
     mapping(uint256 => Deposit[]) _paymentRefund;
     mapping(uint256 => Deposit[]) _deposits;
     ILemonadeEscrowFactory _factory;
@@ -76,7 +76,7 @@ contract LemonadeEscrowV1 is
         uint256[] calldata shares,
         uint16 refundPercent,
         RefundPolicy[] calldata refundPolicies
-    ) public onlyOwner escrowOpen {
+    ) public override onlyOwner escrowOpen {
         //-- reset refund policies
         delete _refundPolicies;
 
@@ -121,8 +121,8 @@ contract LemonadeEscrowV1 is
             revert InvalidAmount();
         }
 
-        if (_paymentCancelled[paymentId]) {
-            revert PaymentHadCancelled();
+        if (_paymentRefundAt[paymentId] > 0) {
+            revert PaymentRefunded();
         }
 
         bool isErc20 = token != address(0);
@@ -190,6 +190,12 @@ contract LemonadeEscrowV1 is
 
     //-- public read functions
 
+    function getRefundAt(
+        uint256 paymentId
+    ) external view override returns (uint256) {
+        return _paymentRefundAt[paymentId];
+    }
+
     function getRefundPolicies()
         external
         view
@@ -214,7 +220,9 @@ contract LemonadeEscrowV1 is
     }
 
     function canRefund(uint256 paymentId) public view override returns (bool) {
-        return _deposits[paymentId].length > 0 && !_paymentCancelled[paymentId];
+        return
+            _deposits[paymentId].length > 0 &&
+            _paymentRefundAt[paymentId] == 0;
     }
 
     function getDeposits(
@@ -338,7 +346,7 @@ contract LemonadeEscrowV1 is
         uint256 paymentId,
         uint16 percent
     ) internal {
-        _paymentCancelled[paymentId] = true;
+        _paymentRefundAt[paymentId] = block.timestamp;
 
         if (percent == 0) return;
 
