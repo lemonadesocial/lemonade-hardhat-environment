@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.32.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.31.0...v2.32.0) (2024-03-16)
+
+
+### Features
+
+* **fun-united-nations:** update openzeppelin hardhat upgrades state ([11bf9e1](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/11bf9e1279c19408a283332dcc72bb0bc4715af3))
+* **vinyl-nation:** update openzeppelin hardhat upgrades state ([a41a3a3](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/a41a3a3992bba034f1c9f768b38f16b49102e47f))
+
 ## [2.31.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.30.0...v2.31.0) (2024-03-07)
 
 
