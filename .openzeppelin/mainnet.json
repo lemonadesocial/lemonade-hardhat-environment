@@ -19,6 +19,26 @@
       "address": "0x726164fFD3A0E07A62D3E6A9F0815e31ec96521A",
       "txHash": "0xed2565f45596b733caf394b5337c31e507c9ab082eb6eaae22070cbd618e3132",
       "kind": "transparent"
+    },
+    {
+      "address": "0x20a8F0A2535f21bc3b7Ee2ED634a6550F23B1EBB",
+      "txHash": "0xe241ccbe41e5447287b8606d42bd181fb5396baca9630b652635590d71b3e369",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x051CaF77A063AC77fFB752efE4d3a3Fe7f557053",
+      "txHash": "0x3dc78ea13d33a4b79072d6655aa0fbb4bfb58c7efd6da92f2dbe5c8a368c1dc9",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x675914465fFd3d840D52F6114C9330480Ce6C2A2",
+      "txHash": "0x1a2ae412ecd7b51f60b19fc44742f1925aba0db5c18fcf44978e00cbdd085064",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa507De9171cB5907830764f637350B4E0f16b997",
+      "txHash": "0xdaf6b3192d59f9b92ebca1cbd75a669ff6a80bf71906943ecf49e2b179a50faf",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -782,6 +802,115 @@
               {
                 "label": "adminRole",
                 "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "d3cdc3bcf5c2dc78cea33086758f2905e049d797f7788737c44511dc20123741": {
+      "address": "0x6f47B51ED067Aa692BbDfa60C54FB7A7aD967f1d",
+      "txHash": "0xc85acf253ddd8e69bf2728b064efdc1952e8fb941aa76d6e02fdb5037ce0cf53",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "DrawerV1",
+            "src": "contracts/passport/DrawerV1.sol:91"
+          }
+        ],
+        "types": {
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    },
+    "5d4f46b2e025ef6c40207c82d9e327a5414937f52e7bdd3a0832a48ea8662ba6": {
+      "address": "0xb95D9286c5368295Ae97b8BaDaAaF689c21624AD",
+      "txHash": "0xeb9cc42b6020520e0f36bd7fa633acdfdc9bb0c0e54b21844385e0caeaa7c7b7",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "recipients",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_struct(Recipient)512_storage)dyn_storage",
+            "contract": "PaymentSplitterV1",
+            "src": "contracts/passport/PaymentSplitterV1.sol:15"
+          },
+          {
+            "label": "_totalShares",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "PaymentSplitterV1",
+            "src": "contracts/passport/PaymentSplitterV1.sol:17"
+          }
+        ],
+        "types": {
+          "t_address_payable": {
+            "label": "address payable",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(Recipient)512_storage)dyn_storage": {
+            "label": "struct PaymentSplitterV1.Recipient[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(Recipient)512_storage": {
+            "label": "struct PaymentSplitterV1.Recipient",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address_payable",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "shares",
+                "type": "t_uint256",
                 "offset": 0,
                 "slot": "1"
               }
