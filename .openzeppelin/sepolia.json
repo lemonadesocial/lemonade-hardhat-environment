@@ -1,0 +1,290 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xE1BadDdFb13369A4Cc19a0bdD17fDeABdDd914ca",
+    "txHash": "0xe355ae2ce4bc3e619c43b372ba2d522a5787c6cee85697f3ae3169fd5ca69369"
+  },
+  "proxies": [
+    {
+      "address": "0x237b904003098395E0952dE21DED01F64f720c60",
+      "txHash": "0x948f953aca926bc743aad900af7a1e89716274a2224579ad3d9562bd0615f485",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xeEe0d0dBb55c55Fb54924aeb5dEDA2750E9f7f10",
+      "txHash": "0xf08c245f1dd6fc9aef89191281e7b57a3e80069829dc87d3116bda944829c2f0",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xfd27938afA8b321876d0da11B734fCB13445A51E",
+      "txHash": "0xf2b66aa7be19458d9b09c0115b3934edbdfd590adfe812412c7cce61fdfffb60",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "b18634990d039d2e8f65e1dc87550a61a0dcf5b839f970d0dae803d3ad48b2f6": {
+      "address": "0x5229D48f2CFEd14F6A831d221A66F915610E121E",
+      "txHash": "0x40ae27f465b02abe2bd80c80b83874b1ed65a0cca1f867e25156a1796d3be55e",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "accessRegistry",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:15"
+          },
+          {
+            "label": "feePercent",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:16"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "fbf7dbb111f541391497f08be4cb7f2f6c2ff70b39f1b0767396b8521d2005bf": {
+      "address": "0xF5a6feE874fC39681bF6D464a0D068f8b6A86b74",
+      "txHash": "0xf7ddfbd9269c01acfb0b2080fcc375352878fcc3dcaa33211ce2b2fd215f5b34",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "accessRegistry",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:15"
+          },
+          {
+            "label": "feePercent",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:16"
+          },
+          {
+            "label": "feePercent2",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:17"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "b4af687a9e65aa44ec2c59ddd60840168f0a986bfb2360aa35e823210d70656c": {
+      "address": "0x944082D6CecAc1ee17e9d600e247011C6021d2B8",
+      "txHash": "0xa2862432d0335aa6081499083ab890d98067a3ce20aee855293d6dd824e328ae",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "accessRegistry",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:15"
+          },
+          {
+            "label": "feePercent",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:16"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "bcef58bb72ccb3a2cccab7d2050e3e13f825eb5363fb27b8f38f70bfcf008a91": {
+      "address": "0xBB7022f46C4810EEbAb9d9A783572f748eBA3355",
+      "txHash": "0xf4a299a8da2bd5b44e430204388876aae1e149d498ccdf29cc66cbf43029b755",
+      "layout": {
+        "solcVersion": "0.8.4",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "accessRegistry",
+            "offset": 2,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:20"
+          },
+          {
+            "label": "authorizedSigner",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:21"
+          },
+          {
+            "label": "feeVault",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:23"
+          },
+          {
+            "label": "feePercent",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "PaymentConfigRegistry",
+            "src": "contracts/payment/PaymentConfigRegistry.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
