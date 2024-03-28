@@ -68,10 +68,11 @@ describe('LemonadeEscrowV1', () => {
 
     const { escrowContract } = await loadFixture(deployEscrow(signer.address, [], [signer.address], [1], 90, []));
 
-    const payees = await escrowContract.connect(signer).totalPayees();
+    const [payee] = await escrowContract.connect(signer).allPayees();
 
     assert.ok(escrowContract);
-    assert.ok(BigNumber.from(1).eq(payees));
+    assert.strictEqual(payee.account, signer.address);
+    assert.ok(BigNumber.from(1).eq(payee.shares));
   });
 
   it('should revert for invalid host refund percent', async () => {
@@ -253,15 +254,12 @@ describe('LemonadeEscrowV1', () => {
     //-- check updated values
     const delegateRoleId = ethers.utils.keccak256(ethers.utils.toUtf8Bytes("ESCROW_DELEGATE_ROLE"));
     const roleMemberCount = await contract.getRoleMemberCount(delegateRoleId);
-    const payeesCount = await contract.totalPayees();
 
     const newDelegates = await Promise.all(
       Array.from(Array(Number(roleMemberCount)).keys()).map((_, index) => contract.getRoleMember(delegateRoleId, index))
     );
 
-    const newPayees = await Promise.all(
-      Array.from(Array(Number(payeesCount)).keys()).map((_, index) => contract.payee(index))
-    );
+    const newPayees: [string][] = await contract.allPayees();
 
     const newShares = await Promise.all(
       updatedPayees.map((payee) => contract.shares(payee))
@@ -273,7 +271,7 @@ describe('LemonadeEscrowV1', () => {
     ]);
 
     assert.deepStrictEqual([signer.address, ...updatedDelegates], newDelegates);
-    assert.deepStrictEqual(updatedPayees, newPayees);
+    assert.deepStrictEqual(updatedPayees, newPayees.map((payee) => payee[0]));
     assert.deepStrictEqual(updatedShares, newShares.map(Number));
     assert.deepStrictEqual(updatedRefund, Number(newRefund));
     assert.deepStrictEqual(updatedPolicies, newPolicies.map(([timestamp, percent]: [BigNumber, number]) => [Number(timestamp), percent]));

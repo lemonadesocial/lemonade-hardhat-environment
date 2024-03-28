@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+import "../PaymentSplitter.sol";
 import "./ILemonadeEscrow.sol";
 import "./ILemonadeEscrowFactory.sol";
-import "./PaymentSplitter.sol";
 
 bytes32 constant ESCROW_DELEGATE_ROLE = keccak256("ESCROW_DELEGATE_ROLE");
 
