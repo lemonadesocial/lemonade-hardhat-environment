@@ -18,21 +18,37 @@ contract PaymentConfigRegistry is Context, Initializable {
     error Forbidden();
 
     address public accessRegistry;
-    address public authorizedSigner;
+    address public signer;
 
     address public feeVault;
     uint256 public feePercent;
 
     function initialize(
         address _accessRegistry,
+        address _signer,
+        address _feeVault,
         uint256 _feePercent
     ) public initializer {
         accessRegistry = _accessRegistry;
+        signer = _signer;
+        feeVault = _feeVault;
         feePercent = _feePercent;
     }
 
-    function setAuthorizedSigner(address _authorizedSigner) external onlyAdmin {
-        authorizedSigner = _authorizedSigner;
+    modifier onlyAdmin() {
+        if (
+            !AccessRegistry(accessRegistry).hasRole(
+                PAYMENT_ADMIN_ROLE,
+                _msgSender()
+            )
+        ) {
+            revert Forbidden();
+        }
+        _;
+    }
+
+    function setAuthorizedSigner(address _signer) external onlyAdmin {
+        signer = _signer;
     }
 
     function setFeeVault(address payable _feeVault) external onlyAdmin {
@@ -47,25 +63,23 @@ contract PaymentConfigRegistry is Context, Initializable {
         bytes32[] calldata _data,
         bytes calldata _signature
     ) public view {
-        address actualSigner = abi
-            .encode(_data)
-            .toEthSignedMessageHash()
-            .recover(_signature);
+        bytes memory encoded;
+        uint256 length = _data.length;
 
-        if (actualSigner != authorizedSigner) {
+        for (uint256 i = 0; i < length; ) {
+            encoded = abi.encodePacked(encoded, _data[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        address actualSigner = encoded.toEthSignedMessageHash().recover(
+            _signature
+        );
+
+        if (actualSigner != signer) {
             revert InvalidSignature();
         }
-    }
-
-    modifier onlyAdmin() {
-        if (
-            !AccessRegistry(accessRegistry).hasRole(
-                PAYMENT_ADMIN_ROLE,
-                _msgSender()
-            )
-        ) {
-            revert Forbidden();
-        }
-        _;
     }
 }
