@@ -3,22 +3,24 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+import "../PaymentConfigRegistry.sol";
 import "../PaymentSplitter.sol";
-import "./ILemonadeEscrow.sol";
-import "./ILemonadeEscrowFactory.sol";
 
 bytes32 constant ESCROW_DELEGATE_ROLE = keccak256("ESCROW_DELEGATE_ROLE");
 
-contract LemonadeEscrowV1 is
-    ILemonadeEscrow,
-    PaymentSplitter,
-    AccessControlEnumerable
-{
-    using ECDSA for bytes;
-    using ECDSA for bytes32;
+struct RefundPolicy {
+    uint256 timestamp;
+    uint16 percent;
+}
 
+struct Deposit {
+    address token;
+    uint256 amount;
+}
+
+contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
+    PaymentConfigRegistry registry;
     bool public closed;
     uint16 public hostRefundPercent;
 
@@ -26,23 +28,41 @@ contract LemonadeEscrowV1 is
     mapping(uint256 => uint256) _paymentRefundAt;
     mapping(uint256 => Deposit[]) _paymentRefund;
     mapping(uint256 => Deposit[]) _deposits;
-    ILemonadeEscrowFactory _factory;
+    mapping(uint256 => bool) feeCollected;
+
+    event GuestDeposit(
+        address guest,
+        uint256 paymentId,
+        address token,
+        uint256 amount
+    );
+    event GuestClaimRefund(address guest, uint256 paymentId);
+    event EscrowClosed();
+    event PaymentCancelled(uint256 paymentId, bool byGuest);
+
+    error AccessDenied();
+    error CannotRefund();
+    error EscrowHadClosed();
+    error InvalidAmount();
+    error InvalidRefundPercent();
+    error InvalidRefundPolicies();
+    error PaymentRefunded();
 
     constructor(
+        address _registry,
         address owner,
         address[] memory delegates,
         address[] memory payees,
         uint256[] memory shares,
         uint16 refundPercent,
-        RefundPolicy[] memory refundPolicies,
-        address factory
+        RefundPolicy[] memory refundPolicies
     ) PaymentSplitter(payees, shares) {
+        registry = PaymentConfigRegistry(_registry);
+
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(ESCROW_DELEGATE_ROLE, owner);
 
         _setupEscrow(delegates, refundPercent, refundPolicies);
-
-        _factory = ILemonadeEscrowFactory(factory);
     }
 
     //- modifiers
@@ -76,32 +96,22 @@ contract LemonadeEscrowV1 is
         uint256[] calldata shares,
         uint16 refundPercent,
         RefundPolicy[] calldata refundPolicies
-    ) public override onlyOwner escrowOpen {
+    ) public onlyOwner escrowOpen {
         //-- reset refund policies
         delete _refundPolicies;
 
         //-- reset delegates
         uint256 count = getRoleMemberCount(ESCROW_DELEGATE_ROLE);
-        address[] memory members = new address[](count);
 
-        for (uint256 i = 0; i < count; ) {
+        for (uint256 i = count - 1; i > 0; ) {
             address member = getRoleMember(ESCROW_DELEGATE_ROLE, i);
-            members[i] = member;
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        for (uint256 i = 0; i < count; ) {
-            address member = members[i];
 
             if (!hasRole(DEFAULT_ADMIN_ROLE, member)) {
                 _revokeRole(ESCROW_DELEGATE_ROLE, member);
             }
 
             unchecked {
-                ++i;
+                --i;
             }
         }
 
@@ -114,26 +124,43 @@ contract LemonadeEscrowV1 is
         uint256 paymentId,
         address token,
         uint256 amount
-    ) external payable override escrowOpen {
+    ) external payable escrowOpen {
+        if (_paymentRefundAt[paymentId] > 0) {
+            revert PaymentRefunded();
+        }
+
         uint256 value = msg.value;
 
         if (amount == 0) {
             revert InvalidAmount();
         }
 
-        if (_paymentRefundAt[paymentId] > 0) {
-            revert PaymentRefunded();
-        }
-
         bool isErc20 = token != address(0);
         if ((isErc20 && value != 0) || (!isErc20 && value != amount)) {
-            revert InvalidDepositAmount();
+            revert InvalidAmount();
         }
+
+        uint256 feeAmount = 0;
+        uint256 feePercent = registry.feePercent();
+
+        //-- transfer fee to registry
+        if (feePercent > 0 && !feeCollected[paymentId]) {
+            feeAmount = feePercent * amount / 100;
+        }
+
+        uint256 paymentAmount = amount - feeAmount;
 
         address sender = _msgSender();
 
-        if (isErc20) {
-            IERC20(token).transferFrom(sender, address(this), amount);
+        //-- if there is still amount to split
+        if (paymentAmount > 0) {
+            if (isErc20) {
+                IERC20(token).transferFrom(
+                    sender,
+                    address(this),
+                    paymentAmount
+                );
+            }
         }
 
         _deposits[paymentId].push(Deposit(token, amount));
@@ -145,9 +172,9 @@ contract LemonadeEscrowV1 is
         uint256 paymentId,
         bool fullRefund,
         bytes calldata signature
-    ) external override escrowOpen {
+    ) external escrowOpen {
         if (!canRefund(paymentId)) {
-            revert CannotClaimRefund();
+            revert CannotRefund();
         }
 
         uint16 percent;
@@ -161,17 +188,15 @@ contract LemonadeEscrowV1 is
 
             uint256 refundPoliciesLength = _refundPolicies.length;
 
-            for (uint256 i; i < refundPoliciesLength; ) {
-                RefundPolicy memory policy = _refundPolicies[
-                    _refundPolicies.length - 1 - i
-                ];
+            for (uint256 i = refundPoliciesLength; i > 0; ) {
+                RefundPolicy memory policy = _refundPolicies[i - 1];
 
                 if (block.timestamp < policy.timestamp) {
                     percent = policy.percent;
                 }
 
                 unchecked {
-                    ++i;
+                    --i;
                 }
             }
         }
@@ -182,7 +207,7 @@ contract LemonadeEscrowV1 is
         emit PaymentCancelled(paymentId, true);
     }
 
-    function closeEscrow() external override onlyDelegate escrowOpen {
+    function closeEscrow() external onlyDelegate escrowOpen {
         closed = true;
 
         emit EscrowClosed();
@@ -190,18 +215,11 @@ contract LemonadeEscrowV1 is
 
     //-- public read functions
 
-    function getRefundAt(
-        uint256 paymentId
-    ) external view override returns (uint256) {
+    function getRefundAt(uint256 paymentId) external view returns (uint256) {
         return _paymentRefundAt[paymentId];
     }
 
-    function getRefundPolicies()
-        external
-        view
-        override
-        returns (RefundPolicy[] memory)
-    {
+    function getRefundPolicies() external view returns (RefundPolicy[] memory) {
         uint256 length = _refundPolicies.length;
 
         RefundPolicy[] memory policies = new RefundPolicy[](length);
@@ -219,15 +237,14 @@ contract LemonadeEscrowV1 is
         return policies;
     }
 
-    function canRefund(uint256 paymentId) public view override returns (bool) {
+    function canRefund(uint256 paymentId) public view returns (bool) {
         return
-            _deposits[paymentId].length > 0 &&
-            _paymentRefundAt[paymentId] == 0;
+            _deposits[paymentId].length > 0 && _paymentRefundAt[paymentId] == 0;
     }
 
     function getDeposits(
         uint256[] calldata paymentIds
-    ) public view override returns (Deposit[][] memory allPaymentDeposits) {
+    ) public view returns (Deposit[][] memory allPaymentDeposits) {
         uint256 paymentIdsLength = paymentIds.length;
 
         allPaymentDeposits = new Deposit[][](paymentIdsLength);
@@ -247,7 +264,7 @@ contract LemonadeEscrowV1 is
 
     function getRefunds(
         uint256[] calldata paymentIds
-    ) external view override returns (Deposit[][] memory allRefunds) {
+    ) external view returns (Deposit[][] memory allRefunds) {
         uint256 paymentIdsLength = paymentIds.length;
 
         allRefunds = new Deposit[][](paymentIdsLength);
@@ -273,7 +290,7 @@ contract LemonadeEscrowV1 is
         RefundPolicy[] memory refundPolicies
     ) internal {
         if (refundPercent > 100) {
-            revert InvalidHostRefundPercent();
+            revert InvalidRefundPercent();
         }
 
         hostRefundPercent = refundPercent;
@@ -324,23 +341,6 @@ contract LemonadeEscrowV1 is
         }
     }
 
-    function _assertRefundSigner(
-        uint256 paymentId,
-        bool fullRefund,
-        bytes memory signature
-    ) internal {
-        address actualSigner = abi
-            .encode(paymentId, fullRefund)
-            .toEthSignedMessageHash()
-            .recover(signature);
-
-        address expectedSigner = _factory.getSigner();
-
-        if (actualSigner != expectedSigner) {
-            revert InvalidSigner();
-        }
-    }
-
     function _refundWithPercent(
         address guest,
         uint256 paymentId,
@@ -388,6 +388,19 @@ contract LemonadeEscrowV1 is
         uint256 paymentId
     ) internal view returns (Deposit[] memory) {
         return _paymentRefund[paymentId];
+    }
+
+    function _assertRefundSigner(
+        uint256 paymentId,
+        bool fullRefund,
+        bytes memory signature
+    ) internal view {
+        bytes32[] memory data = new bytes32[](2);
+
+        data[0] = bytes32(paymentId);
+        data[1] = bytes32(uint256(fullRefund ? 1 : 0));
+
+        registry.assertSignature(data, signature);
     }
 
     function _assertValidRefundPercent(

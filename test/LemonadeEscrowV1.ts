@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
 import { expect } from 'chai';
 import { loadFixture } from 'ethereum-waffle';
 import { type SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -9,32 +9,60 @@ interface TxResponse {
   hash: string;
 }
 
-const deployFactory = async (signer: SignerWithAddress, ...args: unknown[]) => {
-  const LemonadeEscrowFactoryV1 = await ethers.getContractFactory('LemonadeEscrowFactoryV1', signer);
-  const escrowFactoryV1 = await LemonadeEscrowFactoryV1.deploy(signer.address, ...args);
+function toBytes32(value: number | boolean) {
+  return ethers.utils.hexZeroPad(ethers.utils.hexlify(typeof value === 'number' ? value : (value ? 1 : 0)), 32);
+}
 
-  return { escrowFactoryV1 };
+const deployAccessRegistry = async (signer: SignerWithAddress) => {
+  const AccessRegistry = await ethers.getContractFactory('AccessRegistry', signer);
+  const accessRegistry = await AccessRegistry.deploy();
+
+  const PAYMENT_ADMIN_ROLE = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('PAYMENT_ADMIN_ROLE'));
+
+  await accessRegistry.grantRole(PAYMENT_ADMIN_ROLE, signer.address);
+
+  return { accessRegistry };
+}
+
+const deployConfigRegistry = async (signer: SignerWithAddress, ...args: unknown[]) => {
+  const PaymentConfigRegistry = await ethers.getContractFactory('PaymentConfigRegistry', signer);
+
+  const configRegistry = await upgrades.deployProxy(PaymentConfigRegistry, args);
+
+  return { configRegistry };
+}
+
+const deployFactory = async (signer: SignerWithAddress, feeVault: string, ...args: unknown[]) => {
+  const { accessRegistry } = await deployAccessRegistry(signer);
+
+  const { configRegistry } = await deployConfigRegistry(signer, accessRegistry.address, signer.address, feeVault, 0);
+
+  const LemonadeEscrowFactory = await ethers.getContractFactory('LemonadeEscrowFactory', signer);
+
+  const escrowFactory = await upgrades.deployProxy(LemonadeEscrowFactory, [configRegistry.address, ...args]);
+
+  return { escrowFactory };
 }
 
 const deployEscrow = (...args: unknown[]) => async () => {
   const [signer] = await ethers.getSigners();
 
-  const { escrowFactoryV1 } = await deployFactory(signer, ethers.constants.AddressZero, 0);
+  const { escrowFactory } = await deployFactory(signer, signer.address, 0);
 
-  const response: { hash: string } = await escrowFactoryV1.connect(signer).createEscrow(...args);
+  const response: { hash: string } = await escrowFactory.connect(signer).createEscrow(...args);
 
   const receipt = await ethers.provider.waitForTransaction(response.hash, 1);
 
   const event = receipt.logs
     .map((log) => {
       try {
-        return escrowFactoryV1.interface.parseLog(log);
+        return escrowFactory.interface.parseLog(log);
       }
       catch (err) {
         return null;
       }
     })
-    .find(event => event?.name === 'EscrowCreated');
+    .find(event => event?.eventFragment.name === 'EscrowCreated');
 
   const escrowAddress = event?.args[0];
 
@@ -51,12 +79,12 @@ describe('LemonadeEscrowV1', () => {
 
     const feeAmount = ethers.utils.parseEther(Math.random().toFixed(2));
 
-    const { escrowFactoryV1 } = await deployFactory(signer, feeCollector.address, feeAmount);
+    const { escrowFactory } = await deployFactory(signer, feeCollector.address, feeAmount);
 
     //-- create escrow from this factory and check if feeCollector has been credited
     const balanceBefore = await feeCollector.getBalance();
 
-    await escrowFactoryV1.connect(signer).createEscrow(signer.address, [], [signer.address], [1], 90, [], { value: feeAmount });
+    await escrowFactory.connect(signer).createEscrow(signer.address, [], [signer.address], [1], 90, [], { value: feeAmount });
 
     const balanceAfter = await feeCollector.getBalance();
 
@@ -79,7 +107,7 @@ describe('LemonadeEscrowV1', () => {
     const [signer] = await ethers.getSigners();
 
     await expect(loadFixture(deployEscrow(signer.address, [], [signer.address], [1], 101, [])))
-      .revertedWith('InvalidHostRefundPercent');
+      .revertedWith('InvalidRefundPercent');
   });
 
   it('should revert for invalid refund percent', async () => {
@@ -113,7 +141,7 @@ describe('LemonadeEscrowV1', () => {
 
     //-- the custom error could not be parsed by hardhat for some unknown reasons parsing custom error
     await expect(escrowContract.connect(signer2).deposit(1, ethers.constants.AddressZero, 1000, { value: 100 }))
-      .revertedWith('InvalidDepositAmount');
+      .revertedWith('InvalidAmount');
   });
 
   it('should deposit', async () => {
@@ -173,7 +201,10 @@ describe('LemonadeEscrowV1', () => {
 
     const signature = await signer.signMessage(
       ethers.utils.arrayify(
-        escrowContract.interface._abiCoder.encode(['uint256', 'bool'], [paymentId, false])
+        escrowContract.interface._abiCoder.encode(
+          ['bytes32', 'bytes32'],
+          [toBytes32(paymentId), toBytes32(false)],
+        )
       )
     );
 
@@ -213,7 +244,10 @@ describe('LemonadeEscrowV1', () => {
 
     const signature = await signer.signMessage(
       ethers.utils.arrayify(
-        escrowContract.interface._abiCoder.encode(['uint256', 'bool'], [paymentId, true])
+        escrowContract.interface._abiCoder.encode(
+          ['bytes32', 'bytes32'],
+          [toBytes32(paymentId), toBytes32(true)],
+        )
       )
     );
 
