@@ -226,6 +226,14 @@ const config: HardhatUserConfig = {
           },
         },
       },
+      {
+        version: '0.8.19',
+        settings: {
+          optimizer: {
+            enabled: true,
+          },
+        },
+      },
     ],
     overrides: {
       'contracts/passport/DrawerV1FunUnitedNations.sol': {
@@ -255,6 +263,9 @@ const config: HardhatUserConfig = {
             },
           },
         },
+      },
+      'contracts/LemonadePoapV1Unique.sol': {
+        version: '0.8.4',
       },
     },
   },
