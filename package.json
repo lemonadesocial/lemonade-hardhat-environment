@@ -19,5 +19,8 @@
     "hardhat-deploy": "^0.11.34",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@ethereum-attestation-service/eas-sdk": "^1.5.0"
   }
 }
