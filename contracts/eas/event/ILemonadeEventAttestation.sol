@@ -8,6 +8,8 @@ interface ILemonadeEventAttestation {
     function eventCreatorSchemaId() external view returns (bytes32);
 
     function eventCohostSchemaId() external view returns (bytes32);
+
+    function ticketSchemaId() external view returns (bytes32);
 }
 
 function isValidAttestation(

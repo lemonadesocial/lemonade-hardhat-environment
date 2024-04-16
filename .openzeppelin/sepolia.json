@@ -79,6 +79,11 @@
       "address": "0x6D6E6BAE443cf41Ef1463b4F33CFa8521d85C494",
       "txHash": "0x71774a8058dc50c77272e3fc8bbd4cab379d1953b3c6713aeb6de5f2315e64ab",
       "kind": "transparent"
+    },
+    {
+      "address": "0x3bde9d924e1A33e2c4e88C1Ed9De58FBc370D27B",
+      "txHash": "0x8830ac82f50cf3e73db301d9976ff875800ac2e4df063fcd969e0177e7ec64f3",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -1842,6 +1847,138 @@
             "type": "t_contract(IEAS)360",
             "contract": "LemonadeEventAttestation",
             "src": "contracts/payment/eas/LemonadeEventAttestation.sol:30"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IEAS)360": {
+            "label": "contract IEAS",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "d434f141ddbe816612c6989fe34d316d8a097ae3fc071da50f253f2a8d527deb": {
+      "address": "0x0739A1576756AAB3DBaA7b0ead9248e147b93FbE",
+      "txHash": "0xc2df7eeebe24ed11c2f5d78e30b63e910bf68434ee07da7496f4ed1cdc1649ef",
+      "layout": {
+        "solcVersion": "0.8.19",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "eventCreatorSchemaId",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_bytes32",
+            "contract": "LemonadeEventAttestation",
+            "src": "contracts/eas/event/LemonadeEventAttestation.sol:24"
+          },
+          {
+            "label": "eventDetailSchemaId",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_bytes32",
+            "contract": "LemonadeEventAttestation",
+            "src": "contracts/eas/event/LemonadeEventAttestation.sol:25"
+          },
+          {
+            "label": "eventCohostSchemaId",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_bytes32",
+            "contract": "LemonadeEventAttestation",
+            "src": "contracts/eas/event/LemonadeEventAttestation.sol:26"
+          },
+          {
+            "label": "ticketTypeSchemaId",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_bytes32",
+            "contract": "LemonadeEventAttestation",
+            "src": "contracts/eas/event/LemonadeEventAttestation.sol:27"
+          },
+          {
+            "label": "ticketSchemaId",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_bytes32",
+            "contract": "LemonadeEventAttestation",
+            "src": "contracts/eas/event/LemonadeEventAttestation.sol:28"
+          },
+          {
+            "label": "eas",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_contract(IEAS)360",
+            "contract": "LemonadeEventAttestation",
+            "src": "contracts/eas/event/LemonadeEventAttestation.sol:30"
           }
         ],
         "types": {

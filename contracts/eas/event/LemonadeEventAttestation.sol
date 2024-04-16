@@ -105,6 +105,7 @@ contract LemonadeEventAttestation is
 
         ISchemaResolver ticketSchemaResolver = new TicketIssuingSchemaResolver(
             eas,
+            this,
             hostSchemaResolver
         );
 
