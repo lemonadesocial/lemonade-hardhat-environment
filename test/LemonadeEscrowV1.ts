@@ -140,7 +140,8 @@ describe('LemonadeEscrowV1', () => {
     const { escrowContract } = await loadFixture(deployEscrow(signer1.address, [], [signer1.address], [1], 100, []));
 
     //-- the custom error could not be parsed by hardhat for some unknown reasons parsing custom error
-    await expect(escrowContract.connect(signer2).deposit(1, ethers.constants.AddressZero, 1000, { value: 100 }))
+    const paymentId = ethers.utils.formatBytes32String('1');
+    await expect(escrowContract.connect(signer2).deposit(paymentId, ethers.constants.AddressZero, 1000, { value: 100 }))
       .revertedWith('InvalidAmount');
   });
 
@@ -151,23 +152,26 @@ describe('LemonadeEscrowV1', () => {
 
     const depositAmount = ethers.utils.parseEther('1');
 
+    const paymentId1 = ethers.utils.formatBytes32String('1');
+    const paymentId2 = ethers.utils.formatBytes32String('2');
+
     const tx1 = await escrowContract.connect(signer2).deposit(
-      1, ethers.constants.AddressZero, depositAmount,
+      paymentId1, ethers.constants.AddressZero, depositAmount,
       { value: depositAmount },
     );
 
     await escrowContract.connect(signer2).deposit(
-      2, ethers.constants.AddressZero, depositAmount,
+      paymentId2, ethers.constants.AddressZero, depositAmount,
       { value: depositAmount },
     );
 
-    const allDeposits = await escrowContract.getDeposits([1, 2]);
+    const allDeposits = await escrowContract.getDeposits([paymentId1, paymentId2]);
 
     assert.ok(allDeposits.length === 2 && allDeposits[0].length === 1 && allDeposits[1].length === 1);
 
     await expect(tx1)
       .emit(escrowContract, 'GuestDeposit')
-      .withArgs(signer2.address, 1, ethers.constants.AddressZero, depositAmount);
+      .withArgs(signer2.address, paymentId1, ethers.constants.AddressZero, depositAmount);
   });
 
   it('should refund correct amount after cancel by guest', async () => {
@@ -183,7 +187,7 @@ describe('LemonadeEscrowV1', () => {
     const depositAmount1 = ethers.utils.parseEther(Math.random().toFixed(1));
     const depositAmount2 = ethers.utils.parseEther(Math.random().toFixed(1));
     const refundedAmount = depositAmount1.add(depositAmount2).mul(policies[1][1]).div(100); //-- should return with policies[1] percent
-    const paymentId = 1;
+    const paymentId = ethers.utils.formatBytes32String('1');
 
     const tx1: TxResponse = await escrowContract.connect(signer2).deposit(
       paymentId, ethers.constants.AddressZero, depositAmount1,
@@ -203,7 +207,7 @@ describe('LemonadeEscrowV1', () => {
       ethers.utils.arrayify(
         escrowContract.interface._abiCoder.encode(
           ['bytes32', 'bytes32'],
-          [toBytes32(paymentId), toBytes32(false)],
+          [paymentId, toBytes32(false)],
         )
       )
     );
@@ -232,7 +236,7 @@ describe('LemonadeEscrowV1', () => {
 
     const depositAmount = ethers.utils.parseEther(Math.random().toFixed(2));
     const refundedAmount = depositAmount.mul(hostRefundPercent).div(100);
-    const paymentId = 1;
+    const paymentId = ethers.utils.formatBytes32String('1');
 
     const tx1: TxResponse = await escrowContract.connect(signer2).deposit(
       paymentId, ethers.constants.AddressZero, depositAmount,
@@ -246,7 +250,7 @@ describe('LemonadeEscrowV1', () => {
       ethers.utils.arrayify(
         escrowContract.interface._abiCoder.encode(
           ['bytes32', 'bytes32'],
-          [toBytes32(paymentId), toBytes32(true)],
+          [paymentId, toBytes32(true)],
         )
       )
     );

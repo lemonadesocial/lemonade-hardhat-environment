@@ -20,25 +20,25 @@ struct Deposit {
 }
 
 contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
-    PaymentConfigRegistry registry;
     bool public closed;
     uint16 public hostRefundPercent;
+    RefundPolicy[] public refundPolicies;
 
-    RefundPolicy[] _refundPolicies;
-    mapping(uint256 => uint256) _paymentRefundAt;
-    mapping(uint256 => Deposit[]) _paymentRefund;
-    mapping(uint256 => Deposit[]) _deposits;
-    mapping(uint256 => bool) feeCollected;
+    PaymentConfigRegistry internal _registry;
+    mapping(bytes32 => uint256) internal _paymentRefundAt;
+    mapping(bytes32 => Deposit[]) internal _paymentRefund;
+    mapping(bytes32 => Deposit[]) internal _deposits;
+    mapping(bytes32 => bool) internal _feeCollected;
 
     event GuestDeposit(
         address guest,
-        uint256 paymentId,
+        bytes32 paymentId,
         address token,
         uint256 amount
     );
-    event GuestClaimRefund(address guest, uint256 paymentId);
+    event GuestClaimRefund(address guest, string paymentId);
     event EscrowClosed();
-    event PaymentCancelled(uint256 paymentId, bool byGuest);
+    event PaymentCancelled(bytes32 paymentId, bool byGuest);
 
     error AccessDenied();
     error CannotRefund();
@@ -49,20 +49,20 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
     error PaymentRefunded();
 
     constructor(
-        address _registry,
+        address registry,
         address owner,
         address[] memory delegates,
         address[] memory payees,
         uint256[] memory shares,
         uint16 refundPercent,
-        RefundPolicy[] memory refundPolicies
+        RefundPolicy[] memory policies
     ) PaymentSplitter(payees, shares) {
-        registry = PaymentConfigRegistry(_registry);
+        _registry = PaymentConfigRegistry(registry);
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(ESCROW_DELEGATE_ROLE, owner);
 
-        _setupEscrow(delegates, refundPercent, refundPolicies);
+        _setupEscrow(delegates, refundPercent, policies);
     }
 
     //- modifiers
@@ -95,10 +95,10 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
         address[] calldata payees,
         uint256[] calldata shares,
         uint16 refundPercent,
-        RefundPolicy[] calldata refundPolicies
+        RefundPolicy[] calldata policies
     ) public onlyOwner escrowOpen {
         //-- reset refund policies
-        delete _refundPolicies;
+        delete refundPolicies;
 
         //-- reset delegates
         uint256 count = getRoleMemberCount(ESCROW_DELEGATE_ROLE);
@@ -115,13 +115,13 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
             }
         }
 
-        _setupEscrow(delegates, refundPercent, refundPolicies);
+        _setupEscrow(delegates, refundPercent, policies);
 
         _resetPayees(payees, shares);
     }
 
     function deposit(
-        uint256 paymentId,
+        bytes32 paymentId,
         address token,
         uint256 amount
     ) external payable escrowOpen {
@@ -141,10 +141,10 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
         }
 
         uint256 feeAmount = 0;
-        uint256 feePercent = registry.feePercent();
+        uint256 feePercent = _registry.feePercent();
 
         //-- transfer fee to registry
-        if (feePercent > 0 && !feeCollected[paymentId]) {
+        if (feePercent > 0 && !_feeCollected[paymentId]) {
             feeAmount = feePercent * amount / 100;
         }
 
@@ -169,7 +169,7 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
     }
 
     function cancelAndRefund(
-        uint256 paymentId,
+        bytes32 paymentId,
         bool fullRefund,
         bytes calldata signature
     ) external escrowOpen {
@@ -186,10 +186,10 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
         } else {
             //-- calculate refund percent based on policy
 
-            uint256 refundPoliciesLength = _refundPolicies.length;
+            uint256 refundPoliciesLength = refundPolicies.length;
 
             for (uint256 i = refundPoliciesLength; i > 0; ) {
-                RefundPolicy memory policy = _refundPolicies[i - 1];
+                RefundPolicy memory policy = refundPolicies[i - 1];
 
                 if (block.timestamp < policy.timestamp) {
                     percent = policy.percent;
@@ -215,17 +215,17 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
 
     //-- public read functions
 
-    function getRefundAt(uint256 paymentId) external view returns (uint256) {
+    function getRefundAt(bytes32 paymentId) external view returns (uint256) {
         return _paymentRefundAt[paymentId];
     }
 
     function getRefundPolicies() external view returns (RefundPolicy[] memory) {
-        uint256 length = _refundPolicies.length;
+        uint256 length = refundPolicies.length;
 
         RefundPolicy[] memory policies = new RefundPolicy[](length);
 
         for (uint256 i; i < length; ) {
-            RefundPolicy memory policy = _refundPolicies[i];
+            RefundPolicy memory policy = refundPolicies[i];
 
             policies[i] = RefundPolicy(policy.timestamp, policy.percent);
 
@@ -237,13 +237,13 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
         return policies;
     }
 
-    function canRefund(uint256 paymentId) public view returns (bool) {
+    function canRefund(bytes32 paymentId) public view returns (bool) {
         return
             _deposits[paymentId].length > 0 && _paymentRefundAt[paymentId] == 0;
     }
 
     function getDeposits(
-        uint256[] calldata paymentIds
+        bytes32[] calldata paymentIds
     ) public view returns (Deposit[][] memory allPaymentDeposits) {
         uint256 paymentIdsLength = paymentIds.length;
 
@@ -263,7 +263,7 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
     }
 
     function getRefunds(
-        uint256[] calldata paymentIds
+        bytes32[] calldata paymentIds
     ) external view returns (Deposit[][] memory allRefunds) {
         uint256 paymentIdsLength = paymentIds.length;
 
@@ -287,7 +287,7 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
     function _setupEscrow(
         address[] memory delegates,
         uint16 refundPercent,
-        RefundPolicy[] memory refundPolicies
+        RefundPolicy[] memory policies
     ) internal {
         if (refundPercent > 100) {
             revert InvalidRefundPercent();
@@ -296,25 +296,25 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
         hostRefundPercent = refundPercent;
 
         //-- check valid refundPolicies
-        uint256 refundPoliciesLength = refundPolicies.length;
+        uint256 refundPoliciesLength = policies.length;
 
         if (refundPoliciesLength == 1) {
-            RefundPolicy memory policy = refundPolicies[0];
+            RefundPolicy memory policy = policies[0];
 
             _assertValidRefundPercent(policy);
-            _refundPolicies.push(policy);
+            refundPolicies.push(policy);
         } else if (refundPoliciesLength > 1) {
             RefundPolicy memory current;
             RefundPolicy memory next;
 
-            next = refundPolicies[0];
+            next = policies[0];
 
             _assertValidRefundPercent(next);
-            _refundPolicies.push(next);
+            refundPolicies.push(next);
 
             for (uint256 i = 1; i < refundPoliciesLength; ) {
                 current = next;
-                next = refundPolicies[i];
+                next = policies[i];
 
                 if (
                     current.timestamp >= next.timestamp ||
@@ -324,7 +324,7 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
                 }
 
                 _assertValidRefundPercent(next);
-                _refundPolicies.push(next);
+                refundPolicies.push(next);
 
                 unchecked {
                     ++i;
@@ -343,7 +343,7 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
 
     function _refundWithPercent(
         address guest,
-        uint256 paymentId,
+        bytes32 paymentId,
         uint16 percent
     ) internal {
         _paymentRefundAt[paymentId] = block.timestamp;
@@ -379,19 +379,19 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
     }
 
     function _loadDeposits(
-        uint256 paymentId
+        bytes32 paymentId
     ) internal view returns (Deposit[] memory) {
         return _deposits[paymentId];
     }
 
     function _loadRefunds(
-        uint256 paymentId
+        bytes32 paymentId
     ) internal view returns (Deposit[] memory) {
         return _paymentRefund[paymentId];
     }
 
     function _assertRefundSigner(
-        uint256 paymentId,
+        bytes32 paymentId,
         bool fullRefund,
         bytes memory signature
     ) internal view {
@@ -400,7 +400,7 @@ contract LemonadeEscrowV1 is AccessControlEnumerable, PaymentSplitter {
         data[0] = bytes32(paymentId);
         data[1] = bytes32(uint256(fullRefund ? 1 : 0));
 
-        registry.assertSignature(data, signature);
+        _registry.assertSignature(data, signature);
     }
 
     function _assertValidRefundPercent(
