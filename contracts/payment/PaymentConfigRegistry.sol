@@ -21,36 +21,36 @@ contract PaymentConfigRegistry is Context, Initializable {
     address public authorizedSigner;
 
     address public feeVault;
-    uint256 public feePercent;
+    uint256 public feePPM;
 
     function initialize(
-        address _accessRegistry,
-        uint256 _feePercent
+        address registry,
+        uint256 ppm
     ) public initializer {
-        accessRegistry = _accessRegistry;
-        feePercent = _feePercent;
+        accessRegistry = registry;
+        feePPM = ppm;
     }
 
-    function setAuthorizedSigner(address _authorizedSigner) external onlyAdmin {
-        authorizedSigner = _authorizedSigner;
+    function setAuthorizedSigner(address signer) external onlyAdmin {
+        authorizedSigner = signer;
     }
 
-    function setFeeVault(address payable _feeVault) external onlyAdmin {
-        feeVault = _feeVault;
+    function setFeeVault(address vault) external onlyAdmin {
+        feeVault = vault;
     }
 
-    function setFeePercent(uint256 _feePercent) external onlyAdmin {
-        feePercent = _feePercent;
+    function setFeePPM(uint256 ppm) external onlyAdmin {
+        feePPM = ppm;
     }
 
     function assertSignature(
-        bytes32[] calldata _data,
-        bytes calldata _signature
+        bytes32[] calldata data,
+        bytes calldata signature
     ) public view {
         address actualSigner = abi
-            .encode(_data)
+            .encode(data)
             .toEthSignedMessageHash()
-            .recover(_signature);
+            .recover(signature);
 
         if (actualSigner != authorizedSigner) {
             revert InvalidSignature();
