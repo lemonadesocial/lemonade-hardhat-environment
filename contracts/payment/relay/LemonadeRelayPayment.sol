@@ -8,26 +8,24 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../PaymentConfigRegistry.sol";
 import "../PaymentSplitter.sol";
 
-bytes32 constant RELAY_PAYMENT_REGISTER = keccak256("relay_payment_register");
-
 contract RelayPaymentSplitter is PaymentSplitter {
-    address internal _relay;
+    address internal _owner;
 
     error Forbidden();
 
     constructor(
-        address relay,
+        address owner,
         address[] memory payees,
         uint256[] memory shares
     ) PaymentSplitter(payees, shares) {
-        _relay = relay;
+        _owner = owner;
     }
 
     function resetPayees(
         address[] memory payees,
         uint256[] memory shares
     ) public {
-        if (_msgSender() != _relay) revert Forbidden();
+        if (_msgSender() != _owner) revert Forbidden();
 
         _resetPayees(payees, shares);
     }
@@ -41,13 +39,15 @@ contract LemonadeRelayPayment is Context, Initializable {
     }
 
     mapping(bytes32 => Payment) public payments;
-    mapping(bytes32 => address) public paymentSplitters;
+    mapping(address => bool) public splitters;
 
     address internal _configRegistry;
-    mapping(bytes32 => uint256) internal _nonces;
+
+    event OnRegister(address splitter);
 
     event OnPay(
-        bytes32 eventId,
+        address splitter,
+        bytes32 paymentId,
         address guest,
         address currency,
         uint256 amount
@@ -55,7 +55,6 @@ contract LemonadeRelayPayment is Context, Initializable {
 
     error NotRegistered();
     error AlreadyPay();
-    error InvalidNonce();
     error InvalidAmount();
     error CannotPayFee();
     error CannotPay();
@@ -66,55 +65,36 @@ contract LemonadeRelayPayment is Context, Initializable {
 
     /**
      * Register wallets to receive payments of a specific event
-     * @param eventId The event to register
-     * @param nonce The nonce to prevent replay attack
-     * @param signature The signature of Lemonade Backend
      * @param payees Param of payment splitter
      * @param shares Param of payment splitter
      */
     function register(
-        bytes32 eventId,
-        uint256 nonce,
-        bytes calldata signature,
         address[] calldata payees,
         uint256[] calldata shares
     ) external {
-        if (nonce < _nonces[eventId]) revert InvalidNonce();
+        RelayPaymentSplitter splitter = new RelayPaymentSplitter(
+            _msgSender(),
+            payees,
+            shares
+        );
 
-        bytes32[] memory data = new bytes32[](3);
+        address splitterAddress = address(splitter);
 
-        data[0] = RELAY_PAYMENT_REGISTER;
-        data[1] = bytes32(nonce);
-        data[2] = eventId;
+        splitters[splitterAddress] = true;
 
-        PaymentConfigRegistry(_configRegistry).assertSignature(data, signature);
-        _nonces[eventId] = nonce;
-
-        address oldSplitter = paymentSplitters[eventId];
-
-        RelayPaymentSplitter splitter;
-
-        if (oldSplitter != address(0)) {
-            splitter = RelayPaymentSplitter(payable(oldSplitter));
-
-            splitter.resetPayees(payees, shares);
-        } else {
-            splitter = new RelayPaymentSplitter(address(this), payees, shares);
-
-            paymentSplitters[eventId] = address(splitter);
-        }
+        emit OnRegister(splitterAddress);
     }
 
     /**
      * Guest pays the tickets
+     * @param splitter The address of the registered splitter
      * @param paymentId The id of the payment
-     * @param eventId The corresponding id of the event
      * @param currency Token address of the currency, zero address for native currency
      * @param amount The ticket amount plus fee
      */
     function pay(
+        address splitter,
         bytes32 paymentId,
-        bytes32 eventId,
         address currency,
         uint256 amount
     ) external payable {
@@ -125,9 +105,7 @@ contract LemonadeRelayPayment is Context, Initializable {
 
         if (isNative && msg.value != amount) revert InvalidAmount();
 
-        address spliter = paymentSplitters[eventId];
-
-        if (spliter == address(0)) revert NotRegistered();
+        if (!splitters[splitter]) revert NotRegistered();
 
         address guest = _msgSender();
 
@@ -142,7 +120,7 @@ contract LemonadeRelayPayment is Context, Initializable {
 
             if (!success) revert CannotPayFee();
 
-            (success, ) = payable(spliter).call{value: transferAmount}("");
+            (success, ) = payable(splitter).call{value: transferAmount}("");
 
             if (!success) revert CannotPay();
         } else {
@@ -156,7 +134,7 @@ contract LemonadeRelayPayment is Context, Initializable {
 
             success = IERC20(currency).transferFrom(
                 guest,
-                spliter,
+                splitter,
                 transferAmount
             );
 
@@ -167,57 +145,6 @@ contract LemonadeRelayPayment is Context, Initializable {
 
         payments[paymentId] = payment;
 
-        emit OnPay(eventId, guest, currency, transferAmount);
-    }
-
-    /**
-     * Release the pending amount to caller
-     * @param eventId The id of the event
-     * @param currencies Array of token addresses, zero address for native currency
-     */
-    function release(bytes32 eventId, address[] calldata currencies) external {
-        RelayPaymentSplitter splitter = _getSplitter(eventId);
-
-        return splitter.release(currencies, payable(_msgSender()));
-    }
-
-    //-- public read functions
-
-    /**
-     * Get the pending amount can be released to the payee
-     * @param eventId The id of the event
-     * @param payee Account address of the payee
-     * @param currencies Array of token addresses, zero address for native currency
-     */
-    function pending(
-        bytes32 eventId,
-        address payee,
-        address[] calldata currencies
-    ) public view returns (uint256[] memory balances) {
-        RelayPaymentSplitter splitter = _getSplitter(eventId);
-
-        return splitter.pending(currencies, payee);
-    }
-
-    /**
-     * Return all payees registered for the event
-     * @param eventId The id of the event
-     */
-    function allPayees(bytes32 eventId) public view returns (Payee[] memory) {
-        RelayPaymentSplitter splitter = _getSplitter(eventId);
-
-        return splitter.allPayees();
-    }
-
-    //-- internal functions
-
-    function _getSplitter(
-        bytes32 eventId
-    ) internal view returns (RelayPaymentSplitter) {
-        address splitterAddress = paymentSplitters[eventId];
-
-        if (splitterAddress == address(0)) revert NotRegistered();
-
-        return RelayPaymentSplitter(payable(splitterAddress));
+        emit OnPay(splitter, paymentId, guest, currency, transferAmount);
     }
 }
