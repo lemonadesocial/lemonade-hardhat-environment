@@ -8,6 +8,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../PaymentConfigRegistry.sol";
 import "../PaymentSplitter.sol";
 
+bytes32 constant RELAY_PAYMENT_REGISTER = keccak256("relay_payment_register");
+
 contract RelayPaymentSplitter is PaymentSplitter {
     address internal _relay;
 
@@ -39,9 +41,9 @@ contract LemonadeRelayPayment is Context, Initializable {
     }
 
     mapping(bytes32 => Payment) public payments;
+    mapping(bytes32 => address) public paymentSplitters;
 
     address internal _configRegistry;
-    mapping(bytes32 => address) internal _paymentSplitters;
     mapping(bytes32 => uint256) internal _nonces;
 
     event OnPay(
@@ -68,7 +70,7 @@ contract LemonadeRelayPayment is Context, Initializable {
      * @param nonce The nonce to prevent replay attack
      * @param signature The signature of Lemonade Backend
      * @param payees Param of payment splitter
-     * @param shares Param of payment spliter
+     * @param shares Param of payment splitter
      */
     function register(
         bytes32 eventId,
@@ -79,15 +81,16 @@ contract LemonadeRelayPayment is Context, Initializable {
     ) external {
         if (nonce < _nonces[eventId]) revert InvalidNonce();
 
-        bytes32[] memory data = new bytes32[](2);
+        bytes32[] memory data = new bytes32[](3);
 
-        data[0] = eventId;
+        data[0] = RELAY_PAYMENT_REGISTER;
         data[1] = bytes32(nonce);
+        data[2] = eventId;
 
         PaymentConfigRegistry(_configRegistry).assertSignature(data, signature);
         _nonces[eventId] = nonce;
 
-        address oldSplitter = _paymentSplitters[eventId];
+        address oldSplitter = paymentSplitters[eventId];
 
         RelayPaymentSplitter splitter;
 
@@ -98,7 +101,7 @@ contract LemonadeRelayPayment is Context, Initializable {
         } else {
             splitter = new RelayPaymentSplitter(address(this), payees, shares);
 
-            _paymentSplitters[eventId] = address(splitter);
+            paymentSplitters[eventId] = address(splitter);
         }
     }
 
@@ -122,7 +125,7 @@ contract LemonadeRelayPayment is Context, Initializable {
 
         if (isNative && msg.value != amount) revert InvalidAmount();
 
-        address spliter = _paymentSplitters[eventId];
+        address spliter = paymentSplitters[eventId];
 
         if (spliter == address(0)) revert NotRegistered();
 
@@ -131,7 +134,7 @@ contract LemonadeRelayPayment is Context, Initializable {
         PaymentConfigRegistry registry = PaymentConfigRegistry(_configRegistry);
 
         address feeVault = registry.feeVault();
-        uint256 feeAmount = (registry.feePercent() * amount) / 100;
+        uint256 feeAmount = (registry.feePPM() * amount) / 1000000;
         uint256 transferAmount = amount - feeAmount;
 
         if (isNative) {
@@ -211,7 +214,7 @@ contract LemonadeRelayPayment is Context, Initializable {
     function _getSplitter(
         bytes32 eventId
     ) internal view returns (RelayPaymentSplitter) {
-        address splitterAddress = _paymentSplitters[eventId];
+        address splitterAddress = paymentSplitters[eventId];
 
         if (splitterAddress == address(0)) revert NotRegistered();
 
