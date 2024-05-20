@@ -25,9 +25,13 @@ contract PaymentConfigRegistry is Context, Initializable {
 
     function initialize(
         address registry,
+        address signer,
+        address vault,
         uint256 ppm
     ) public initializer {
         accessRegistry = registry;
+        authorizedSigner = signer;
+        feeVault = vault;
         feePPM = ppm;
     }
 

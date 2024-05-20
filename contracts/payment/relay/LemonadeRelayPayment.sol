@@ -38,10 +38,9 @@ contract LemonadeRelayPayment is Context, Initializable {
         uint256 amount;
     }
 
+    address public configRegistry;
     mapping(bytes32 => Payment) public payments;
     mapping(address => bool) public splitters;
-
-    address internal _configRegistry;
 
     event OnRegister(address splitter);
 
@@ -59,8 +58,8 @@ contract LemonadeRelayPayment is Context, Initializable {
     error CannotPayFee();
     error CannotPay();
 
-    function initialize(address configRegistry) public initializer {
-        _configRegistry = configRegistry;
+    function initialize(address registry) public initializer {
+        configRegistry = registry;
     }
 
     /**
@@ -109,7 +108,7 @@ contract LemonadeRelayPayment is Context, Initializable {
 
         address guest = _msgSender();
 
-        PaymentConfigRegistry registry = PaymentConfigRegistry(_configRegistry);
+        PaymentConfigRegistry registry = PaymentConfigRegistry(configRegistry);
 
         address feeVault = registry.feeVault();
         uint256 feeAmount = (registry.feePPM() * amount) / 1000000;
