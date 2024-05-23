@@ -2,8 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "../PaymentConfigRegistry.sol";
 import "../PaymentSplitter.sol";
@@ -31,7 +30,7 @@ contract RelayPaymentSplitter is PaymentSplitter {
     }
 }
 
-contract LemonadeRelayPayment is Context, Initializable {
+contract LemonadeRelayPayment is OwnableUpgradeable {
     struct Payment {
         address guest;
         address currency;
@@ -41,6 +40,7 @@ contract LemonadeRelayPayment is Context, Initializable {
     address public configRegistry;
     mapping(bytes32 => Payment) public payments;
     mapping(address => bool) public splitters;
+    uint256[20] __gap;
 
     event OnRegister(address splitter);
 
@@ -59,6 +59,10 @@ contract LemonadeRelayPayment is Context, Initializable {
     error CannotPay();
 
     function initialize(address registry) public initializer {
+        configRegistry = registry;
+    }
+
+    function setConfigRegistry(address registry) external onlyOwner {
         configRegistry = registry;
     }
 
@@ -110,12 +114,13 @@ contract LemonadeRelayPayment is Context, Initializable {
 
         PaymentConfigRegistry registry = PaymentConfigRegistry(configRegistry);
 
-        address feeVault = registry.feeVault();
         uint256 feeAmount = (registry.feePPM() * amount) / 1000000;
         uint256 transferAmount = amount - feeAmount;
 
         if (isNative) {
-            (bool success, ) = payable(feeVault).call{value: feeAmount}("");
+            (bool success, ) = payable(configRegistry).call{value: feeAmount}(
+                ""
+            );
 
             if (!success) revert CannotPayFee();
 
@@ -125,7 +130,7 @@ contract LemonadeRelayPayment is Context, Initializable {
         } else {
             bool success = IERC20(currency).transferFrom(
                 guest,
-                feeVault,
+                configRegistry,
                 feeAmount
             );
 
