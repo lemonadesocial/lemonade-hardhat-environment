@@ -2,49 +2,63 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../AccessRegistry.sol";
 
 bytes32 constant PAYMENT_ADMIN_ROLE = keccak256("PAYMENT_ADMIN_ROLE");
 
-contract PaymentConfigRegistry is Context, Initializable {
+contract PaymentConfigRegistry is OwnableUpgradeable {
     using ECDSA for bytes;
     using ECDSA for bytes32;
 
     error InvalidSignature();
     error Forbidden();
+    error CannotWithdraw();
 
     address public accessRegistry;
     address public authorizedSigner;
-
-    address public feeVault;
     uint256 public feePPM;
+    uint256[20] __gap;
 
     function initialize(
         address registry,
         address signer,
-        address vault,
         uint256 ppm
     ) public initializer {
         accessRegistry = registry;
         authorizedSigner = signer;
-        feeVault = vault;
         feePPM = ppm;
+    }
+
+    function setAccessRegistry(address registry) external onlyOwner {
+        accessRegistry = registry;
     }
 
     function setAuthorizedSigner(address signer) external onlyAdmin {
         authorizedSigner = signer;
     }
 
-    function setFeeVault(address vault) external onlyAdmin {
-        feeVault = vault;
-    }
-
     function setFeePPM(uint256 ppm) external onlyAdmin {
         feePPM = ppm;
+    }
+
+    function withdraw(
+        address token,
+        uint256 amount,
+        address payable destination
+    ) external onlyAdmin {
+        bool success;
+
+        if (token == address(0)) {
+            (success, ) = destination.call{value: amount}("");
+        } else {
+            success = IERC20(token).transfer(destination, amount);
+        }
+
+        if (!success) revert CannotWithdraw();
     }
 
     function assertSignature(
