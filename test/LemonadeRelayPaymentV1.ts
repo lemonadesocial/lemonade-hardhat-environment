@@ -1,5 +1,5 @@
 import { ethers, upgrades } from 'hardhat';
-import { expect } from 'chai';
+import { assert } from 'chai';
 import { loadFixture } from 'ethereum-waffle';
 import { type SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -26,10 +26,10 @@ const deployConfigRegistry = async (signer: SignerWithAddress, ...args: unknown[
   return { configRegistry };
 }
 
-const deployRelay = (signer: SignerWithAddress, feeVault: string) => async () => {
+const deployRelay = (signer: SignerWithAddress) => async () => {
   const { accessRegistry } = await deployAccessRegistry(signer);
 
-  const { configRegistry } = await deployConfigRegistry(signer, accessRegistry.address, signer.address, feeVault, 20000);
+  const { configRegistry } = await deployConfigRegistry(signer, accessRegistry.address, signer.address, 20000);
 
   const LemonadeRelayPayment = await ethers.getContractFactory('LemonadeRelayPayment', signer);
 
@@ -39,10 +39,10 @@ const deployRelay = (signer: SignerWithAddress, feeVault: string) => async () =>
 }
 
 describe('LemonadeRelayPaymentV1', () => {
-  it('should allow register splitter', async () => {
+  async function register() {
     const [signer, signer2] = await ethers.getSigners();
 
-    const { relayPayment } = await loadFixture(deployRelay(signer, signer.address));
+    const { relayPayment } = await loadFixture(deployRelay(signer));
 
     const response: TxResponse = await relayPayment.connect(signer).register([signer2.address], [1]);
 
@@ -59,8 +59,36 @@ describe('LemonadeRelayPaymentV1', () => {
       })
       .find(event => event?.eventFragment.name === 'OnRegister');
 
-    const splitterAddress = event?.args[0];
+    const splitter = event?.args[0] as string | undefined;
 
-    expect(splitterAddress).to.not.be.null;
+    return { relayPayment, splitter };
+  }
+
+  it('should allow register splitter', async () => {
+    const { splitter } = await register();
+
+    assert.isNotNull(splitter);
+  });
+
+  it('should accept payment', async () => {
+    const { splitter, relayPayment } = await register();
+
+    assert.ok(splitter);
+
+    const [_, signer2] = await ethers.getSigners();
+
+    const value = 1000000000;
+
+    const response: TxResponse = await relayPayment.connect(signer2).pay(
+      splitter,
+      ethers.utils.id("1"),
+      ethers.constants.AddressZero,
+      value,
+      { value, gasLimit: 1000000 },
+    );
+
+    await ethers.provider.waitForTransaction(response.hash, 1);
+
+    assert.ok(response.hash);
   });
 });
