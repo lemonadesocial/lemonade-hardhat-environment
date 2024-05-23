@@ -75,6 +75,12 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         }
     }
 
+    receive() external payable {
+    }
+
+    fallback() external payable {
+    }
+
     modifier onlyAdmin() {
         if (
             !AccessRegistry(accessRegistry).hasRole(
