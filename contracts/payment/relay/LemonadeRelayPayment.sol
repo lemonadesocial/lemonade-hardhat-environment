@@ -46,7 +46,8 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
 
     event OnPay(
         address splitter,
-        bytes32 paymentId,
+        string eventId,
+        string paymentId,
         address guest,
         address currency,
         uint256 amount
@@ -88,6 +89,14 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
         emit OnRegister(splitterAddress);
     }
 
+    function getPayment(
+        string calldata paymentId
+    ) external view returns (Payment memory) {
+        bytes32 id = _toId(paymentId);
+
+        return payments[id];
+    }
+
     /**
      * Guest pays the tickets
      * @param splitter The address of the registered splitter
@@ -97,25 +106,31 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
      */
     function pay(
         address splitter,
-        bytes32 paymentId,
+        string memory eventId,
+        string memory paymentId,
         address currency,
         uint256 amount
     ) external payable {
-        if (payments[paymentId].amount > 0) revert AlreadyPay();
         if (amount == 0) revert InvalidAmount();
+
+        bytes32 id = _toId(paymentId);
+
+        if (payments[id].amount > 0) revert AlreadyPay();
+
+        if (!splitters[splitter]) revert NotRegistered();
 
         bool isNative = currency == address(0);
 
         if (isNative && msg.value != amount) revert InvalidAmount();
 
-        if (!splitters[splitter]) revert NotRegistered();
-
-        address guest = _msgSender();
-
-        PaymentConfigRegistry registry = PaymentConfigRegistry(payable(configRegistry));
+        PaymentConfigRegistry registry = PaymentConfigRegistry(
+            payable(configRegistry)
+        );
 
         uint256 feeAmount = (registry.feePPM() * amount) / 1000000;
         uint256 transferAmount = amount - feeAmount;
+
+        address guest = _msgSender();
 
         if (isNative) {
             (bool success, ) = payable(configRegistry).call{value: feeAmount}(
@@ -145,10 +160,23 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
             if (!success) revert CannotPay();
         }
 
+        registry.notifyFee(eventId, currency, feeAmount);
+
         Payment memory payment = Payment(guest, currency, amount);
 
-        payments[paymentId] = payment;
+        payments[id] = payment;
 
-        emit OnPay(splitter, paymentId, guest, currency, transferAmount);
+        emit OnPay(
+            splitter,
+            eventId,
+            paymentId,
+            guest,
+            currency,
+            transferAmount
+        );
+    }
+
+    function _toId(string memory id) internal pure returns (bytes32) {
+        return keccak256(abi.encode(id));
     }
 }

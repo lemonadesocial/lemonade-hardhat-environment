@@ -1,7 +1,8 @@
+import { BigNumber } from 'ethers';
 import { ethers, upgrades } from 'hardhat';
-import { assert } from 'chai';
 import { loadFixture } from 'ethereum-waffle';
 import { type SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import assert from 'assert';
 
 interface TxResponse {
   hash: string;
@@ -35,16 +36,18 @@ const deployRelay = (signer: SignerWithAddress) => async () => {
 
   const relayPayment = await upgrades.deployProxy(LemonadeRelayPayment, [configRegistry.address]);
 
-  return { relayPayment };
+  return { configRegistry, relayPayment };
 }
 
 describe('LemonadeRelayPaymentV1', () => {
   async function register() {
     const [signer, signer2] = await ethers.getSigners();
 
-    const { relayPayment } = await loadFixture(deployRelay(signer));
+    const { configRegistry, relayPayment } = await loadFixture(deployRelay(signer));
 
-    const response: TxResponse = await relayPayment.connect(signer).register([signer2.address], [1]);
+    const payee = signer2.address;
+
+    const response: TxResponse = await relayPayment.connect(signer).register([payee], [1]);
 
     const receipt = await ethers.provider.waitForTransaction(response.hash, 1);
 
@@ -61,27 +64,37 @@ describe('LemonadeRelayPaymentV1', () => {
 
     const splitter = event?.args[0] as string | undefined;
 
-    return { relayPayment, splitter };
+    return { configRegistry, relayPayment, splitter, payee };
   }
 
   it('should allow register splitter', async () => {
     const { splitter } = await register();
 
-    assert.isNotNull(splitter);
+    assert.ok(splitter);
   });
 
   it('should accept payment', async () => {
-    const { splitter, relayPayment } = await register();
+    const { splitter, relayPayment, configRegistry, payee } = await register();
 
     assert.ok(splitter);
 
     const [_, signer2] = await ethers.getSigners();
 
     const value = 1000000000;
+    const feePPM: BigNumber = await configRegistry.feePPM();
+    const eventId = Math.random().toString();
+    const paymentId = Math.random().toString();
+
+    const feeCollected = new Promise<[string, BigNumber]>(
+      (resolve) => configRegistry.once('FeeCollected', (eventId, token, amount) => {
+        resolve([eventId, amount]);
+      })
+    );
 
     const response: TxResponse = await relayPayment.connect(signer2).pay(
       splitter,
-      ethers.utils.id("1"),
+      eventId,
+      paymentId,
       ethers.constants.AddressZero,
       value,
       { value, gasLimit: 1000000 },
@@ -89,6 +102,24 @@ describe('LemonadeRelayPaymentV1', () => {
 
     await ethers.provider.waitForTransaction(response.hash, 1);
 
-    assert.ok(response.hash);
+    const splitterContract = await ethers.getContractAt('PaymentSplitter', splitter);
+
+    const [payment, feeInfo, [pending]] = await Promise.all([
+      relayPayment.getPayment(paymentId),
+      feeCollected,
+      splitterContract['pending(address[],address)']([ethers.constants.AddressZero], payee),
+    ]);
+
+    assert.ok(
+      response.hash
+      && feeInfo[0] === eventId
+      && feePPM.mul(value).div(1000000).eq(feeInfo[1])
+      && BigNumber.from(pending).add(feeInfo[1]).eq(value)
+    );
+
+    assert.ok(
+      payment.currency === ethers.constants.AddressZero
+      && BigNumber.from(1000000000).eq(payment.amount),
+    );
   });
 });

@@ -23,6 +23,8 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
     uint256 public feePPM;
     uint256[20] __gap;
 
+    event FeeCollected(string eventId, address token, uint256 amount);
+
     function initialize(
         address registry,
         address signer,
@@ -61,6 +63,14 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         if (!success) revert CannotWithdraw();
     }
 
+    function notifyFee(
+        string calldata eventId,
+        address token,
+        uint256 amount
+    ) external {
+        emit FeeCollected(eventId, token, amount);
+    }
+
     function assertSignature(
         bytes32[] calldata data,
         bytes calldata signature
@@ -75,11 +85,9 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         }
     }
 
-    receive() external payable {
-    }
+    receive() external payable {}
 
-    fallback() external payable {
-    }
+    fallback() external payable {}
 
     modifier onlyAdmin() {
         if (
