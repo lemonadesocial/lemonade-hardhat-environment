@@ -38,8 +38,8 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
     }
 
     address public configRegistry;
-    mapping(bytes32 => Payment) public payments;
-    mapping(address => bool) public splitters;
+    mapping(bytes32 => Payment) internal payments;
+    mapping(address => bool) internal splitters;
     uint256[20] __gap;
 
     event OnRegister(address splitter);
