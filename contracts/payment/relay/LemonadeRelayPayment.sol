@@ -127,8 +127,8 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
             payable(configRegistry)
         );
 
-        uint256 feeAmount = (registry.feePPM() * amount) / 1000000;
-        uint256 transferAmount = amount - feeAmount;
+        uint256 transferAmount = amount * 1000000 / (registry.feePPM() + 1000000);
+        uint256 feeAmount = amount - transferAmount;
 
         address guest = _msgSender();
 
