@@ -85,6 +85,32 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         }
     }
 
+    function balances(
+        address[] calldata currencies
+    ) external view returns (uint256[] memory balance_) {
+        uint256 length = currencies.length;
+
+        balance_ = new uint256[](length);
+
+        address contractAddress = address(this);
+
+        for (uint256 i = 0; i < length; ) {
+            address currency = currencies[i];
+
+            if (currency == address(0)) {
+                balance_[i] = contractAddress.balance;
+            } else {
+                balance_[i] = IERC20(currency).balanceOf(contractAddress);
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return balance_;
+    }
+
     receive() external payable {}
 
     fallback() external payable {}
