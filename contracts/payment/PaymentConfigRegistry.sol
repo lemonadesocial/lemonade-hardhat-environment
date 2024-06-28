@@ -30,6 +30,7 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         address signer,
         uint256 ppm
     ) public initializer {
+        __Ownable_init();
         accessRegistry = registry;
         authorizedSigner = signer;
         feePPM = ppm;
