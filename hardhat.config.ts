@@ -183,6 +183,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/goerli'],
     },
+    'linea': {
+      url: process.env.NETWORK_LINEA_URL || 'https://rpc.linea.build',
+      chainId: 59144,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/linea'],
+    },
     'moonbase': {
       url: process.env.NETWORK_MOONBASE_URL || 'https://moonbeam-alpha.api.onfinality.io/public',
       chainId: 1287,
