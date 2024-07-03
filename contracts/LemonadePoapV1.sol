@@ -101,7 +101,7 @@ contract LemonadePoapV1 is
         address,
         address to,
         uint256 tokenId
-    ) internal override {
+    ) internal {
         if (tokenId == 0 && owner() != to) {
             _transferOwnership(to);
         }
