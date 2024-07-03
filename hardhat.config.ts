@@ -105,6 +105,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/base'],
     },
+    'base-sepolia': {
+      url: process.env.NETWORK_BASE_SEPOLIA_URL || 'https://sepolia.base.org/',
+      chainId: 84532,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/base-sepolia'],
+    },
     'bnb': {
       url: process.env.NETWORK_BNB_URL || 'https://bsc-dataseed.binance.org/',
       chainId: 56,
@@ -176,6 +182,12 @@ const config: HardhatUserConfig = {
       chainId: 5,
       accounts,
       deploy: ['deploy/__all__', 'deploy/goerli'],
+    },
+    'linea': {
+      url: process.env.NETWORK_LINEA_URL || 'https://rpc.linea.build',
+      chainId: 59144,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/linea'],
     },
     'moonbase': {
       url: process.env.NETWORK_MOONBASE_URL || 'https://moonbeam-alpha.api.onfinality.io/public',
