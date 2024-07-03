@@ -1,7 +1,7 @@
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 const ERC721_NAME = 'Non-Fungible Lemon';
 const ERC721_SYMBOL = 'NFL';
@@ -21,7 +21,7 @@ describe('ERC721LemonadeV1', () => {
 
   it('should mint to caller', async () => {
     await expect(erc721Lemonade.connect(signer).mintToCaller(MINT_TOKEN_URI))
-      .to.emit(erc721Lemonade, 'Transfer').withArgs(ethers.constants.AddressZero, signer.address, 0);
+      .to.emit(erc721Lemonade, 'Transfer').withArgs(ethers.ZeroAddress, signer.address, 0);
 
     expect(await erc721Lemonade.ownerOf(0), 'owner must match caller')
       .to.equal(signer.address);
