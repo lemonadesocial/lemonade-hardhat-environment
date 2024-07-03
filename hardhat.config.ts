@@ -1,6 +1,5 @@
-import '@nomiclabs/hardhat-ethers';
-import "@nomiclabs/hardhat-etherscan";
-import '@nomiclabs/hardhat-waffle';
+import "@nomicfoundation/hardhat-toolbox-viem";
+import "@nomicfoundation/hardhat-chai-matchers";
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
 import { HardhatUserConfig } from 'hardhat/config';
@@ -14,19 +13,19 @@ const accounts =
   undefined;
 
 const config: HardhatUserConfig = {
-  etherscan: {
-    apiKey: {
-      arbitrumOne: process.env.ETHERSCAN_ARBITRUM_API_KEY || '',
-      arbitrumGoerli: process.env.ETHERSCAN_ARBITRUM_API_KEY || '',
-      polygon: process.env.ETHERSCAN_POLYGON_API_KEY || '',
-      polygonMumbai: process.env.ETHERSCAN_POLYGON_API_KEY || '',
-    },
-  },
-  platform: {
-    apiKey: process.env.PLATFORM_API_KEY || '',
-    apiSecret: process.env.PLATFORM_API_SECRET || '',
-    usePlatformDeploy: false,
-  },
+  // etherscan: {
+  //   apiKey: {
+  //     arbitrumOne: process.env.ETHERSCAN_ARBITRUM_API_KEY || '',
+  //     arbitrumGoerli: process.env.ETHERSCAN_ARBITRUM_API_KEY || '',
+  //     polygon: process.env.ETHERSCAN_POLYGON_API_KEY || '',
+  //     polygonMumbai: process.env.ETHERSCAN_POLYGON_API_KEY || '',
+  //   },
+  // },
+  // platform: {
+  //   apiKey: process.env.PLATFORM_API_KEY || '',
+  //   apiSecret: process.env.PLATFORM_API_SECRET || '',
+  //   usePlatformDeploy: false,
+  // },
   namedAccounts: {
     deployer: process.env.PRIVATE_KEY ? {
       'default':        0,
