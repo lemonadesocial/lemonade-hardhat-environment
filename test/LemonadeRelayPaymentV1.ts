@@ -84,6 +84,7 @@ describe('LemonadeRelayPaymentV1', () => {
     const feePPM: BigNumber = await configRegistry.feePPM();
     const eventId = Math.random().toString();
     const paymentId = Math.random().toString();
+    const total = feePPM.add(1000000).mul(value).div(1000000);
 
     const feeCollected = new Promise<[string, BigNumber]>(
       (resolve) => configRegistry.once('FeeCollected', (eventId, token, amount) => {
@@ -96,8 +97,8 @@ describe('LemonadeRelayPaymentV1', () => {
       eventId,
       paymentId,
       ethers.constants.AddressZero,
-      value,
-      { value, gasLimit: 1000000 },
+      total,
+      { value: total.toString(), gasLimit: 1000000 },
     );
 
     await ethers.provider.waitForTransaction(response.hash, 1);
@@ -114,12 +115,12 @@ describe('LemonadeRelayPaymentV1', () => {
       response.hash
       && feeInfo[0] === eventId
       && feePPM.mul(value).div(1000000).eq(feeInfo[1])
-      && BigNumber.from(pending).add(feeInfo[1]).eq(value)
+      && BigNumber.from(pending).add(feeInfo[1]).eq(total)
     );
 
     assert.ok(
       payment.currency === ethers.constants.AddressZero
-      && BigNumber.from(1000000000).eq(payment.amount),
+      && total.eq(payment.amount),
     );
   });
 });
