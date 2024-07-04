@@ -225,17 +225,19 @@ const config: HardhatUserConfig = {
       url: process.env.NETWORK_ZK_SEPOLIA_URL || 'https://sepolia.era.zksync.dev',
       chainId: 300,
       zksync: true,
-      ethNetwork: "goerli",
+      forceDeploy: false,
+      ethNetwork: "sepolia",
       accounts,
-      deploy: ['deploy/zk-sepolia'],
+      deploy: ['deploy/__all-zk__', 'deploy/zk-sepolia'],
     },
     'zk-link-nova': {
       url: process.env.NETWORK_ZK_LINK_NOVA_URL || 'https://rpc.zklink.io',
       chainId: 810180,
       zksync: true,
+      forceDeploy: false,
       ethNetwork: "mainnet",
       accounts,
-      deploy: ['deploy/zk-link-nova'],
+      deploy: ['deploy/__all-zk__', 'deploy/zk-link-nova'],
     }
   },
   zksolc: {
