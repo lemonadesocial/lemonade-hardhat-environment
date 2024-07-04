@@ -1,6 +1,9 @@
 import '@nomicfoundation/hardhat-toolbox-viem';
 import '@nomicfoundation/hardhat-chai-matchers';
 import '@openzeppelin/hardhat-upgrades';
+import '@matterlabs/hardhat-zksync-solc';
+import '@matterlabs/hardhat-zksync-deploy';
+import '@matterlabs/hardhat-zksync-upgradable';
 import 'hardhat-deploy';
 import { HardhatUserConfig } from 'hardhat/config';
 import * as dotenv from 'dotenv';
@@ -218,6 +221,29 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/zero'],
     },
+    'zk-sepolia': {
+      url: process.env.NETWORK_ZK_SEPOLIA_URL || 'https://sepolia.era.zksync.dev',
+      chainId: 300,
+      zksync: true,
+      ethNetwork: "goerli",
+      accounts,
+      deploy: ['deploy/zk-sepolia'],
+    },
+    'zk-link-nova': {
+      url: process.env.NETWORK_ZK_LINK_NOVA_URL || 'https://rpc.zklink.io',
+      chainId: 810180,
+      zksync: true,
+      ethNetwork: "mainnet",
+      accounts,
+      deploy: ['deploy/zk-link-nova'],
+    }
+  },
+  zksolc: {
+    version: 'latest',
+    compilerSource: 'binary',
+    settings: {
+      contractsToCompile: ['Introspection', 'AccessRegistry', 'PaymentConfigRegistry', 'LemonadeRelayPayment'],
+    }
   },
   solidity: {
     compilers: [
