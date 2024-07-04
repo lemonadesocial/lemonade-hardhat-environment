@@ -1,4 +1,4 @@
-import { Contract } from "ethers";
+import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import type { DeployFunction } from 'hardhat-deploy/types';
 
