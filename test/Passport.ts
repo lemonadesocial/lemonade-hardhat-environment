@@ -1,36 +1,29 @@
-import { deployMockContract, loadFixture } from 'ethereum-waffle';
-import { ethers, upgrades } from 'hardhat';
+import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import BigNumber from 'bignumber.js';
 import { expect } from 'chai';
 import { Signer } from 'ethers';
+import { ethers, upgrades } from 'hardhat';
 
 import { expectBalances } from './utils';
 
-const CALL_NETWORK = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('development'));
-const USERNAME_KEY = ethers.utils.keccak256(ethers.utils.toUtf8Bytes('username'));
-const USERNAME_VALUE = ethers.utils.toUtf8Bytes('chris');
+const CALL_NETWORK = ethers.keccak256(ethers.toUtf8Bytes('development'));
+const USERNAME_KEY = ethers.keccak256(ethers.toUtf8Bytes('username'));
+const USERNAME_VALUE = ethers.toUtf8Bytes('chris');
 
 describe('Passport', () => {
   async function deployPriceFeed(signer: Signer, decimals: number, rounds: { roundId: string, answer: string; timestamp: string | number }[]) {
-    const priceFeed = await deployMockContract(signer, [
-      'function decimals() view returns (uint8)',
-      'function latestRoundData() view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)',
-      'function getRoundData(uint80 _roundId) view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)',
-    ]);
-
-    await priceFeed.mock.decimals.returns(decimals);
-
-    for (const { roundId, answer, timestamp } of rounds) {
-      const roundData = [
-        ethers.BigNumber.from(roundId),
-        ethers.BigNumber.from(answer),
-        ethers.BigNumber.from(timestamp),
-        ethers.BigNumber.from(timestamp),
-        ethers.BigNumber.from(roundId),
-      ];
-
-      await priceFeed.mock.latestRoundData.returns(...roundData);
-      await priceFeed.mock.getRoundData.withArgs(roundData[0]).returns(...roundData);
-    }
+    const PriceFeed = await ethers.getContractFactory('PriceFeedMock', signer);
+    
+    const priceFeed = await PriceFeed.deploy(
+      decimals,
+      rounds.map((round) => ([
+        round.roundId,
+        round.answer,
+        round.timestamp,
+        round.timestamp,
+        round.roundId,
+      ])),
+    );
 
     return priceFeed;
   }
@@ -40,10 +33,10 @@ describe('Passport', () => {
 
     const BaseV1 = await ethers.getContractFactory('BaseV1');
     const baseV1 = await upgrades.deployProxy(BaseV1, [
-      ethers.constants.AddressZero,
-      ethers.constants.AddressZero,
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
       [],
-      ethers.constants.AddressZero,
+      ethers.ZeroAddress,
       CALL_NETWORK,
       10,
     ]);
@@ -60,21 +53,21 @@ describe('Passport', () => {
 
     const PassportV1Call = await ethers.getContractFactory('PassportV1Call');
     const passportV1Call = await upgrades.deployProxy(PassportV1Call, [
-      baseV1.address,
+      baseV1.target,
       'Passport',
       'PSP',
-      ethers.utils.parseEther('1'),
-      priceFeed1.address,
-      priceFeed2.address,
+      ethers.parseEther('1'),
+      priceFeed1.target,
+      priceFeed2.target,
       5,
       signers[0].address,
-      ethers.constants.AddressZero
+      ethers.ZeroAddress
     ]);
 
-    await baseV1.setCallAddress(passportV1Call.address);
+    await baseV1.setCallAddress(passportV1Call.target);
 
     const CrowdfundV1 = await ethers.getContractFactory('CrowdfundV1');
-    const crowdfundV1 = await upgrades.deployProxy(CrowdfundV1, [passportV1Call.address]);
+    const crowdfundV1 = await upgrades.deployProxy(CrowdfundV1, [passportV1Call.target]);
 
     return { signers, baseV1, passportV1Call, crowdfundV1 };
   }
@@ -85,7 +78,7 @@ describe('Passport', () => {
 
       const [_, price] = await passportV1Call.price();
 
-      expect(ethers.utils.formatEther(price)).to.equal('3117.507763975155279503');
+      expect(ethers.formatEther(price)).to.equal('3117.507763975155279503');
     });
 
     it('should have price at', async () => {
@@ -100,7 +93,7 @@ describe('Passport', () => {
       it('should not withdraw without admin', async () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
-        const balance = await ethers.provider.getBalance(passportV1Call.address);
+        const balance = await ethers.provider.getBalance(passportV1Call.target);
 
         await expect(passportV1Call.connect(signers[1]).withdraw(signers[1].address, balance))
           .to.be.revertedWith(/^AccessControl: account .* is missing role/);
@@ -125,7 +118,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, [], { value: value.sub(1) }))
+        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.ZeroAddress, [], { value: value.sub(1) }))
           .to.be.revertedWith('Forbidden');
       });
 
@@ -134,8 +127,8 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, [], { value }))
-          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[1].address, 1);
+        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.ZeroAddress, [], { value }))
+          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.ZeroAddress, signers[1].address, 1);
       });
 
       it('should have balance of', async () => {
@@ -161,7 +154,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.constants.AddressZero, [], { value }))
+        await expect(passportV1Call.connect(signers[1]).purchase(roundIds, ethers.ZeroAddress, [], { value }))
           .to.be.revertedWith('Forbidden');
       });
     });
@@ -180,7 +173,7 @@ describe('Passport', () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
         await expect(passportV1Call.connect(signers[2]).claim())
-          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[2].address, 2);
+          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.ZeroAddress, signers[2].address, 2);
       });
 
       it('should not claim again', async () => {
@@ -195,7 +188,7 @@ describe('Passport', () => {
 
         const [roundIds, value] = await passportV1Call.price();
 
-        await expect(passportV1Call.connect(signers[2]).purchase(roundIds, ethers.constants.AddressZero, [], { value }))
+        await expect(passportV1Call.connect(signers[2]).purchase(roundIds, ethers.ZeroAddress, [], { value }))
           .to.be.revertedWith('Forbidden');
       });
 
@@ -232,7 +225,7 @@ describe('Passport', () => {
         const { signers, passportV1Call } = await loadFixture(deployFixture);
 
         await expect(passportV1Call.connect(signers[3]).claim())
-          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[3].address, 3);
+          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.ZeroAddress, signers[3].address, 3);
       });
 
       it('should set property batch', async () => {
@@ -260,7 +253,7 @@ describe('Passport', () => {
         const tx = await passportV1Call.connect(signers[4]).purchase(roundIds, signers[5].address, [], { value });
 
         await expect(tx)
-          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[4].address, 4);
+          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.ZeroAddress, signers[4].address, 4);
 
         const receipt = await tx.wait();
 
@@ -303,7 +296,7 @@ describe('Passport', () => {
         const tx = await passportV1Call.connect(signers[5]).purchase(roundIds, signers[4].address, [], { value });
 
         await expect(tx)
-          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[5].address, 5);
+          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.ZeroAddress, signers[5].address, 5);
 
         const receipt = await tx.wait();
 
@@ -479,7 +472,7 @@ describe('Passport', () => {
 
         await expect(baseV1.connect(signers[7]).claim(CALL_NETWORK))
           .to.emit(baseV1, 'Mint').withArgs(CALL_NETWORK, signers[7].address, 7)
-          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.constants.AddressZero, signers[7].address, 7);
+          .to.emit(passportV1Call, 'Transfer').withArgs(ethers.ZeroAddress, signers[7].address, 7);
       });
     });
   });

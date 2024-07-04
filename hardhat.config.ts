@@ -1,6 +1,5 @@
-import '@nomiclabs/hardhat-ethers';
-import "@nomiclabs/hardhat-etherscan";
-import '@nomiclabs/hardhat-waffle';
+import '@nomicfoundation/hardhat-toolbox-viem';
+import '@nomicfoundation/hardhat-chai-matchers';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
 import { HardhatUserConfig } from 'hardhat/config';
@@ -10,8 +9,8 @@ dotenv.config();
 
 const accounts =
   process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] :
-  process.env.MNEMONIC ? { mnemonic: process.env.MNEMONIC } :
-  undefined;
+    process.env.MNEMONIC ? { mnemonic: process.env.MNEMONIC } :
+      undefined;
 
 const config: HardhatUserConfig = {
   etherscan: {
@@ -22,32 +21,32 @@ const config: HardhatUserConfig = {
       polygonMumbai: process.env.ETHERSCAN_POLYGON_API_KEY || '',
     },
   },
-  platform: {
-    apiKey: process.env.PLATFORM_API_KEY || '',
-    apiSecret: process.env.PLATFORM_API_SECRET || '',
-    usePlatformDeploy: false,
-  },
+  // platform: {
+  //   apiKey: process.env.PLATFORM_API_KEY || '',
+  //   apiSecret: process.env.PLATFORM_API_SECRET || '',
+  //   usePlatformDeploy: false,
+  // },
   namedAccounts: {
     deployer: process.env.PRIVATE_KEY ? {
-      'default':        0,
+      'default': 0,
     } : {
-      'default':        '0xFB756b44060e426731e54e9F433c43c75ee90d9f',
-      'aurora':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'arbitrum-nova':  '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'arbitrum-one':   '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'astar':          '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'avalanche':      '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'base':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'bnb':            '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'celo':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'development':    '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-      'ethereum':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'gnosis':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'optimism':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'polygon':        '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'moonbeam':       '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'unique':         '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
-      'zero':           '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'default': '0xFB756b44060e426731e54e9F433c43c75ee90d9f',
+      'aurora': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'arbitrum-nova': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'arbitrum-one': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'astar': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'avalanche': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'base': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'bnb': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'celo': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'development': '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+      'ethereum': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'gnosis': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'optimism': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'polygon': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'moonbeam': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'unique': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
+      'zero': '0x951292004e8a18955Cb1095CB72Ca6B01d68336E',
     },
   },
   networks: {

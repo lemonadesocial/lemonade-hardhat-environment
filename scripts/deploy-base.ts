@@ -9,8 +9,8 @@ async function main() {
     AXELAR_GATEWAY,
     AXELAR_GAS_SERVICE,
     AXELAR_NETWORKS && JSON.parse(AXELAR_NETWORKS) || [],
-    CALL_ADDRESS || ethers.constants.AddressZero,
-    CALL_NETWORK && ethers.utils.keccak256(ethers.utils.toUtf8Bytes(CALL_NETWORK)),
+    CALL_ADDRESS || ethers.ZeroAddress,
+    CALL_NETWORK && ethers.keccak256(ethers.toUtf8Bytes(CALL_NETWORK)),
     MAX_SUPPLY,
   ]);
 

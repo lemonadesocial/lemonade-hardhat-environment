@@ -1,6 +1,7 @@
-import { BigNumber, Contract } from 'ethers';
+import { Contract, ContractTransactionResponse } from 'ethers';
 import { ethers } from 'hardhat';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
+import BigNumber from 'bignumber.js';
 
 async function getBalance(address: string, pullPayment: Contract) {
   const [balance, payments] = await Promise.all([
@@ -8,7 +9,11 @@ async function getBalance(address: string, pullPayment: Contract) {
     pullPayment.payments(address),
   ]);
 
-  return balance.add(payments);
+  return new BigNumber(balance.toString()).plus(payments.toString());
+}
+
+export function toHex(value: BigNumber) {
+  return `0x${value.toString(16)}`;
 }
 
 export async function expectBalances(addresses: string[], pullPayment: Contract) {
@@ -22,7 +27,21 @@ export async function expectBalances(addresses: string[], pullPayment: Contract)
     for (let i = 0; i < addresses.length; i++) {
       const actual = await getBalance(addresses[i], pullPayment);
 
-      expect(actual).to.eq(expected[i](before[i]));
+      expect(actual.toString()).to.eq(expected[i](before[i]).toString());
     }
   };
+}
+
+export async function expectEmittedEventWithArgs(contract: Contract, tx: ContractTransactionResponse, event: string, args: Record<string, unknown>) {
+  const receipt = await tx.wait();
+
+  const log = receipt?.logs.map(log => contract.interface.parseLog(log)).find((log) => log?.name === event);
+
+  assert.ok(log);
+
+  for (const [key, value] of Object.entries(args)) {
+    const paramIndex = log.fragment.inputs.findIndex((param) => param.name === key);
+
+    expect(log.args[paramIndex]).to.eq(value);
+  }
 }

@@ -19,11 +19,11 @@ export function deployFunction(entries: Entry[]): DeployFunction {
     const contract = await ethers.getContractAt(
       deployResult.abi,
       deployResult.address,
-      await ethers.getSigner(from)
+      await ethers.getSigner(from),
     );
 
     for (const entry of entries) {
-      const role = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(entry.role));
+      const role = ethers.keccak256(ethers.toUtf8Bytes(entry.role));
 
       const granted = await contract.hasRole(role, entry.account);
 
