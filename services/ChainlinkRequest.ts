@@ -1,7 +1,6 @@
 import { BigNumberish } from 'ethers';
 import { ethers } from 'hardhat';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import type { DeployFunction, DeployOptions } from 'hardhat-deploy/types';
+import type { DeployFunction } from 'hardhat-deploy/types';
 
 interface Config {
   chainlinkToken: string;
@@ -12,7 +11,7 @@ interface Config {
 }
 
 export function deployFunction(config: Config): DeployFunction {
-  const jobId = ethers.utils.toUtf8Bytes(config.jobId);
+  const jobId = ethers.toUtf8Bytes(config.jobId);
 
   return async function ({ deployments: { deploy }, getNamedAccounts }) {
     const { deployer: from } = await getNamedAccounts();
@@ -25,15 +24,15 @@ export function deployFunction(config: Config): DeployFunction {
     const contract = await ethers.getContractAt(
       deployResult.abi,
       deployResult.address,
-      await ethers.getSigner(from)
+      await ethers.getSigner(from),
     );
 
     const current = await contract.config();
 
     if (!(
-      current[0] === ethers.utils.getAddress(config.chainlinkToken) &&
-      current[1] === ethers.utils.getAddress(config.chainlinkOracle) &&
-      current[2] === ethers.utils.hexlify(jobId) &&
+      current[0] === ethers.getAddress(config.chainlinkToken) &&
+      current[1] === ethers.getAddress(config.chainlinkOracle) &&
+      current[2] === ethers.hexlify(jobId) &&
       current[3].eq(config.fee) &&
       current[4] === config.url
     )) {
