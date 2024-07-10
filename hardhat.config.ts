@@ -203,6 +203,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/moonbeam'],
     },
+    'scroll-sepolia': {
+      url: process.env.NETWORK_SCROLL_SEPOLIA_URL || 'https://sepolia-rpc.scroll.io',
+      chainId: 534351,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/scroll-sepolia'],
+    },
     'sepolia': {
       url: process.env.NETWORK_SEPOLIA_URL || 'https://ethereum-sepolia.publicnode.com/',
       chainId: 11155111,

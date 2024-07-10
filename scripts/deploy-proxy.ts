@@ -10,7 +10,7 @@ async function main() {
 
   const proxy = await upgrades.deployProxy(contractFactory, ARGS && JSON.parse(ARGS) || []);
 
-  console.log(proxy.address);
+  console.log(proxy.target);
 }
 
 main();
