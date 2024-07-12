@@ -20,7 +20,8 @@ export async function expectBalances(addresses: string[], pullPayment: Contract)
   const before: BigNumber[] = [];
 
   for (const address of addresses) {
-    before.push(await getBalance(address, pullPayment));
+    const balance = await getBalance(address, pullPayment);
+    before.push(balance);
   }
 
   return async (expected: ((before: BigNumber) => BigNumber)[]) => {
