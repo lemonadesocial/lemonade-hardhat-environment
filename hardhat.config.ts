@@ -1,12 +1,13 @@
-import '@nomicfoundation/hardhat-toolbox-viem';
-import '@nomicfoundation/hardhat-chai-matchers';
-import '@openzeppelin/hardhat-upgrades';
-import '@matterlabs/hardhat-zksync-solc';
 import '@matterlabs/hardhat-zksync-deploy';
+import '@matterlabs/hardhat-zksync-solc';
 import '@matterlabs/hardhat-zksync-upgradable';
+import '@nomicfoundation/hardhat-chai-matchers';
+import '@nomicfoundation/hardhat-toolbox-viem';
+import '@openzeppelin/hardhat-upgrades';
+import * as dotenv from 'dotenv';
+import 'hardhat-contract-sizer';
 import 'hardhat-deploy';
 import { HardhatUserConfig } from 'hardhat/config';
-import * as dotenv from 'dotenv';
 
 dotenv.config();
 
