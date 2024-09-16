@@ -46,3 +46,7 @@ export async function expectEmittedEventWithArgs(contract: Contract, tx: Contrac
     expect(log.args[paramIndex]).to.eq(value);
   }
 }
+
+export function toId(value: string) {
+  return ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["string"], [value]));
+}

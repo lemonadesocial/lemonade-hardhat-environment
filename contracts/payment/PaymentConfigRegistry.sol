@@ -76,10 +76,20 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         bytes32[] calldata data,
         bytes calldata signature
     ) public view {
-        address actualSigner = abi
-            .encode(data)
-            .toEthSignedMessageHash()
-            .recover(signature);
+        bytes memory encoded;
+        uint256 length = data.length;
+
+        for (uint256 i = 0; i < length; ) {
+            encoded = abi.encodePacked(encoded, data[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        address actualSigner = encoded.toEthSignedMessageHash().recover(
+            signature
+        );
 
         if (actualSigner != authorizedSigner) {
             revert InvalidSignature();

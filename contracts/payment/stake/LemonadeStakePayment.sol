@@ -42,7 +42,7 @@ contract LemonadeStakePayment is OwnableUpgradeable {
 
     mapping(address => uint256) currencyIndex;
     mapping(bytes32 => Staking) stakings;
-    mapping(uint256 => StakeConfig) configs;
+    mapping(uint256 => StakeConfig) public configs;
     uint256[5] __gap;
 
     function initialize(address registry) public initializer {
