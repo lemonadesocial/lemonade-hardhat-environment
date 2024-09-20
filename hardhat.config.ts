@@ -221,6 +221,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/sepolia'],
     },
+    'sei-testnet': {
+      url: process.env.NETWORK_SEPOLIA_URL || 'https://evm-rpc-testnet.sei-apis.com',
+      chainId: 1328,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/sei-testnet'],
+    },
     'unique': {
       url: process.env.NETWORK_UNIQUE_URL || 'https://rpc.unique.network/',
       chainId: 8880,
