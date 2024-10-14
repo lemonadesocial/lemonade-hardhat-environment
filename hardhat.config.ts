@@ -222,13 +222,13 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/sepolia'],
     },
     'sei': {
-      url: process.env.NETWORK_SEPOLIA_URL || 'https://evm-rpc.sei-apis.com',
+      url: process.env.NETWORK_SEI_URL || 'https://evm-rpc.sei-apis.com',
       chainId: 1329,
       accounts,
       deploy: ['deploy/__all__', 'deploy/sei'],
     },
     'sei-testnet': {
-      url: process.env.NETWORK_SEPOLIA_URL || 'https://evm-rpc-testnet.sei-apis.com',
+      url: process.env.NETWORK_SEI_TESTNET_URL || 'https://evm-rpc-testnet.sei-apis.com',
       chainId: 1328,
       accounts,
       deploy: ['deploy/__all__', 'deploy/sei-testnet'],
