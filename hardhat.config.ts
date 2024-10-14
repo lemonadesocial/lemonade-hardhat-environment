@@ -131,6 +131,18 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/celo'],
     },
+    'cyber-testnet': {
+      url: process.env.NETWORK_CYBER_TESTNET_URL || 'https://cyber-testnet.alt.technology/',
+      chainId: 111557560,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/cyber-testnet'],
+    },
+    'cyber': {
+      url: process.env.NETWORK_CYBER_URL || 'https://cyber.alt.technology/',
+      chainId: 7560,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/cyber'],
+    },
     'development': {
       url: 'http://127.0.0.1:8545/',
       chainId: 31337,
