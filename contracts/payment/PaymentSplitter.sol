@@ -319,6 +319,12 @@ contract PaymentSplitter is Context {
         //-- reset total share
         _totalShares = 0;
 
+        //-- reset shares array
+        for (uint256 i = 0; i < _payees.length; i++) {
+            address account = _payees[i];
+            _shares[account] = 0;
+        }
+        
         //-- reset payees array
         delete _payees;
 
