@@ -320,15 +320,19 @@ contract PaymentSplitter is Context {
         _totalShares = 0;
 
         //-- reset shares array
-        for (uint256 i = 0; i < _payees.length; i++) {
+        for (uint256 i = 0; i < _payees.length; ) {
             address account = _payees[i];
             _shares[account] = 0;
+            
+            unchecked {
+                ++i;
+            }
         }
-        
+
         //-- reset payees array
         delete _payees;
 
-        for (uint256 i = 0; i < payees.length; i++) {
+        for (uint256 i = 0; i < payees.length; ) {
             address account = payees[i];
             uint256 shared = shares_[i];
 
@@ -339,6 +343,10 @@ contract PaymentSplitter is Context {
             _payees.push(account);
             _shares[account] = shared;
             _totalShares = _totalShares + shared;
+
+            unchecked {
+                ++i;
+            }
         }
 
         emit PayeesReset();
