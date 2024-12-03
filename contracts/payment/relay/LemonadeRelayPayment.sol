@@ -8,9 +8,14 @@ import "../PaymentConfigRegistry.sol";
 import "../PaymentSplitter.sol";
 
 contract RelayPaymentSplitter is PaymentSplitter {
-    address internal _owner;
+    address _owner;
+    mapping(address => bool) admins;
 
     error Forbidden();
+    error InvalidState();
+
+    event AdminAdded(address actor, address admin);
+    event AdminRemoved(address actor, address admin);
 
     constructor(
         address owner,
@@ -18,13 +23,38 @@ contract RelayPaymentSplitter is PaymentSplitter {
         uint256[] memory shares
     ) PaymentSplitter(payees, shares) {
         _owner = owner;
+        admins[_owner] = true;
+    }
+
+    function addAdmin(address admin) external {
+        address actor = _msgSender();
+
+        if (!admins[actor]) revert Forbidden();
+
+        if (admins[admin]) revert InvalidState();
+
+        admins[admin] = true;
+
+        emit AdminAdded(actor, admin);
+    }
+
+    function removeAdmin(address admin) external {
+        address actor = _msgSender();
+
+        if (!admins[actor]) revert Forbidden();
+
+        if (!admins[admin]) revert InvalidState();
+
+        admins[admin] = false;
+
+        emit AdminRemoved(actor, admin);
     }
 
     function resetPayees(
         address[] memory payees,
         uint256[] memory shares
     ) public {
-        if (_msgSender() != _owner) revert Forbidden();
+        if (!admins[_msgSender()]) revert Forbidden();
 
         _resetPayees(payees, shares);
     }
@@ -128,7 +158,8 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
             payable(configRegistry)
         );
 
-        uint256 transferAmount = amount * 1000000 / (registry.feePPM() + 1000000);
+        uint256 transferAmount = (amount * 1000000) /
+            (registry.feePPM() + 1000000);
         uint256 feeAmount = amount - transferAmount;
 
         address guest = _msgSender();
