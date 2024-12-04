@@ -50,6 +50,10 @@ contract LemonadeStakePayment is OwnableUpgradeable {
         configRegistry = registry;
     }
 
+    function setConfigRegistry(address registry) external onlyOwner {
+        configRegistry = registry;
+    }
+
     function register(address vault, uint256 refundPercent) external {
         if (refundPercent > 100 || refundPercent == 0) {
             revert InvalidData();
