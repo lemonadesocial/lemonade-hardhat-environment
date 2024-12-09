@@ -38,14 +38,14 @@ const deployStake = async (signer: SignerWithAddress) => {
   return { configRegistry, stakePayment };
 }
 
-const register = async (percent: number) => {
+const register = async (ppm: number) => {
   const [signer, signer2] = await ethers.getSigners();
 
   const { configRegistry, stakePayment } = await deployStake(signer);
 
   const payee = signer2.address;
 
-  const response: ContractTransactionResponse = await stakePayment.connect(signer).register(payee, percent);
+  const response: ContractTransactionResponse = await stakePayment.connect(signer).register(payee, ppm);
 
   const receipt = await response.wait();
 
@@ -64,7 +64,7 @@ const register = async (percent: number) => {
 
   assert.ok(id);
 
-  return { configRegistry, stakePayment, id, signer };
+  return { configRegistry, stakePayment, id, signer, signer2 };
 }
 
 const stake = async (
@@ -104,38 +104,43 @@ const stake = async (
   return { receipt, feeInfo, total, feePPM, eventId, paymentId, currency, amount, address: signer2.address };
 }
 
-const createSignature = (signer: SignerWithAddress, type: string, paymentId: string) => {
+const createSignature = (signer: SignerWithAddress, type: string, paymentIds: string[]) => {
+  const data = [toId(type), ...paymentIds.map(toId)];
+
+  let encoded = "0x";
+
+  for (let i = 0; i < data.length; i++) {
+    encoded = ethers.solidityPacked(["bytes", "bytes32"], [encoded, data[i]]);
+  }
+
   return signer.signMessage(
-    ethers.getBytes(
-      new ethers.AbiCoder().encode(
-        ['bytes32', 'bytes32'],
-        [toId(type), toId(paymentId)],
-      )
-    ));
+    ethers.getBytes(encoded)
+  );
 }
 
 describe('LemonadeRelayPaymentV1', () => {
   it('should allow register config', async () => {
-    const percent = 80;
-    const { id, stakePayment } = await register(percent);
+    const ppm = 800000;
+    const { id, stakePayment } = await register(ppm);
 
     const config = await stakePayment.configs(id);
 
-    assert.ok(config[2] === BigInt(percent));
+    assert.ok(config[2] === BigInt(ppm));
   });
 
   it('should accept stake', async () => {
-    const percent = 90;
-    const { id, stakePayment, configRegistry } = await register(percent);
+    const ppm = 900000;
+    const { id, stakePayment, configRegistry } = await register(ppm);
 
     const { paymentId, address, amount, total } = await stake(id, configRegistry, stakePayment, "1");
 
     const [stakeInfo] = await stakePayment.getStakings([paymentId]);
 
-    assert.strictEqual(stakeInfo[0], address);
-    assert.strictEqual(stakeInfo[1], ethers.ZeroAddress);
-    assert.strictEqual(stakeInfo[2], BigInt(total));
-    assert.strictEqual(stakeInfo[3], BigInt(amount));
+    assert.strictEqual(stakeInfo[0], id);
+    assert.strictEqual(stakeInfo[1], address);
+    assert.strictEqual(stakeInfo[2], ethers.ZeroAddress);
+    assert.strictEqual(stakeInfo[3], BigInt(total));
+    assert.strictEqual(stakeInfo[4], BigInt(amount));
   });
 
   it('should throw for already stake payment', async () => {
@@ -147,16 +152,16 @@ describe('LemonadeRelayPaymentV1', () => {
   });
 
   it('should refund correctly', async () => {
-    const percent = 90;
+    const ppm = 900000;
     const [_, signer2] = await ethers.getSigners()
-    const { id, stakePayment, configRegistry, signer } = await register(percent);
+    const { id, stakePayment, configRegistry, signer } = await register(ppm);
 
     const { paymentId, amount } = await stake(id, configRegistry, stakePayment, "3");
 
-    const expectedRefund = BigInt(amount * percent / 100);
+    const expectedRefund = BigInt(amount * ppm / 1000000);
 
     //-- const generate refund signature
-    const signature = await createSignature(signer, "STAKE_REFUND", paymentId);
+    const signature = await createSignature(signer, "STAKE_REFUND", [paymentId]);
 
     const balanceBefore = await ethers.provider.getBalance(signer2.address);
 
@@ -173,64 +178,66 @@ describe('LemonadeRelayPaymentV1', () => {
   });
 
   it('should not refund twice', async () => {
-    const percent = 90;
+    const ppm = 900000;
     const [_, signer2] = await ethers.getSigners()
-    const { id, stakePayment, configRegistry, signer } = await register(percent);
+    const { id, stakePayment, configRegistry, signer } = await register(ppm);
 
     const { paymentId } = await stake(id, configRegistry, stakePayment, "3");
 
     //-- const generate refund signature
-    const signature = await createSignature(signer, "STAKE_REFUND", paymentId);
+    const signature = await createSignature(signer, "STAKE_REFUND", [paymentId]);
 
     await stakePayment.connect(signer2).refund(paymentId, signature);
     await assert.rejects(stakePayment.connect(signer2).refund(paymentId, signature));
   });
 
   it('should slash multiple payments', async () => {
-    const percent = 90;
-    const { id, stakePayment, configRegistry, signer } = await register(percent);
+    const ppm = 900000;
+    const { id, stakePayment, configRegistry, signer, signer2 } = await register(ppm);
 
     const stake1 = await stake(id, configRegistry, stakePayment, "5");
     const stake2 = await stake(id, configRegistry, stakePayment, "6");
 
-    //-- const generate refund signature
-    const signatures = await Promise.all([
-      stake1.paymentId, stake2.paymentId
-    ].map((paymentId) => createSignature(signer, "STAKE_SLASH", paymentId)));
+    const expectedRefund = BigInt(stake1.amount + stake2.amount);
 
-    const balanceBefore = await ethers.provider.getBalance(signer.address);
+    //-- const generate refund signature
+    const signature = await createSignature(signer, "STAKE_SLASH", [stake1.paymentId, stake2.paymentId]);
+
+    const balanceBefore = await ethers.provider.getBalance(signer2.address);
 
     const response: ContractTransactionResponse = await stakePayment.connect(signer).slash(
+      id,
       [stake1.paymentId, stake2.paymentId],
-      signatures,
+      signature,
     );
 
     const receipt = await response.wait();
 
     assert.ok(receipt);
 
-    const balanceAfter = await ethers.provider.getBalance(signer.address);
-    const gasFee = receipt.gasPrice * receipt.gasUsed;
+    const balanceAfter = await ethers.provider.getBalance(signer2.address);
 
-    assert.strictEqual(balanceAfter, balanceBefore - gasFee + BigInt(stake1.amount) + BigInt(stake2.amount));
+    assert.strictEqual(balanceAfter, balanceBefore + expectedRefund);
   });
 
   it('should not slash twice', async () => {
-    const percent = 90;
-    const { id, stakePayment, configRegistry, signer } = await register(percent);
+    const ppm = 900000;
+    const { id, stakePayment, configRegistry, signer } = await register(ppm);
 
     const { paymentId } = await stake(id, configRegistry, stakePayment, "5");
 
-    const signature = await createSignature(signer, "STAKE_SLASH", paymentId);
+    const signature = await createSignature(signer, "STAKE_SLASH", [paymentId]);
 
     await stakePayment.connect(signer).slash(
+      id,
       [paymentId],
-      [signature],
+      signature,
     );
 
     await assert.rejects(stakePayment.connect(signer).slash(
+      id,
       [paymentId],
-      [signature],
+      signature,
     ));
   });
 });
