@@ -22,10 +22,11 @@ contract LemonadeStakePayment is OwnableUpgradeable {
     struct StakeConfig {
         address owner;
         address vault;
-        uint256 refundPercent;
+        uint256 refundPPM;
     }
 
     struct Staking {
+        uint256 configId;
         address guest;
         address currency;
         uint256 amount;
@@ -55,7 +56,7 @@ contract LemonadeStakePayment is OwnableUpgradeable {
     }
 
     function register(address vault, uint256 refundPercent) external {
-        if (refundPercent > 100 || refundPercent == 0) {
+        if (refundPercent > 1000000 || refundPercent == 0) {
             revert InvalidData();
         }
 
@@ -99,7 +100,7 @@ contract LemonadeStakePayment is OwnableUpgradeable {
         uint256 stakeAmount = (amount * 1000000) /
             (registry.feePPM() + 1000000);
         uint256 feeAmount = amount - stakeAmount;
-        uint256 refundAmount = (stakeAmount * config.refundPercent) / 100;
+        uint256 refundAmount = (stakeAmount * config.refundPPM) / 1000000;
 
         address guest = _msgSender();
 
@@ -134,6 +135,7 @@ contract LemonadeStakePayment is OwnableUpgradeable {
         }
 
         stakings[id] = Staking(
+            configId,
             guest,
             currency,
             amount,
@@ -175,8 +177,6 @@ contract LemonadeStakePayment is OwnableUpgradeable {
             revert NotAvailable();
         }
 
-        address sender = _msgSender();
-
         //-- verify signature
         PaymentConfigRegistry registry = PaymentConfigRegistry(
             payable(configRegistry)
@@ -190,21 +190,19 @@ contract LemonadeStakePayment is OwnableUpgradeable {
         registry.assertSignature(data, signature);
 
         //-- let's refund
-        _release(sender, staking.currency, staking.refundAmount);
-
         staking.refunded = true;
+
+        _release(staking.guest, staking.currency, staking.refundAmount);
     }
 
     function slash(
+        uint256 configId,
         string[] memory paymentIds,
-        bytes[] memory signatures
+        bytes memory signature
     ) external {
         uint256 idsLength = paymentIds.length;
-        uint256 sigsLength = signatures.length;
 
-        if (idsLength != sigsLength) {
-            revert InvalidData();
-        }
+        StakeConfig storage config = configs[configId];
 
         PaymentConfigRegistry registry = PaymentConfigRegistry(
             payable(configRegistry)
@@ -213,22 +211,22 @@ contract LemonadeStakePayment is OwnableUpgradeable {
         uint256 currenciesLength = currencies.length;
         uint256[] memory slashes = new uint256[](currenciesLength);
 
+        //-- collect data to verify the signature
+        bytes32[] memory data = new bytes32[](paymentIds.length + 1);
+        data[0] = STAKE_SLASH;
+
         for (uint256 i = 0; i < idsLength; ) {
             bytes32 id = _toId(paymentIds[i]);
 
             Staking storage staking = stakings[id];
 
+            if (staking.configId != configId) {
+                revert InvalidData();
+            }
+
             if (staking.slashed || staking.refunded) {
                 revert NotAvailable();
             }
-
-            //-- verify the signature
-            bytes32[] memory data = new bytes32[](2);
-
-            data[0] = STAKE_SLASH;
-            data[1] = id;
-
-            registry.assertSignature(data, signatures[i]);
 
             //-- add to slash sum
             uint256 index = currencyIndex[staking.currency] - 1;
@@ -240,17 +238,20 @@ contract LemonadeStakePayment is OwnableUpgradeable {
             unchecked {
                 ++i;
             }
+
+            data[i] = id;
         }
 
+        registry.assertSignature(data, signature);
+
         //-- release
-        address sender = _msgSender();
 
         for (uint256 i = 0; i < currenciesLength; ) {
             address currency = currencies[i];
             uint256 amount = slashes[currencyIndex[currency] - 1];
 
             if (amount > 0) {
-                _release(sender, currency, amount);
+                _release(config.vault, currency, amount);
             }
 
             unchecked {
