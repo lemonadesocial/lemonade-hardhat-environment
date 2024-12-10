@@ -55,13 +55,13 @@ contract LemonadeStakePayment is OwnableUpgradeable {
         configRegistry = registry;
     }
 
-    function register(address vault, uint256 refundPercent) external {
-        if (refundPercent > 1000000 || refundPercent == 0) {
+    function register(address vault, uint256 refundPPM) external {
+        if (refundPPM > 1000000 || refundPPM == 0) {
             revert InvalidData();
         }
 
         address owner = _msgSender();
-        StakeConfig memory config = StakeConfig(owner, vault, refundPercent);
+        StakeConfig memory config = StakeConfig(owner, vault, refundPPM);
 
         counter += 1;
         configs[counter] = config;
