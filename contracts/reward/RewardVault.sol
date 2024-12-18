@@ -18,6 +18,10 @@ interface IRewardVault {
         bytes32 rewardId,
         uint256 count
     ) external;
+
+    function listRewards(
+        bytes32 rewardId
+    ) external view returns (RewardSetting[] memory settings);
 }
 
 struct RewardSetting {
@@ -26,15 +30,17 @@ struct RewardSetting {
 }
 
 contract RewardVault is IRewardVault, AccessControl {
+    //-- TYPE DEFINITION
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    //-- STORAGE AREA
     IRewardRegistry rewardRegistry;
-
     mapping(bytes32 => EnumerableSet.AddressSet) rewardCurrencies;
     mapping(bytes32 => mapping(address => uint256)) rewardSettings; //-- first key is reward id, second key is currency, value is reward amount
 
     uint256[10] ___gap;
 
+    //-- ERRORS
     error CannotWithdraw();
     error InvalidData();
 
@@ -99,7 +105,38 @@ contract RewardVault is IRewardVault, AccessControl {
         uint256 count
     ) external override onlyRole(OPERATOR_ROLE) {}
 
-    function listRewards() external view {}
+    function listRewards(
+        bytes32 rewardId
+    ) external view override returns (RewardSetting[] memory settings) {
+        EnumerableSet.AddressSet storage currencies = rewardCurrencies[
+            rewardId
+        ];
+
+        uint256 currencyLength = currencies.length();
+
+        if (currencyLength == 0) {
+            return settings;
+        }
+
+        RewardSetting[] memory currencySettings = new RewardSetting[](
+            currencyLength
+        );
+
+        for (uint256 i = 0; i < currencyLength; ) {
+            address currency = currencies.at(i);
+
+            currencySettings[i] = RewardSetting(
+                currency,
+                rewardSettings[rewardId][currency]
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return settings;
+    }
 
     receive() external payable {}
 }
