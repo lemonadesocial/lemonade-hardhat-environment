@@ -14,6 +14,7 @@ interface IRewardRegistry {
 
 interface IRewardVault {
     function reward(
+        bytes32 claimId,
         address destination,
         bytes32 rewardId,
         uint256 count
@@ -41,8 +42,16 @@ contract RewardVault is IRewardVault, AccessControl {
     uint256[10] ___gap;
 
     //-- ERRORS
-    error CannotWithdraw();
+    error CannotTransfer();
     error InvalidData();
+
+    //-- EVENTS
+    event RewardSent(
+        bytes32 indexed claimId,
+        address indexed destination,
+        address currency,
+        uint256 total
+    );
 
     constructor(address owner, IRewardRegistry registry) {
         grantRole(DEFAULT_ADMIN_ROLE, owner);
@@ -52,24 +61,11 @@ contract RewardVault is IRewardVault, AccessControl {
     }
 
     function withdraw(
+        address destination,
         address currency,
         uint256 amount
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        address sender = _msgSender();
-
-        if (currency == address(0)) {
-            (bool success, ) = payable(sender).call{value: amount}("");
-
-            if (!success) revert CannotWithdraw();
-        } else {
-            bool success = IERC20(currency).transferFrom(
-                address(this),
-                sender,
-                amount
-            );
-
-            if (!success) revert CannotWithdraw();
-        }
+        _release(destination, currency, amount);
     }
 
     function setRewards(
@@ -100,10 +96,39 @@ contract RewardVault is IRewardVault, AccessControl {
     }
 
     function reward(
+        bytes32 claimId,
         address destination,
         bytes32 rewardId,
         uint256 count
-    ) external override onlyRole(OPERATOR_ROLE) {}
+    ) external override onlyRole(OPERATOR_ROLE) {
+        if (count == 0) {
+            revert InvalidData();
+        }
+
+        EnumerableSet.AddressSet storage currencies = rewardCurrencies[
+            rewardId
+        ];
+
+        uint256 currencyLength = currencies.length();
+
+        for (uint256 i = 0; i < currencyLength; ) {
+            address currency = currencies.at(i);
+
+            uint256 amount = rewardSettings[rewardId][currency];
+
+            if (amount == 0) continue;
+
+            uint256 total = amount * count;
+
+            _release(destination, currency, total);
+
+            emit RewardSent(claimId, destination, currency, total);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
 
     function listRewards(
         bytes32 rewardId
@@ -136,6 +161,26 @@ contract RewardVault is IRewardVault, AccessControl {
         }
 
         return settings;
+    }
+
+    function _release(
+        address destination,
+        address currency,
+        uint256 amount
+    ) internal {
+        if (currency == address(0)) {
+            (bool success, ) = payable(destination).call{value: amount}("");
+
+            if (!success) revert CannotTransfer();
+        } else {
+            bool success = IERC20(currency).transferFrom(
+                address(this),
+                destination,
+                amount
+            );
+
+            if (!success) revert CannotTransfer();
+        }
     }
 
     receive() external payable {}

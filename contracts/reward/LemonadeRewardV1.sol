@@ -5,7 +5,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+import "../payment/PaymentConfigRegistry.sol";
 import "./RewardVault.sol";
+
+bytes32 constant REWARD = keccak256(abi.encode("REWARD"));
 
 contract LemonadeRewardv1 is IRewardRegistry, OwnableUpgradeable {
     //-- TYPE DEFINITION
@@ -19,9 +22,15 @@ contract LemonadeRewardv1 is IRewardRegistry, OwnableUpgradeable {
     //-- STORAGE AREA
     address public configRegistry;
     mapping(bytes32 => EnumerableSet.AddressSet) rewardRegistry; //-- key is rewardId
+    mapping(bytes32 => bool) claimed; //-- key is unique claim id
 
     //-- EVENTS
-    event RewardVaultCreated(address vault);
+    event RewardVaultCreated(address indexed vault);
+    event RewardClaimed(
+        bytes32 indexed claimId,
+        address indexed vault,
+        address destination
+    );
 
     //-- ERRORS
     error NotRewardVault(address caller);
@@ -101,7 +110,80 @@ contract LemonadeRewardv1 is IRewardRegistry, OwnableUpgradeable {
         return rewards;
     }
 
-    function claimRewards() external {
+    function claimRewards(
+        bytes32 claimId,
+        bytes32[] calldata rewardIds,
+        uint256[] calldata counts,
+        bytes calldata signature
+    ) external {
+        uint256 rewardLength = rewardIds.length;
+        uint256 countLength = counts.length;
 
+        if (rewardLength == 0 || rewardLength != countLength) {
+            revert InvalidData();
+        }
+
+        address sender = _msgSender();
+
+        bytes32[] memory payload = new bytes32[](
+            rewardLength + countLength + 1
+        );
+
+        payload[0] = REWARD;
+        payload[1] = REWARD;
+
+        for (uint256 i = 0; i < rewardLength; ) {
+            payload[2 + i] = rewardIds[i];
+            payload[2 + i * 2] = bytes32(counts[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        PaymentConfigRegistry registry = PaymentConfigRegistry(
+            payable(configRegistry)
+        );
+
+        registry.assertSignature(payload, signature);
+
+        claimed[claimId] = true;
+
+        for (uint256 i = 0; i < rewardLength; ) {
+            bytes32 rewardId = rewardIds[i];
+            uint256 count = counts[i];
+
+            _reward(claimId, rewardId, count, sender);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function _reward(
+        bytes32 claimId,
+        bytes32 rewardId,
+        uint256 count,
+        address destination
+    ) internal {
+        EnumerableSet.AddressSet storage vaults = rewardRegistry[rewardId];
+
+        uint256 vaultLength = vaults.length();
+
+        if (vaultLength == 0) return;
+
+        for (uint256 i = 0; i < vaultLength; ) {
+            address vaultAddress = vaults.at(i);
+            IRewardVault vault = IRewardVault(vaultAddress);
+
+            vault.reward(claimId, destination, rewardId, count);
+
+            emit RewardClaimed(claimId, vaultAddress, destination);
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 }
