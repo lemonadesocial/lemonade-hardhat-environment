@@ -38,7 +38,7 @@ const deployStake = async (signer: SignerWithAddress) => {
   return { configRegistry, stakePayment };
 }
 
-const register = async (ppm: number) => {
+const register = async (ppm: bigint) => {
   const [signer, signer2] = await ethers.getSigners();
 
   const { configRegistry, stakePayment } = await deployStake(signer);
@@ -60,15 +60,15 @@ const register = async (ppm: number) => {
     })
     .find(event => event?.name === 'VaultRegistered');
 
-  const id = event?.args[0] as bigint | undefined;
+  const vault = event?.args[0] as string;
 
-  assert.ok(id);
+  assert.ok(vault);
 
-  return { configRegistry, stakePayment, id, signer, signer2 };
+  return { configRegistry, stakePayment, vault, signer, signer2 };
 }
 
 const stake = async (
-  id: bigint,
+  vault: string,
   configRegistry: Contract,
   stakePayment: Contract,
   paymentId: string,
@@ -89,7 +89,7 @@ const stake = async (
   );
 
   const response: ContractTransactionResponse = await stakePayment.connect(signer2).stake(
-    id,
+    vault,
     eventId,
     paymentId,
     currency,
@@ -101,7 +101,7 @@ const stake = async (
 
   const feeInfo = await feeCollected;
 
-  return { receipt, feeInfo, total, feePPM, eventId, paymentId, currency, amount, address: signer2.address };
+  return { receipt, feeInfo, total, feePPM, eventId, paymentId, currency, amount, guest: signer2.address };
 }
 
 const createSignature = (signer: SignerWithAddress, type: string, paymentIds: string[]) => {
@@ -120,43 +120,44 @@ const createSignature = (signer: SignerWithAddress, type: string, paymentIds: st
 
 describe('LemonadeRelayPaymentV1', () => {
   it('should allow register config', async () => {
-    const ppm = 800000;
-    const { id, stakePayment } = await register(ppm);
+    const ppm = 800000n;
+    const { vault } = await register(ppm);
 
-    const config = await stakePayment.configs(id);
+    const stakeVault = await ethers.getContractAt("StakeVault", vault);
 
-    assert.ok(config[2] === BigInt(ppm));
+    const refundPPM = await stakeVault.refundPPM();
+
+    assert.strictEqual(refundPPM, ppm);
   });
 
   it('should accept stake', async () => {
     const ppm = 900000;
-    const { id, stakePayment, configRegistry } = await register(ppm);
+    const { vault, stakePayment, configRegistry } = await register(ppm);
 
-    const { paymentId, address, amount, total } = await stake(id, configRegistry, stakePayment, "1");
+    const { paymentId, guest, amount } = await stake(vault, configRegistry, stakePayment, "1");
 
     const [stakeInfo] = await stakePayment.getStakings([paymentId]);
 
-    assert.strictEqual(stakeInfo[0], id);
-    assert.strictEqual(stakeInfo[1], address);
-    assert.strictEqual(stakeInfo[2], ethers.ZeroAddress);
-    assert.strictEqual(stakeInfo[3], BigInt(total));
-    assert.strictEqual(stakeInfo[4], BigInt(amount));
+    assert.strictEqual(stakeInfo[0], guest);
+    assert.strictEqual(stakeInfo[1], ethers.ZeroAddress);
+    assert.strictEqual(stakeInfo[2], BigInt(amount));
+    assert.strictEqual(stakeInfo[3], BigInt(amount * ppm / 1000000));
   });
 
   it('should throw for already stake payment', async () => {
     const percent = 90;
-    const { id, stakePayment, configRegistry } = await register(percent);
+    const { vault, stakePayment, configRegistry } = await register(percent);
 
-    await stake(id, configRegistry, stakePayment, "1");
-    await assert.rejects(stake(id, configRegistry, stakePayment, "1"));
+    await stake(vault, configRegistry, stakePayment, "1");
+    await assert.rejects(stake(vault, configRegistry, stakePayment, "1"));
   });
 
   it('should refund correctly', async () => {
     const ppm = 900000;
     const [_, signer2] = await ethers.getSigners()
-    const { id, stakePayment, configRegistry, signer } = await register(ppm);
+    const { vault, stakePayment, configRegistry, signer } = await register(ppm);
 
-    const { paymentId, amount } = await stake(id, configRegistry, stakePayment, "3");
+    const { paymentId, amount } = await stake(vault, configRegistry, stakePayment, "3");
 
     const expectedRefund = BigInt(amount * ppm / 1000000);
 
@@ -180,9 +181,9 @@ describe('LemonadeRelayPaymentV1', () => {
   it('should not refund twice', async () => {
     const ppm = 900000;
     const [_, signer2] = await ethers.getSigners()
-    const { id, stakePayment, configRegistry, signer } = await register(ppm);
+    const { vault, stakePayment, configRegistry, signer } = await register(ppm);
 
-    const { paymentId } = await stake(id, configRegistry, stakePayment, "3");
+    const { paymentId } = await stake(vault, configRegistry, stakePayment, "3");
 
     //-- const generate refund signature
     const signature = await createSignature(signer, "STAKE_REFUND", [paymentId]);
@@ -193,10 +194,10 @@ describe('LemonadeRelayPaymentV1', () => {
 
   it('should slash multiple payments', async () => {
     const ppm = 900000;
-    const { id, stakePayment, configRegistry, signer, signer2 } = await register(ppm);
+    const { vault, stakePayment, configRegistry, signer, signer2 } = await register(ppm);
 
-    const stake1 = await stake(id, configRegistry, stakePayment, "5");
-    const stake2 = await stake(id, configRegistry, stakePayment, "6");
+    const stake1 = await stake(vault, configRegistry, stakePayment, "5");
+    const stake2 = await stake(vault, configRegistry, stakePayment, "6");
 
     const expectedRefund = BigInt(stake1.amount + stake2.amount);
 
@@ -206,7 +207,7 @@ describe('LemonadeRelayPaymentV1', () => {
     const balanceBefore = await ethers.provider.getBalance(signer2.address);
 
     const response: ContractTransactionResponse = await stakePayment.connect(signer).slash(
-      id,
+      vault,
       [stake1.paymentId, stake2.paymentId],
       signature,
     );
@@ -222,20 +223,20 @@ describe('LemonadeRelayPaymentV1', () => {
 
   it('should not slash twice', async () => {
     const ppm = 900000;
-    const { id, stakePayment, configRegistry, signer } = await register(ppm);
+    const { vault, stakePayment, configRegistry, signer } = await register(ppm);
 
-    const { paymentId } = await stake(id, configRegistry, stakePayment, "5");
+    const { paymentId } = await stake(vault, configRegistry, stakePayment, "5");
 
     const signature = await createSignature(signer, "STAKE_SLASH", [paymentId]);
 
     await stakePayment.connect(signer).slash(
-      id,
+      vault,
       [paymentId],
       signature,
     );
 
     await assert.rejects(stakePayment.connect(signer).slash(
-      id,
+      vault,
       [paymentId],
       signature,
     ));
