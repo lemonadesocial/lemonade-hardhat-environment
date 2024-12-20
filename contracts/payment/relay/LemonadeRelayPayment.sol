@@ -7,55 +7,19 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../PaymentConfigRegistry.sol";
 import "../PaymentSplitter.sol";
 
-contract RelayPaymentSplitter is PaymentSplitter {
-    address _owner;
-    mapping(address => bool) admins;
-
-    error Forbidden();
-    error InvalidState();
-
-    event AdminAdded(address actor, address admin);
-    event AdminRemoved(address actor, address admin);
-
+contract RelayPaymentSplitter is PaymentSplitter, AccessControl {
     constructor(
         address owner,
         address[] memory payees,
         uint256[] memory shares
     ) PaymentSplitter(payees, shares) {
-        _owner = owner;
-        admins[_owner] = true;
-    }
-
-    function addAdmin(address admin) external {
-        address actor = _msgSender();
-
-        if (!admins[actor]) revert Forbidden();
-
-        if (admins[admin]) revert InvalidState();
-
-        admins[admin] = true;
-
-        emit AdminAdded(actor, admin);
-    }
-
-    function removeAdmin(address admin) external {
-        address actor = _msgSender();
-
-        if (!admins[actor]) revert Forbidden();
-
-        if (!admins[admin]) revert InvalidState();
-
-        admins[admin] = false;
-
-        emit AdminRemoved(actor, admin);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
     }
 
     function resetPayees(
         address[] memory payees,
         uint256[] memory shares
-    ) public {
-        if (!admins[_msgSender()]) revert Forbidden();
-
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _resetPayees(payees, shares);
     }
 }
