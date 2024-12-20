@@ -130,7 +130,7 @@ contract LemonadeRewardv1 is IRewardRegistry, OwnableUpgradeable {
         );
 
         payload[0] = REWARD;
-        payload[1] = REWARD;
+        payload[1] = claimId;
 
         for (uint256 i = 0; i < rewardLength; ) {
             payload[2 + i] = rewardIds[i];

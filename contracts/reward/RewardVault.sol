@@ -3,8 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "../utils/Vault.sol";
 
 bytes32 constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
@@ -30,7 +29,7 @@ struct RewardSetting {
     uint256 amount;
 }
 
-contract RewardVault is IRewardVault, AccessControl {
+contract RewardVault is Vault, IRewardVault {
     //-- TYPE DEFINITION
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -42,7 +41,6 @@ contract RewardVault is IRewardVault, AccessControl {
     uint256[10] ___gap;
 
     //-- ERRORS
-    error CannotTransfer();
     error InvalidData();
 
     //-- EVENTS
@@ -54,18 +52,10 @@ contract RewardVault is IRewardVault, AccessControl {
     );
 
     constructor(address owner, IRewardRegistry registry) {
-        grantRole(DEFAULT_ADMIN_ROLE, owner);
-        grantRole(OPERATOR_ROLE, address(rewardRegistry));
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(OPERATOR_ROLE, address(registry));
 
         rewardRegistry = registry;
-    }
-
-    function withdraw(
-        address destination,
-        address currency,
-        uint256 amount
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _release(destination, currency, amount);
     }
 
     function setRewards(
@@ -120,7 +110,7 @@ contract RewardVault is IRewardVault, AccessControl {
 
             uint256 total = amount * count;
 
-            _release(destination, currency, total);
+            _transfer(destination, currency, total);
 
             emit RewardSent(claimId, destination, currency, total);
 
@@ -162,26 +152,4 @@ contract RewardVault is IRewardVault, AccessControl {
 
         return settings;
     }
-
-    function _release(
-        address destination,
-        address currency,
-        uint256 amount
-    ) internal {
-        if (currency == address(0)) {
-            (bool success, ) = payable(destination).call{value: amount}("");
-
-            if (!success) revert CannotTransfer();
-        } else {
-            bool success = IERC20(currency).transferFrom(
-                address(this),
-                destination,
-                amount
-            );
-
-            if (!success) revert CannotTransfer();
-        }
-    }
-
-    receive() external payable {}
 }
