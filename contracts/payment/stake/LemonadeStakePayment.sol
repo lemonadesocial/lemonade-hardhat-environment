@@ -65,8 +65,23 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
 
         bool isNative = currency == address(0);
 
-        if (isNative && msg.value != amount) {
-            revert InvalidData();
+        address guest = _msgSender();
+
+        if (isNative) {
+            if (msg.value != amount) {
+                revert InvalidData();
+            }
+        } else {
+            //-- transfer the ERC20 to the contract
+            bool success = IERC20(currency).transferFrom(
+                guest,
+                address(this),
+                amount
+            );
+
+            if (!success) {
+                revert CannotTransfer();
+            }
         }
 
         PaymentConfigRegistry registry = PaymentConfigRegistry(
@@ -80,8 +95,6 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
         //-- transfer fee and notify
         _transfer(configRegistry, currency, feeAmount);
         registry.notifyFee(eventId, currency, feeAmount);
-
-        address guest = _msgSender();
 
         _stake(stakeId, guest, vault, stakeAmount, currency);
     }
@@ -98,18 +111,7 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
         StakeVault stakeVault = StakeVault(payable(vault));
 
         if (!isNative) {
-            //-- first transfer the ERC20 to the contract
-            bool success = IERC20(currency).transferFrom(
-                guest,
-                address(this),
-                stakeAmount
-            );
-
-            if (!success) {
-                revert CannotTransfer();
-            }
-
-            //-- then allow the vault to transfer the amount to itself
+            //-- allow the vault to transfer the amount to itself
             IERC20(currency).approve(vault, stakeAmount);
         }
 

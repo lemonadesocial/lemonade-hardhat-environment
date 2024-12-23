@@ -17,8 +17,7 @@ abstract contract Transferable {
 
             if (!success) revert CannotTransfer();
         } else {
-            bool success = IERC20(currency).transferFrom(
-                address(this),
+            bool success = IERC20(currency).transfer(
                 destination,
                 amount
             );
