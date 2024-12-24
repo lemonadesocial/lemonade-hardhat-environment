@@ -3,10 +3,11 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+
 import "./Transferable.sol";
 
-abstract contract Vault is AccessControl, Transferable {
+abstract contract Vault is AccessControlEnumerable, Transferable {
     function withdraw(
         address destination,
         address currency,
