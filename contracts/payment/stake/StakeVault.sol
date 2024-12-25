@@ -28,19 +28,31 @@ contract StakeVault is Vault {
     bytes32[] stakingIds;
     address[] currencies; //-- all the currency ever staked
     mapping(address => uint256) currencyIndex;
+    bool inited;
 
-    uint256[5] _gap;
+    uint256[4] __gap;
 
     //-- ERRORS
-    error AccessDenied();
     error InvalidData();
+    error AccessDenied();
 
-    constructor(address owner, address payout, address operator, uint256 ppm) {
+    constructor(address owner) {
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
-        _grantRole(OPERATOR_ROLE, operator);
+        _grantRole(OPERATOR_ROLE, _msgSender());
+    }
 
-        _setRefundPPM(ppm);
+    function initialize(
+        address payout,
+        uint256 ppm
+    ) external onlyRole(OPERATOR_ROLE) {
+        if (inited) {
+            revert AccessDenied();
+        }
+
+        inited = true;
+
         payoutAddress = payout;
+        _setRefundPPM(ppm);
     }
 
     function setPayoutAddress(

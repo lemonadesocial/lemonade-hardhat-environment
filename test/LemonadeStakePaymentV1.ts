@@ -53,6 +53,8 @@ const createSignature = (signer: SignerWithAddress, type: string, paymentIds: st
   );
 }
 
+const salt = toId("SALT");
+
 const register = async (ppm: bigint) => {
   const [signer, signer2] = await ethers.getSigners();
 
@@ -60,7 +62,7 @@ const register = async (ppm: bigint) => {
 
   const payee = signer2.address;
 
-  const response: ContractTransactionResponse = await stakePayment.connect(signer).register(payee, ppm);
+  const response: ContractTransactionResponse = await stakePayment.connect(signer).register(salt, payee, ppm);
 
   const receipt = await response.wait();
 

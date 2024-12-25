@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 
 import "../../utils/Data.sol";
 import "../PaymentConfigRegistry.sol";
@@ -33,17 +33,24 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
         configRegistry = registry;
     }
 
-    function register(address payout, uint256 refundPPM) external {
+    function register(
+        bytes32 salt,
+        address payout,
+        uint256 refundPPM
+    ) external {
         address owner = _msgSender();
 
-        StakeVault vault = new StakeVault(
-            owner,
-            payout,
-            address(this),
-            refundPPM
+        bytes memory bytecode = abi.encodePacked(
+            type(StakeVault).creationCode,
+            abi.encode(owner)
         );
 
-        emit VaultRegistered(address(vault));
+        address vault = Create2.deploy(0, salt, bytecode);
+
+        StakeVault stakeVault = StakeVault(payable(vault));
+        stakeVault.initialize(payout, refundPPM);
+
+        emit VaultRegistered(vault);
     }
 
     function stake(
