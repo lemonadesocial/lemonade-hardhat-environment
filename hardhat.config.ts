@@ -233,6 +233,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/sei-testnet'],
     },
+    'optimism-sepolia': {
+      url: process.env.NETWORK_SEPOLIA_URL || 'https://sepolia.optimism.io/',
+      chainId: 11155420,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/optimism-sepolia'],
+    },
     'unique': {
       url: process.env.NETWORK_UNIQUE_URL || 'https://rpc.unique.network/',
       chainId: 8880,
