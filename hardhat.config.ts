@@ -245,6 +245,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/unique'],
     },
+    'world': {
+      url: process.env.NETWORK_UNIQUE_URL || 'https://worldchain-mainnet.g.alchemy.com/public',
+      chainId: 480,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/world'],
+    },
     'zero': {
       url: process.env.NETWORK_ZERO_URL || 'https://zero.alt.technology/',
       chainId: 4000003,
