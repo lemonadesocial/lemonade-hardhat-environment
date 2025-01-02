@@ -233,11 +233,23 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/sei-testnet'],
     },
+    'optimism-sepolia': {
+      url: process.env.NETWORK_SEPOLIA_URL || 'https://sepolia.optimism.io/',
+      chainId: 11155420,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/optimism-sepolia'],
+    },
     'unique': {
       url: process.env.NETWORK_UNIQUE_URL || 'https://rpc.unique.network/',
       chainId: 8880,
       accounts,
       deploy: ['deploy/__all__', 'deploy/unique'],
+    },
+    'world': {
+      url: process.env.NETWORK_UNIQUE_URL || 'https://worldchain-mainnet.g.alchemy.com/public',
+      chainId: 480,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/world'],
     },
     'zero': {
       url: process.env.NETWORK_ZERO_URL || 'https://zero.alt.technology/',
