@@ -1,29 +1,12 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import assert from 'assert';
 import BigNumber from "bignumber.js";
-import { Contract, ContractTransactionReceipt, ContractTransactionResponse } from 'ethers';
+import { Contract, ContractTransactionResponse } from 'ethers';
 import { ethers, upgrades } from 'hardhat';
 
 import { toId } from "./utils";
-import { mintERC20 } from "./helper";
 
-const deployAccessRegistry = async (signer: SignerWithAddress) => {
-  const AccessRegistry = await ethers.getContractFactory('AccessRegistry', signer);
-  const accessRegistry = await AccessRegistry.deploy();
-
-  const PAYMENT_ADMIN_ROLE = ethers.keccak256(ethers.toUtf8Bytes('PAYMENT_ADMIN_ROLE'));
-
-  await accessRegistry.grantRole(PAYMENT_ADMIN_ROLE, signer.address);
-  return { accessRegistry };
-}
-
-const deployConfigRegistry = async (signer: SignerWithAddress, ...args: unknown[]) => {
-  const PaymentConfigRegistry = await ethers.getContractFactory('PaymentConfigRegistry', signer);
-
-  const configRegistry = await upgrades.deployProxy(PaymentConfigRegistry, args);
-
-  return { configRegistry };
-}
+import { deployAccessRegistry, deployConfigRegistry, getBalances, mintERC20 } from "./helper";
 
 const deployStake = async (signer: SignerWithAddress) => {
   const { accessRegistry } = await deployAccessRegistry(signer);
@@ -131,22 +114,6 @@ const stake = async (
   const feeInfo = await feeCollected;
 
   return { receipt, feeInfo, total, feePPM, eventId, paymentId, currency, amount, guest: signer2.address };
-}
-
-async function getBalances(wallet: string, currency: string, op: () => Promise<ContractTransactionReceipt>) {
-  const isNative = currency === ethers.ZeroAddress;
-
-  const getBalance = async () => {
-    return isNative
-      ? await ethers.provider.getBalance(wallet)
-      : await ethers.getContractAt("ERC20", currency).then((erc20) => erc20.balanceOf(wallet));
-  }
-
-  const balanceBefore: bigint = await getBalance();
-  const receipt = await op();
-  const balanceAfter: bigint = await getBalance();
-
-  return { balanceBefore, balanceAfter, fee: isNative ? receipt.gasPrice * receipt.gasUsed : 0n };
 }
 
 async function testWith(currencyResolver: () => Promise<string>) {
