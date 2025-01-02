@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.33.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.32.0...v2.33.0) (2025-01-02)
+
+
+### Features
+
+* **deploy:** add zk deployment config ([#47](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/47)) ([65fd0da](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/65fd0dae9b5cc6ee180d37adbb8cbb617f1282de))
+* **deps:** upgrade deps ([#46](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/46)) ([5dbefa9](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/5dbefa9f37850a6e5d68bf732a4638caa8c2f60a))
+* **payment:** add relay payment contract ([#41](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/41)) ([0911e44](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/0911e44621e6d7c566871f83ec19fd80432b0f26))
+* **relay-payment:** add admin feature & fix resetPayees issue ([#55](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/55)) ([33bddb0](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/33bddb02914a11f64d19e1106fc42b066e2bb447))
+* **relay-payment:** deploy relay payment on Scroll network ([#49](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/49)) ([bf03cd2](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/bf03cd27c323d0817c3287e8a1fb2918186e4548))
+* **relay-payment:** deploy relay payment to other chains ([#44](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/44)) ([944b760](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/944b760ca650171c46590977a6aa1cf610dd8860))
+* **relay-payment:** deploy relay payment to zk-sepolia & zk-link-nova ([#48](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/48)) ([e13ef92](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/e13ef924f34292d4964f9072b3b34a17cfbb758a))
+* **sei-testnet:** integrate sei testnet ([#53](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/53)) ([868ee0f](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/868ee0f2296a672be146e494e5f2715e01e1a7c7))
+* **stake-payment:** implement payment staking contract ([#52](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/52)) ([5eb4b8c](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/5eb4b8c52c59ad2e7d5930cb91e106c9e60db19a))
+
+
+### Bug Fixes
+
+* **test:** fix passport unit tests ([#50](https://github.com/lemonadesocial/lemonade-hardhat-environment/issues/50)) ([7f79e4e](https://github.com/lemonadesocial/lemonade-hardhat-environment/commit/7f79e4e81f8489734e18a5c4ce5439db534aa95e))
+
 ## [2.32.0](https://github.com/lemonadesocial/lemonade-hardhat-environment/compare/v2.31.0...v2.32.0) (2024-03-16)
 
 
