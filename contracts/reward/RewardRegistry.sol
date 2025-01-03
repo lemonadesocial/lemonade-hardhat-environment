@@ -42,7 +42,7 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
         configRegistry = registry;
     }
 
-    function createVault(bytes32 salt) external {
+    function createVault(bytes32 salt, address[] calldata admins) external {
         address owner = _msgSender();
 
         bytes memory bytecode = abi.encodePacked(
@@ -51,6 +51,9 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
         );
 
         address vault = Create2.deploy(0, salt, bytecode);
+
+        RewardVault rewardVault = RewardVault(payable(vault));
+        rewardVault.initialize(admins);
 
         emit RewardVaultCreated(vault);
     }

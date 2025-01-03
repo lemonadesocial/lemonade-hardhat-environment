@@ -34,7 +34,7 @@ contract StakeVault is Vault {
 
     //-- ERRORS
     error InvalidData();
-    error AccessDenied();
+    error AlreadyInited();
 
     constructor(address owner) {
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
@@ -46,7 +46,7 @@ contract StakeVault is Vault {
         uint256 ppm
     ) external onlyRole(OPERATOR_ROLE) {
         if (inited) {
-            revert AccessDenied();
+            revert AlreadyInited();
         }
 
         inited = true;

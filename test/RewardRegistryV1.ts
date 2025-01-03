@@ -30,7 +30,7 @@ const register = async (owners: SignerWithAddress[]) => {
   const { rewardRegistry } = await deployRewardRegistry();
 
   const createVault = async (signer: SignerWithAddress) => {
-    const response: ContractTransactionResponse = await rewardRegistry.connect(signer).createVault(salt);
+    const response: ContractTransactionResponse = await rewardRegistry.connect(signer).createVault(salt, []);
 
     const receipt = await response.wait();
 

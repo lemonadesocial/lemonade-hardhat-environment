@@ -38,11 +38,13 @@ contract RewardVault is Vault, IRewardVault {
     IRewardRegistry rewardRegistry;
     mapping(bytes32 => EnumerableSet.AddressSet) rewardCurrencies;
     mapping(bytes32 => mapping(address => uint256)) rewardSettings; //-- first key is reward id, second key is currency, value is reward amount
+    bool inited;
 
     uint256[10] ___gap;
 
     //-- ERRORS
     error InvalidData();
+    error AlreadyInited();
 
     //-- EVENTS
     event RewardSent(
@@ -59,6 +61,24 @@ contract RewardVault is Vault, IRewardVault {
         _grantRole(OPERATOR_ROLE, registry);
 
         rewardRegistry = IRewardRegistry(registry);
+    }
+
+    function initialize(address[] calldata admins) public onlyRole(OPERATOR_ROLE) {
+        if (inited) {
+            revert AlreadyInited();
+        }
+
+        inited = true;
+
+        uint256 adminLength = admins.length;
+
+        for (uint256 i = 0; i < adminLength; ) {
+            _grantRole(DEFAULT_ADMIN_ROLE, admins[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     function setRewards(
@@ -136,9 +156,7 @@ contract RewardVault is Vault, IRewardVault {
             return settings;
         }
 
-        settings = new RewardSetting[](
-            currencyLength
-        );
+        settings = new RewardSetting[](currencyLength);
 
         for (uint256 i = 0; i < currencyLength; ) {
             address currency = currencies.at(i);
