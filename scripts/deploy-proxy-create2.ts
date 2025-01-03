@@ -1,14 +1,14 @@
 import { ethers } from 'hardhat';
 import assert from 'assert';
 
-import { toId } from "../test/utils";
+import { stringToBytes32 } from "../test/utils";
 
 const { FACTORY, NAME, SALT, ARGS } = process.env;
 
 async function main() {
   assert.ok(FACTORY && SALT && NAME);
 
-  const salt = toId(SALT);
+  const salt = stringToBytes32(SALT);
   const genericFactory = await ethers.getContractAt("GenericFactory", FACTORY);
 
   const ToBeDeployedFactory = await ethers.getContractFactory(NAME);

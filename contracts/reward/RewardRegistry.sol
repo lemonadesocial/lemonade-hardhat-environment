@@ -5,12 +5,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
-import "hardhat/console.sol";
 
+import "../utils/Data.sol";
 import "../payment/PaymentConfigRegistry.sol";
 import "./RewardVault.sol";
-
-bytes32 constant REWARD = keccak256(abi.encode("REWARD"));
 
 contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
     //-- TYPE DEFINITION
@@ -37,6 +35,7 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
     //-- ERRORS
     error NotRewardVault(address caller);
     error InvalidData();
+    error AlreadyClaimed();
 
     function initialize(address registry) public initializer {
         __Ownable_init();
@@ -128,6 +127,10 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
         uint256[] calldata counts,
         bytes calldata signature
     ) external {
+        if (claimed[claimId]) {
+            revert AlreadyClaimed();
+        }
+
         uint256 rewardLength = rewardIds.length;
         uint256 countLength = counts.length;
 
@@ -138,15 +141,15 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
         address sender = _msgSender();
 
         bytes32[] memory payload = new bytes32[](
-            rewardLength + countLength + 1
+            rewardLength + countLength + 2
         );
 
-        payload[0] = REWARD;
+        payload[0] = stringToId("REWARD");
         payload[1] = claimId;
 
         for (uint256 i = 0; i < rewardLength; ) {
             payload[2 + i] = rewardIds[i];
-            payload[2 + i * 2] = bytes32(counts[i]);
+            payload[2 + i + rewardLength] = bytes32(counts[i]);
 
             unchecked {
                 ++i;

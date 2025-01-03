@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 import { Contract, ContractTransactionResponse } from 'ethers';
 import { ethers, upgrades } from 'hardhat';
 
-import { toId } from "./utils";
+import { stringToBytes32 } from "./utils";
 
 import { createSignature, deployAccessRegistry, deployConfigRegistry, getBalances, mintERC20 } from "./helper";
 
@@ -22,7 +22,7 @@ const deployStake = async (signer: SignerWithAddress) => {
   return { configRegistry, stakePayment };
 }
 
-const salt = toId("SALT");
+const salt = stringToBytes32("SALT");
 
 const register = async (ppm: bigint) => {
   const [signer, signer2] = await ethers.getSigners();
@@ -138,7 +138,7 @@ async function testWith(currencyResolver: () => Promise<string>) {
     const expectedRefund = BigInt(amount * ppm / 1000000);
 
     //-- generate refund signature
-    const signature = await createSignature(signer, ["STAKE_REFUND", paymentId]);
+    const signature = await createSignature(signer, ["STAKE_REFUND", paymentId].map(stringToBytes32));
 
     const { balanceBefore, balanceAfter, fee } = await getBalances(
       signer2.address,
@@ -166,7 +166,7 @@ async function testWith(currencyResolver: () => Promise<string>) {
     const { paymentId } = await stake(vault, configRegistry, stakePayment, "3", currency);
 
     //-- generate refund signature
-    const signature = await createSignature(signer, ["STAKE_REFUND", paymentId]);
+    const signature = await createSignature(signer, ["STAKE_REFUND", paymentId].map(stringToBytes32));
 
     await stakePayment.connect(signer2).refund(paymentId, signature);
     await assert.rejects(stakePayment.connect(signer2).refund(paymentId, signature));
@@ -183,7 +183,7 @@ async function testWith(currencyResolver: () => Promise<string>) {
     const expectedSlashAmount = BigInt(stake1.amount + stake2.amount);
 
     //-- generate slash signature
-    const signature = await createSignature(signer, ["STAKE_SLASH", stake1.paymentId, stake2.paymentId]);
+    const signature = await createSignature(signer, ["STAKE_SLASH", stake1.paymentId, stake2.paymentId].map(stringToBytes32));
 
     //-- signer 2 is expecting the slash amount
     const { balanceBefore, balanceAfter } = await getBalances(
@@ -214,7 +214,7 @@ async function testWith(currencyResolver: () => Promise<string>) {
 
     const { paymentId } = await stake(vault, configRegistry, stakePayment, "5", currency);
 
-    const signature = await createSignature(signer, ["STAKE_SLASH", paymentId]);
+    const signature = await createSignature(signer, ["STAKE_SLASH", paymentId].map(stringToBytes32));
 
     await stakePayment.connect(signer).slash(
       vault,

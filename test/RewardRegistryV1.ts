@@ -1,11 +1,12 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import assert from 'assert';
+import { expect } from 'chai';
 import { ContractTransactionResponse } from 'ethers';
 import { ethers, upgrades } from 'hardhat';
 
-import { toId } from "./utils";
+import { numberToBytes32, stringToBytes32 } from "./utils";
 
-import { deployAccessRegistry, deployConfigRegistry, getBalances, mintERC20 } from "./helper";
+import { createSignature, deployAccessRegistry, deployConfigRegistry, getBalances, mintERC20 } from "./helper";
 
 const deployRewardRegistry = async () => {
   const [signer] = await ethers.getSigners();
@@ -23,7 +24,7 @@ const deployRewardRegistry = async () => {
   return { rewardRegistry };
 }
 
-const salt = toId("SALT");
+const salt = stringToBytes32("SALT");
 
 const register = async (owners: SignerWithAddress[]) => {
   const { rewardRegistry } = await deployRewardRegistry();
@@ -143,6 +144,82 @@ async function testWith(currencyResolver: () => Promise<string>) {
   });
 }
 
+const setRewards = async () => {
+  const [signer1, signer2] = await ethers.getSigners();
+  const { vaults: [vault1, vault2], rewardRegistry } = await register([signer1, signer2]);
+
+  const currency = await mintERC20(signer1, signer1.address, "TEST", "TST", ethers.parseEther("1"));
+
+  const reward1 = stringToBytes32("TICKET:type1");
+  const reward2 = stringToBytes32("TICKET:type2");
+
+  const rewardVault1 = await ethers.getContractAt("RewardVault", vault1);
+  const rewardVault2 = await ethers.getContractAt("RewardVault", vault2);
+
+  const amount1 = 1000000000000n
+  const amount2 = 3000000000000n
+
+  const currencyContract = await ethers.getContractAt('IERC20', currency);
+
+  await Promise.all([
+    //-- set rewards
+    rewardVault1.connect(signer1).setRewards(
+      [reward1, reward1],
+      [[ethers.ZeroAddress, amount1], [currency, amount1]],
+    ),
+    rewardVault2.connect(signer2).setRewards(
+      [reward1, reward2],
+      [[ethers.ZeroAddress, amount2], [currency, 1000000000n]],
+    ),
+    //-- funds the vaults
+    signer1.sendTransaction({ to: vault1, value: ethers.parseEther("1") }),
+    signer1.sendTransaction({ to: vault2, value: ethers.parseEther("1") }),
+    currencyContract.connect(signer1).transfer(vault1, ethers.parseEther("1")),
+  ].map((thenable) => thenable.then((tx) => tx.wait())));
+
+  return {
+    reward1, reward2, amount1, amount2,
+    signer1, signer2, currencyContract, rewardRegistry,
+  };
+}
+
+const claimRefunds = async (args: Awaited<ReturnType<typeof setRewards>>) => {
+  const {
+    reward1,
+    amount1, amount2,
+    signer1, signer2,
+    currencyContract, rewardRegistry,
+  } = args;
+
+  const claimId = "ticket_purchase:1";
+  const rewardIds = [reward1];
+  const counts = [1n];
+
+  const signature = await createSignature(
+    signer1,
+    [...["REWARD", claimId].map(stringToBytes32), ...rewardIds, ...counts.map(numberToBytes32)],
+  );
+
+  const erc20BalanceBefore = await currencyContract.balanceOf(signer2.address);
+
+  const { balanceBefore, balanceAfter, fee } = await getBalances(signer2.address, ethers.ZeroAddress, async () => {
+    const tx = await rewardRegistry
+      .connect(signer2)
+      .claimRewards(stringToBytes32(claimId), rewardIds, counts, signature);
+
+    const receipt = await tx.wait();
+
+    assert.ok(receipt);
+
+    return receipt;
+  });
+
+  const erc20BalanceAfter = await currencyContract.balanceOf(signer2.address);
+
+  assert.ok(erc20BalanceBefore === 0n && erc20BalanceAfter === amount1);
+  assert.ok(balanceAfter === balanceBefore + amount1 + amount2 - fee);
+}
+
 describe('LemonadeRewardV1', function () {
   it('should allow create vault', async () => {
     const [signer] = await ethers.getSigners();
@@ -158,30 +235,34 @@ describe('LemonadeRewardV1', function () {
   });
 
   it('should allow setRewards', async () => {
-    const [signer1, signer2] = await ethers.getSigners();
-    const { vaults: [vault1, vault2], rewardRegistry } = await register([signer1, signer2]);
-
-    const currency = await mintERC20(signer1, signer2.address, "TEST", "TST", 1000000000000n);
-
-    const reward1 = toId("TICKET:type1");
-    const reward2 = toId("TICKET:type2");
-
-    const rewardVault1 = await ethers.getContractAt("RewardVault", vault1);
-    const rewardVault2 = await ethers.getContractAt("RewardVault", vault2);
-
-    await rewardVault1.connect(signer1).setRewards(
-      [reward1],
-      [[ethers.ZeroAddress, 1000000000]],
-    );
-
-    await rewardVault2.connect(signer2).setRewards(
-      [reward1, reward2],
-      [[ethers.ZeroAddress, 1000000000], [currency, 1000000000]],
-    );
+    const { rewardRegistry, reward1, reward2 } = await setRewards();
 
     const rewards = await rewardRegistry.checkRewards([reward1, reward2]);
 
-    console.log("rewaeds", rewards);
+    assert.ok(rewards.length === 2);
+
+    const [r1, r2] = rewards;
+
+    assert.ok(
+      r1.length === 2 //-- both vault1 & vault2
+      && r2.length === 1 //-- only vault1
+      && r1[0][1].length === 2 //-- vault1 has 2 reward settings for reward1
+      && r1[1][1].length === 1 //-- vault2 has 1 reward settings for reward1
+    );
+  });
+
+  it('should allow claimRewards', async () => {
+    const args = await setRewards();
+
+    await claimRefunds(args);
+  });
+
+  it('should prevent claimRewards with same claimId', async () => {
+    const args = await setRewards();
+
+    await claimRefunds(args);
+
+    await expect(claimRefunds(args)).to.revertedWithCustomError(args.rewardRegistry, "AlreadyClaimed");
   });
 
   describe('Native currency', function () {

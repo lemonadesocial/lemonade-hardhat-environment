@@ -2,8 +2,6 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { TransactionReceipt } from "ethers";
 import { ethers, upgrades } from "hardhat";
 
-import { toId } from "./utils";
-
 export async function mintERC20(signer: SignerWithAddress, destination: string, name: string, symbol: string, amount: bigint) {
   const MyERC20Token = await ethers.getContractFactory("ERC20Mint", signer);
 
@@ -46,9 +44,7 @@ export async function getBalances(wallet: string, currency: string, op: () => Pr
   return { balanceBefore, balanceAfter, fee: isNative ? receipt.gasPrice * receipt.gasUsed : 0n };
 }
 
-export function createSignature(signer: SignerWithAddress, args: string[]) {
-  const data = args.map(toId);
-
+export function createSignature(signer: SignerWithAddress, data: any[]) {
   let encoded = "0x";
 
   for (let i = 0; i < data.length; i++) {
