@@ -30,20 +30,6 @@ export async function deployConfigRegistry(signer: SignerWithAddress, ...args: u
   return { configRegistry };
 }
 
-export async function createSignature(signer: SignerWithAddress, type: string, paymentIds: string[]) {
-  const data = [toId(type), ...paymentIds.map(toId)];
-
-  let encoded = "0x";
-
-  for (let i = 0; i < data.length; i++) {
-    encoded = ethers.solidityPacked(["bytes", "bytes32"], [encoded, data[i]]);
-  }
-
-  return signer.signMessage(
-    ethers.getBytes(encoded)
-  );
-}
-
 export async function getBalances(wallet: string, currency: string, op: () => Promise<TransactionReceipt>) {
   const isNative = currency === ethers.ZeroAddress;
 
@@ -58,4 +44,18 @@ export async function getBalances(wallet: string, currency: string, op: () => Pr
   const balanceAfter: bigint = await getBalance();
 
   return { balanceBefore, balanceAfter, fee: isNative ? receipt.gasPrice * receipt.gasUsed : 0n };
+}
+
+export function createSignature(signer: SignerWithAddress, args: string[]) {
+  const data = args.map(toId);
+
+  let encoded = "0x";
+
+  for (let i = 0; i < data.length; i++) {
+    encoded = ethers.solidityPacked(["bytes", "bytes32"], [encoded, data[i]]);
+  }
+
+  return signer.signMessage(
+    ethers.getBytes(encoded)
+  );
 }
