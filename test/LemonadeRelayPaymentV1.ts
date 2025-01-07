@@ -31,7 +31,11 @@ const deployRelay = async (signer: SignerWithAddress) => {
 
   const configRegistryAddress = await configRegistry.getAddress();
 
-  const relayPayment = await upgrades.deployProxy(LemonadeRelayPayment, [configRegistryAddress]);
+  const relayPayment = await upgrades.deployProxy(LemonadeRelayPayment, []);
+
+  const tx = await relayPayment.setConfigRegistry(configRegistryAddress);
+
+  await tx.wait();
 
   return { configRegistry, relayPayment };
 }

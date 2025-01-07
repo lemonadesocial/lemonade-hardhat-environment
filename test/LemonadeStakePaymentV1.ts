@@ -17,7 +17,11 @@ const deployStake = async (signer: SignerWithAddress) => {
 
   const configRegistryAddress = await configRegistry.getAddress();
 
-  const stakePayment = await upgrades.deployProxy(LemonadeStakePayment, [configRegistryAddress]);
+  const stakePayment = await upgrades.deployProxy(LemonadeStakePayment, []);
+
+  const tx = await stakePayment.setConfigRegistry(configRegistryAddress);
+
+  await tx.wait();
 
   return { configRegistry, stakePayment };
 }

@@ -53,9 +53,8 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
     error CannotPayFee();
     error CannotPay();
 
-    function initialize(address registry) public initializer {
+    function initialize() public initializer {
         __Ownable_init();
-        configRegistry = registry;
     }
 
     function setConfigRegistry(address registry) external onlyOwner {

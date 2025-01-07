@@ -19,7 +19,11 @@ const deployRewardRegistry = async () => {
 
   const configRegistryAddress = await configRegistry.getAddress();
 
-  const rewardRegistry = await upgrades.deployProxy(RewardRegistry, [configRegistryAddress]);
+  const rewardRegistry = await upgrades.deployProxy(RewardRegistry, []);
+
+  const tx = await rewardRegistry.setConfigRegistry(configRegistryAddress);
+
+  await tx.wait();
 
   return { rewardRegistry };
 }

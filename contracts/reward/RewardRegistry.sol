@@ -37,8 +37,11 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
     error InvalidData();
     error AlreadyClaimed();
 
-    function initialize(address registry) public initializer {
+    function initialize() public initializer {
         __Ownable_init();
+    }
+
+    function setConfigRegistry(address registry) external onlyOwner {
         configRegistry = registry;
     }
 
