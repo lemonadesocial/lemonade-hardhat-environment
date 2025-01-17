@@ -22,7 +22,7 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
     //-- STORAGE AREA
     address public configRegistry;
     mapping(bytes32 => EnumerableSet.AddressSet) rewardRegistry; //-- key is rewardId
-    mapping(bytes32 => bool) claimed; //-- key is unique claim id
+    mapping(bytes32 => bool) public claimed; //-- key is unique claim id
 
     //-- EVENTS
     event RewardVaultCreated(address indexed vault);
