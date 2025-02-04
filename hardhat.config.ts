@@ -193,13 +193,13 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/linea'],
     },
     'lisk': {
-      url: process.env.NETWORK_LINEA_URL || 'https://rpc.api.lisk.com',
+      url: process.env.NETWORK_LISK_URL || 'https://rpc.api.lisk.com',
       chainId: 1135,
       accounts,
       deploy: ['deploy/__all__', 'deploy/lisk'],
     },
     'lisk-sepolia': {
-      url: process.env.NETWORK_LINEA_URL || 'https://rpc.sepolia-api.lisk.com',
+      url: process.env.NETWORK_LISK_SEPOLIA_URL || 'https://rpc.sepolia-api.lisk.com',
       chainId: 4202,
       accounts,
       deploy: ['deploy/__all__', 'deploy/lisk-sepolia'],
