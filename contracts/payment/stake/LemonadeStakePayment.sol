@@ -24,9 +24,8 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
     //-- EVENTS
     event VaultRegistered(address vault);
 
-    function initialize(address registry) public initializer {
+    function initialize() public initializer {
         __Ownable_init();
-        configRegistry = registry;
     }
 
     function setConfigRegistry(address registry) external onlyOwner {

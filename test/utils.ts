@@ -47,6 +47,10 @@ export async function expectEmittedEventWithArgs(contract: Contract, tx: Contrac
   }
 }
 
-export function toId(value: string) {
+export function stringToBytes32(value: string) {
   return ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["string"], [value]));
+}
+
+export function numberToBytes32(value: bigint) {
+  return ethers.zeroPadValue(ethers.toBeHex(value), 32);
 }
