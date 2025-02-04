@@ -192,6 +192,18 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/linea'],
     },
+    'lisk': {
+      url: process.env.NETWORK_LINEA_URL || 'https://rpc.api.lisk.com',
+      chainId: 1135,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/lisk'],
+    },
+    'lisk-sepolia': {
+      url: process.env.NETWORK_LINEA_URL || 'https://rpc.sepolia-api.lisk.com',
+      chainId: 4202,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/lisk-sepolia'],
+    },
     'moonbase': {
       url: process.env.NETWORK_MOONBASE_URL || 'https://moonbeam-alpha.api.onfinality.io/public',
       chainId: 1287,
