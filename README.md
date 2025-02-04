@@ -47,6 +47,7 @@ AVAILABLE TASKS:
   run                   Runs a user-defined script after compiling the project
   sourcify              submit contract source code to sourcify (https://sourcify.dev)
   test                  Runs mocha tests
+  size-contracts        Report contract sizes
 
 To get help for a specific task run: npx hardhat help [task]
 ```

@@ -1,0 +1,31 @@
+name: Run Test
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  runTest:
+    name: Run Test
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version: 20
+
+      - name: Install
+        run: npm install
+
+      - name: Test
+        run: npx hardhat test
