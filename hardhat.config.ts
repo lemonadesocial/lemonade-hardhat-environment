@@ -204,6 +204,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/lisk-sepolia'],
     },
+    'megaeth-elysium': {
+      url: process.env.NETWORK_MEGAETH_ELYSIUM_URL || 'https://megabunny:f13mi5h9iant@burrow.megaeth.com:10545',
+      chainId: 1338,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/megaeth-elysium'],
+    },
     'moonbase': {
       url: process.env.NETWORK_MOONBASE_URL || 'https://moonbeam-alpha.api.onfinality.io/public',
       chainId: 1287,
