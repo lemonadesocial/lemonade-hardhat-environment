@@ -46,7 +46,7 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
         accessRegistry = registry;
     }
 
-    function setERC20Redeemable(
+    function setTokenRedeemable(
         address token,
         uint256 amount,
         uint256 points
@@ -56,7 +56,7 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
         erc20Redeemables[token].points = points;
     }
 
-    function listERC20RedeemableSettings()
+    function listTokenRedeemableSettings()
         external
         view
         returns (ERC20RedeemableSetting[] memory settings)
@@ -105,7 +105,15 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
         }
     }
 
-    function redeemERC20(address token, uint256 points) external {
+    function withdraw(
+        address destination,
+        address currency,
+        uint256 amount
+    ) external onlyOwner {
+        _transfer(destination, currency, amount);
+    }
+
+    function redeem(address token, uint256 points) external {
         address sender = _msgSender();
 
         ERC20Redeemable storage redeemable = erc20Redeemables[token];
