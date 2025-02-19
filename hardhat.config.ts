@@ -204,6 +204,18 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/lisk-sepolia'],
     },
+    'mantle': {
+      url: process.env.NETWORK_MANTLE_URL || 'https://rpc.mantle.xyz',
+      chainId: 5000,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/mantle'],
+    },
+    'mantle-sepolia': {
+      url: process.env.NETWORK_MANTLE_SEPOLIA_URL || 'https://rpc.sepolia.mantle.xyz',
+      chainId: 5003,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/mantle-sepolia'],
+    },
     'megaeth-elysium': {
       url: process.env.NETWORK_MEGAETH_ELYSIUM_URL || 'https://megabunny:f13mi5h9iant@burrow.megaeth.com:10545',
       chainId: 1338,
