@@ -144,6 +144,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/ethereum'],
     },
+    'exp-testnet': {
+      url: process.env.NETWORK_EXP_TESTNET_URL || 'https://rpc0-testnet.expchain.ai',
+      chainId: 18880,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/exp-testnet'],
+    },
     'gnosis': {
       url: process.env.NETWORK_GNOSIS_URL || 'https://rpc.gnosischain.com/',
       chainId: 100,
@@ -265,7 +271,7 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/sei-testnet'],
     },
     'optimism-sepolia': {
-      url: process.env.NETWORK_SEPOLIA_URL || 'https://sepolia.optimism.io/',
+      url: process.env.NETWORK_OPTIMISM_SEPOLIA_URL || 'https://sepolia.optimism.io/',
       chainId: 11155420,
       accounts,
       deploy: ['deploy/__all__', 'deploy/optimism-sepolia'],
@@ -277,7 +283,7 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/unique'],
     },
     'world': {
-      url: process.env.NETWORK_UNIQUE_URL || 'https://worldchain-mainnet.g.alchemy.com/public',
+      url: process.env.NETWORK_WORLD_URL || 'https://worldchain-mainnet.g.alchemy.com/public',
       chainId: 480,
       accounts,
       deploy: ['deploy/__all__', 'deploy/world'],
