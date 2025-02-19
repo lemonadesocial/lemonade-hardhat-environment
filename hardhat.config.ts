@@ -204,6 +204,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/lisk-sepolia'],
     },
+    'mantle': {
+      url: process.env.NETWORK_MANTLE_URL || 'https://rpc.mantle.xyz',
+      chainId: 5000,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/mantle'],
+    },
     'mantle-sepolia': {
       url: process.env.NETWORK_MANTLE_SEPOLIA_URL || 'https://rpc.sepolia.mantle.xyz',
       chainId: 5003,
