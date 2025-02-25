@@ -28,15 +28,23 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
     address public accessRegistry;
     mapping(address => uint256) public userPoints;
 
+    uint256[10] _gap;
+
     mapping(address => ERC20Redeemable) private erc20Redeemables;
     EnumerableSet.AddressSet private erc20Addresses;
-
-    uint256[20] _gap;
 
     //-- ERRORS
     error InvalidData();
     error Forbidden();
     error InsufficientPoint();
+
+    //-- EVENTS
+    event Redeem(
+        address indexed user,
+        address indexed token,
+        uint256 amount,
+        uint256 points
+    );
 
     function initialize() public initializer {
         __Ownable_init();
@@ -132,6 +140,8 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
         userPoints[sender] -= points;
 
         _transfer(sender, token, amount);
+
+        emit Redeem(sender, token, amount, points);
     }
 
     receive() external payable {}

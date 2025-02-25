@@ -235,7 +235,7 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/mantle-sepolia'],
     },
     'megaeth-elysium': {
-      url: process.env.NETWORK_MEGAETH_ELYSIUM_URL || 'https://megabunny:f13mi5h9iant@burrow.megaeth.com:10545',
+      url: process.env.NETWORK_MEGAETH_ELYSIUM_URL || 'https://timothy.megaeth.com/GANnqql6Vh43B94uBkyjAxm4WSkH8Owa/rpc',
       chainId: 1338,
       accounts,
       deploy: ['deploy/__all__', 'deploy/megaeth-elysium'],
