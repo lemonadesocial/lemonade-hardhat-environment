@@ -2,19 +2,19 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { TransactionReceipt } from "ethers";
 import { ethers, upgrades } from "hardhat";
 
+export const PAYMENT_ADMIN_ROLE = ethers.keccak256(ethers.toUtf8Bytes('PAYMENT_ADMIN_ROLE'));
+
 export async function mintERC20(signer: SignerWithAddress, destination: string, name: string, symbol: string, amount: bigint) {
   const MyERC20Token = await ethers.getContractFactory("ERC20Mint", signer);
 
   const token = await MyERC20Token.deploy(name, symbol, destination, amount);
 
-  return token.getAddress();
+  return { token, address: await token.getAddress() };
 }
 
 export async function deployAccessRegistry(signer: SignerWithAddress) {
   const AccessRegistry = await ethers.getContractFactory('AccessRegistry', signer);
   const accessRegistry = await AccessRegistry.deploy();
-
-  const PAYMENT_ADMIN_ROLE = ethers.keccak256(ethers.toUtf8Bytes('PAYMENT_ADMIN_ROLE'));
 
   await accessRegistry.grantRole(PAYMENT_ADMIN_ROLE, signer.address);
   return { accessRegistry };
