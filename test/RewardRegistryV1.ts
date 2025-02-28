@@ -152,7 +152,7 @@ const setRewards = async () => {
   const [signer1, signer2] = await ethers.getSigners();
   const { vaults: [vault1, vault2], rewardRegistry } = await register([signer1, signer2]);
 
-  const currency = await mintERC20(signer1, signer1.address, "TEST", "TST", ethers.parseEther("1"));
+  const { address: currency } = await mintERC20(signer1, signer1.address, "TEST", "TST", ethers.parseEther("1"));
 
   const reward1 = stringToBytes32("TICKET:type1");
   const reward2 = stringToBytes32("TICKET:type2");
@@ -277,7 +277,9 @@ describe('LemonadeRewardV1', function () {
     testWith(async () => {
       const [signer1, signer2] = await ethers.getSigners();
 
-      return await mintERC20(signer1, signer2.address, "TEST", "TST", 1000000000000n);
+      const { address } = await mintERC20(signer1, signer2.address, "TEST", "TST", 1000000000000n);
+
+      return address;
     });
   });
 });
