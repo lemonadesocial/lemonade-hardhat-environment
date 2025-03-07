@@ -254,7 +254,8 @@ describe('LemonadeRelayPaymentV1', function () {
     testWith(async () => {
       const [signer1, signer2] = await ethers.getSigners();
 
-      return await mintERC20(signer1, signer2.address, "TEST", "TST", 1000000000000n);
+      const { address } = await mintERC20(signer1, signer2.address, "TEST", "TST", 1000000000000n);
+      return address;
     });
   });
 });
