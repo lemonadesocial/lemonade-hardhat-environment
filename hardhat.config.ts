@@ -234,11 +234,11 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/mantle-sepolia'],
     },
-    'megaeth-elysium': {
-      url: process.env.NETWORK_MEGAETH_ELYSIUM_URL || 'https://timothy.megaeth.com/GANnqql6Vh43B94uBkyjAxm4WSkH8Owa/rpc',
-      chainId: 1338,
+    'megaeth-testnet': {
+      url: process.env.NETWORK_MEGAETH_TESTNET_URL || 'https://carrot.megaeth.com/rpc',
+      chainId: 6342,
       accounts,
-      deploy: ['deploy/__all__', 'deploy/megaeth-elysium'],
+      deploy: ['deploy/__all__', 'deploy/megaeth-testnet'],
     },
     'moonbase': {
       url: process.env.NETWORK_MOONBASE_URL || 'https://moonbeam-alpha.api.onfinality.io/public',
