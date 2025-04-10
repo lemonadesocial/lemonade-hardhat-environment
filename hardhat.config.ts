@@ -204,6 +204,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/goerli'],
     },
+    'lens-testnet': {
+      url: process.env.NETWORK_LENS_TESTNET_URL || 'https://rpc.testnet.lens.xyz',
+      chainId: 37111,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/lens-testnet'],
+    },
     'linea': {
       url: process.env.NETWORK_LINEA_URL || 'https://rpc.linea.build',
       chainId: 59144,
