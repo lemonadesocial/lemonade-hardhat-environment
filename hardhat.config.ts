@@ -205,10 +205,12 @@ const config: HardhatUserConfig = {
       deploy: ['deploy/__all__', 'deploy/goerli'],
     },
     'lens-testnet': {
+      zksync: true,
+      ethNetwork: process.env.NETWORK_LENS_TESTNET_URL || 'https://rpc.testnet.lens.xyz',
       url: process.env.NETWORK_LENS_TESTNET_URL || 'https://rpc.testnet.lens.xyz',
       chainId: 37111,
       accounts,
-      deploy: ['deploy/__all__', 'deploy/lens-testnet'],
+      deploy: ['deploy/__all-zk__', 'deploy/lens-testnet'],
     },
     'lens': {
       zksync: true,

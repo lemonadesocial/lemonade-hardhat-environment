@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 
+import "../utils/NativeCurrencyCheck.sol";
+
 /**
  * @title PaymentSplitter
  * @dev This contract allows to split Ether payments among a group of accounts. The sender does not need to be aware
@@ -30,7 +32,7 @@ struct Payee {
     uint256 shares;
 }
 
-contract PaymentSplitter is Context {
+abstract contract PaymentSplitter is Context, NativeCurrencyCheck {
     uint256 private _totalShares;
     uint256 private _totalReleased;
 
@@ -149,7 +151,7 @@ contract PaymentSplitter is Context {
         for (uint256 i = 0; i < length; ) {
             address currency = currencies[i];
 
-            if (currency == address(0)) {
+            if (isNative(currency)) {
                 balances[i] = released(account);
             } else {
                 balances[i] = released(IERC20(currency), account);
@@ -191,7 +193,7 @@ contract PaymentSplitter is Context {
         for (uint256 i = 0; i < length; ) {
             address currency = currencies[i];
 
-            if (currency == address(0)) {
+            if (isNative(currency)) {
                 balances[i] = pending(account);
             } else {
                 balances[i] = pending(IERC20(currency), account);
@@ -269,7 +271,7 @@ contract PaymentSplitter is Context {
 
         for (uint256 i = 0; i < length; ) {
             address currency = currencies[i];
-            if (currency == address(0)) {
+            if (isNative(currency)) {
                 release(account);
             } else {
                 release(IERC20(currency), account);

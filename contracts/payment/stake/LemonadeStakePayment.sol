@@ -12,7 +12,11 @@ import "./StakeVault.sol";
 bytes32 constant STAKE_REFUND = keccak256(abi.encode("STAKE_REFUND"));
 bytes32 constant STAKE_SLASH = keccak256(abi.encode("STAKE_SLASH"));
 
-contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
+contract LemonadeStakePayment is
+    OwnableUpgradeable,
+    Transferable,
+    NativeCurrencyCheck
+{
     //-- STORAGE
     address public configRegistry;
     mapping(bytes32 => address) public stakings; //-- key is payment id
@@ -69,11 +73,15 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
             revert AlreadyStaked();
         }
 
-        bool isNative = currency == address(0);
+        PaymentConfigRegistry registry = PaymentConfigRegistry(
+            payable(configRegistry)
+        );
+
+        bool native = isNative(currency);
 
         address guest = _msgSender();
 
-        if (isNative) {
+        if (native) {
             if (msg.value != amount) {
                 revert InvalidData();
             }
@@ -90,19 +98,15 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
             }
         }
 
-        PaymentConfigRegistry registry = PaymentConfigRegistry(
-            payable(configRegistry)
-        );
-
         uint256 stakeAmount = (amount * 1000000) /
             (registry.feePPM() + 1000000);
         uint256 feeAmount = amount - stakeAmount;
 
         //-- transfer fee and notify
-        _transfer(configRegistry, currency, feeAmount);
+        _transfer(configRegistry, currency, feeAmount, native);
         registry.notifyFee(eventId, currency, feeAmount);
 
-        _stake(stakeId, guest, vault, stakeAmount, currency);
+        _stake(stakeId, guest, vault, stakeAmount, currency, native);
     }
 
     function _stake(
@@ -110,18 +114,17 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
         address guest,
         address vault,
         uint256 stakeAmount,
-        address currency
+        address currency,
+        bool native
     ) internal {
-        bool isNative = currency == address(0);
-
         StakeVault stakeVault = StakeVault(payable(vault));
 
-        if (!isNative) {
+        if (!native) {
             //-- allow the vault to transfer the amount to itself
             IERC20(currency).approve(vault, stakeAmount);
         }
 
-        stakeVault.stake{value: isNative ? stakeAmount : 0}(
+        stakeVault.stake{value: native ? stakeAmount : 0}(
             stakeId,
             currency,
             stakeAmount,
@@ -236,5 +239,9 @@ contract LemonadeStakePayment is OwnableUpgradeable, Transferable {
         StakeVault stakeVault = StakeVault(payable(vault));
 
         stakeVault.slash(stakeIds);
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return INativeCurrencyCheck(configRegistry).isNative(currency);
     }
 }

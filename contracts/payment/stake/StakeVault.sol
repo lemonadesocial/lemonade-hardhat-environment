@@ -29,6 +29,7 @@ contract StakeVault is Vault {
     address[] currencies; //-- all the currency ever staked
     mapping(address => uint256) currencyIndex;
     bool inited;
+    address public stakePayment;
 
     uint256[4] __gap;
 
@@ -37,8 +38,10 @@ contract StakeVault is Vault {
     error AlreadyInited();
 
     constructor(address owner) {
+        stakePayment = _msgSender();
+
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
-        _grantRole(OPERATOR_ROLE, _msgSender());
+        _grantRole(OPERATOR_ROLE, stakePayment);
     }
 
     function initialize(
@@ -81,10 +84,10 @@ contract StakeVault is Vault {
             revert AlreadyStaked();
         }
 
-        bool isNative = currency == address(0);
+        bool native = isNative(currency);
 
         //-- transfer the amount from caller to vault
-        if (isNative) {
+        if (native) {
             if (msg.value != stakeAmount) {
                 revert InvalidData();
             }
@@ -130,7 +133,12 @@ contract StakeVault is Vault {
 
         staking.refunded = true;
 
-        _transfer(staking.guest, staking.currency, staking.refundAmount);
+        _transfer(
+            staking.guest,
+            staking.currency,
+            staking.refundAmount,
+            isNative(staking.currency)
+        );
     }
 
     function slash(
@@ -170,7 +178,7 @@ contract StakeVault is Vault {
             uint256 amount = slashes[currencyIndex[currency] - 1];
 
             if (amount > 0) {
-                _transfer(payoutAddress, currency, amount);
+                _transfer(payoutAddress, currency, amount, isNative(currency));
             }
 
             unchecked {
@@ -185,5 +193,9 @@ contract StakeVault is Vault {
         }
 
         refundPPM = ppm;
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return INativeCurrencyCheck(stakePayment).isNative(currency);
     }
 }

@@ -10,6 +10,7 @@ contract DonationVault is Vault {
     //-- DATA
     bool inited;
     address public destination;
+    address public registry;
 
     //-- ERRORS
     error InvalidData();
@@ -37,7 +38,7 @@ contract DonationVault is Vault {
     );
 
     constructor(address owner) {
-        address registry = _msgSender();
+        registry = _msgSender();
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(OPERATOR_ROLE, registry);
@@ -91,7 +92,7 @@ contract DonationVault is Vault {
             address currency = currencies[i];
             uint256 amount = amounts[i];
 
-            _transfer(destination, currency, amount);
+            _transfer(destination, currency, amount, isNative(currency));
 
             emit Withdrawal(destination, currency, amount);
             unchecked {
@@ -107,12 +108,9 @@ contract DonationVault is Vault {
         string calldata ref
     ) external payable {
         address sender = _msgSender();
-
-        bool isNative = currency == address(0);
-
         //-- transfer the amount from caller to vault
 
-        if (isNative) {
+        if (isNative(currency)) {
             if (msg.value != amount) {
                 revert InvalidData();
             }
@@ -129,5 +127,9 @@ contract DonationVault is Vault {
         }
 
         emit NewDonation(category, ref, sender, currency, amount);
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return INativeCurrencyCheck(registry).isNative(currency);
     }
 }
