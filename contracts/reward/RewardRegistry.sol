@@ -10,7 +10,11 @@ import "../utils/Data.sol";
 import "../payment/PaymentConfigRegistry.sol";
 import "./RewardVault.sol";
 
-contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
+contract RewardRegistry is
+    IRewardRegistry,
+    OwnableUpgradeable,
+    NativeCurrencyCheck
+{
     //-- TYPE DEFINITION
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -206,5 +210,9 @@ contract RewardRegistry is IRewardRegistry, OwnableUpgradeable {
                 ++i;
             }
         }
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return INativeCurrencyCheck(configRegistry).isNative(currency);
     }
 }

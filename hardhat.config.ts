@@ -204,6 +204,22 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/goerli'],
     },
+    'lens-testnet': {
+      zksync: true,
+      ethNetwork: 'goerli',
+      url: process.env.NETWORK_LENS_TESTNET_URL || 'https://rpc.testnet.lens.xyz',
+      chainId: 37111,
+      accounts,
+      deploy: ['deploy/__all-zk__', 'deploy/lens-testnet'],
+    },
+    'lens': {
+      zksync: true,
+      ethNetwork: 'mainnet',
+      url: process.env.NETWORK_LENS_URL || 'https://rpc.lens.xyz',
+      chainId: 232,
+      accounts,
+      deploy: ['deploy/__all-zk__', 'deploy/lens'],
+    },
     'linea': {
       url: process.env.NETWORK_LINEA_URL || 'https://rpc.linea.build',
       chainId: 59144,
@@ -329,7 +345,7 @@ const config: HardhatUserConfig = {
     version: 'latest',
     compilerSource: 'binary',
     settings: {
-      contractsToCompile: ['Introspection', 'AccessRegistry', 'PaymentConfigRegistry', 'LemonadeRelayPayment'],
+      contractsToCompile: ['Introspection', 'AccessRegistry', 'PaymentConfigRegistry', 'LemonadeRelayPayment', 'LemonadeStakePayment', 'RewardRegistry', 'TestERC721'],
     }
   },
   solidity: {

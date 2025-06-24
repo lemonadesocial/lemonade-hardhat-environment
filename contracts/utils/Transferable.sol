@@ -10,9 +10,10 @@ abstract contract Transferable {
     function _transfer(
         address destination,
         address currency,
-        uint256 amount
+        uint256 amount,
+        bool isNative
     ) internal {
-        if (currency == address(0)) {
+        if (isNative) {
             (bool success, ) = payable(destination).call{value: amount}("");
 
             if (!success) revert CannotTransfer();

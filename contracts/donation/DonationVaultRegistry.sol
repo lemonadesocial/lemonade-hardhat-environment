@@ -7,7 +7,9 @@ import "@openzeppelin/contracts/utils/Create2.sol";
 
 import "./DonationVault.sol";
 
-contract DonationVaultRegistry is OwnableUpgradeable {
+contract DonationVaultRegistry is OwnableUpgradeable, NativeCurrencyCheck {
+    address public nativeCurrency;
+
     //-- EVENTS
     event DonationVaultCreated(address indexed vault);
 
@@ -33,5 +35,13 @@ contract DonationVaultRegistry is OwnableUpgradeable {
         donationVault.initialize(destination, admins);
 
         emit DonationVaultCreated(vault);
+    }
+
+    function setNativeCurrency(address currency) external onlyOwner {
+        nativeCurrency = currency;
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return currency == nativeCurrency;
     }
 }

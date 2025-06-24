@@ -8,11 +8,15 @@ import "../PaymentConfigRegistry.sol";
 import "../PaymentSplitter.sol";
 
 contract RelayPaymentSplitter is PaymentSplitter, AccessControl {
+    address public relayPayment;
+
     constructor(
+        address relay,
         address owner,
         address[] memory payees,
         uint256[] memory shares
     ) PaymentSplitter(payees, shares) {
+        relayPayment = relay;
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
     }
 
@@ -22,9 +26,13 @@ contract RelayPaymentSplitter is PaymentSplitter, AccessControl {
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _resetPayees(payees, shares);
     }
+
+    function isNative(address currency) public view override returns (bool) {
+        return INativeCurrencyCheck(relayPayment).isNative(currency);
+    }
 }
 
-contract LemonadeRelayPayment is OwnableUpgradeable {
+contract LemonadeRelayPayment is OwnableUpgradeable, NativeCurrencyCheck {
     struct Payment {
         address guest;
         address currency;
@@ -71,6 +79,7 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
         uint256[] calldata shares
     ) external {
         RelayPaymentSplitter splitter = new RelayPaymentSplitter(
+            address(this),
             _msgSender(),
             payees,
             shares
@@ -113,9 +122,9 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
 
         if (!splitters[splitter]) revert NotRegistered();
 
-        bool isNative = currency == address(0);
+        bool native = isNative(currency);
 
-        if (isNative && msg.value != amount) revert InvalidAmount();
+        if (native && msg.value != amount) revert InvalidAmount();
 
         PaymentConfigRegistry registry = PaymentConfigRegistry(
             payable(configRegistry)
@@ -127,7 +136,7 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
 
         address guest = _msgSender();
 
-        if (isNative) {
+        if (native) {
             (bool success, ) = payable(configRegistry).call{value: feeAmount}(
                 ""
             );
@@ -173,5 +182,9 @@ contract LemonadeRelayPayment is OwnableUpgradeable {
 
     function _toId(string memory id) internal pure returns (bytes32) {
         return keccak256(abi.encode(id));
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return INativeCurrencyCheck(configRegistry).isNative(currency);
     }
 }

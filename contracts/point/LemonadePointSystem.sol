@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 import "../utils/Transferable.sol";
 import "../AccessRegistry.sol";
+import "../utils/NativeCurrencyCheck.sol";
 
 bytes32 constant PAYMENT_ADMIN_ROLE = keccak256("PAYMENT_ADMIN_ROLE");
 
@@ -21,7 +22,11 @@ struct ERC20RedeemableSetting {
     uint256 amount;
 }
 
-contract LemonadePointSystem is OwnableUpgradeable, Transferable {
+contract LemonadePointSystem is
+    OwnableUpgradeable,
+    Transferable,
+    NativeCurrencyCheck
+{
     using EnumerableSet for EnumerableSet.AddressSet;
 
     //-- STORAGE
@@ -32,6 +37,7 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
 
     mapping(address => ERC20Redeemable) private erc20Redeemables;
     EnumerableSet.AddressSet private erc20Addresses;
+    address public nativeCurrency;
 
     //-- ERRORS
     error InvalidData();
@@ -118,7 +124,7 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
         address currency,
         uint256 amount
     ) external onlyOwner {
-        _transfer(destination, currency, amount);
+        _transfer(destination, currency, amount, isNative(currency));
     }
 
     function redeem(address token, uint256 points) external {
@@ -139,7 +145,7 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
         //-- deduce points & transfer tokens
         userPoints[sender] -= points;
 
-        _transfer(sender, token, amount);
+        _transfer(sender, token, amount, isNative(token));
 
         emit Redeem(sender, token, amount, points);
     }
@@ -156,5 +162,13 @@ contract LemonadePointSystem is OwnableUpgradeable, Transferable {
             revert Forbidden();
         }
         _;
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return currency == nativeCurrency;
+    }
+
+    function setNativeCurrency(address currency) external onlyOwner {
+        nativeCurrency = currency;
     }
 }

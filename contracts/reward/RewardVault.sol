@@ -35,7 +35,7 @@ contract RewardVault is Vault, IRewardVault {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     //-- STORAGE AREA
-    IRewardRegistry rewardRegistry;
+    address rewardRegistry;
     mapping(bytes32 => EnumerableSet.AddressSet) rewardCurrencies;
     mapping(bytes32 => mapping(address => uint256)) rewardSettings; //-- first key is reward id, second key is currency, value is reward amount
     bool inited;
@@ -60,10 +60,12 @@ contract RewardVault is Vault, IRewardVault {
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(OPERATOR_ROLE, registry);
 
-        rewardRegistry = IRewardRegistry(registry);
+        rewardRegistry = registry;
     }
 
-    function initialize(address[] calldata admins) public onlyRole(OPERATOR_ROLE) {
+    function initialize(
+        address[] calldata admins
+    ) public onlyRole(OPERATOR_ROLE) {
         if (inited) {
             revert AlreadyInited();
         }
@@ -92,7 +94,7 @@ contract RewardVault is Vault, IRewardVault {
             revert InvalidData();
         }
 
-        rewardRegistry.registerRewards(rewardIds);
+        IRewardRegistry(rewardRegistry).registerRewards(rewardIds);
 
         for (uint256 i = 0; i < rewardLength; ) {
             RewardSetting calldata setting = settings[i];
@@ -133,7 +135,7 @@ contract RewardVault is Vault, IRewardVault {
 
             uint256 total = amount * count;
 
-            _transfer(destination, currency, total);
+            _transfer(destination, currency, total, isNative(currency));
 
             emit RewardSent(claimId, destination, currency, total);
 
@@ -180,5 +182,9 @@ contract RewardVault is Vault, IRewardVault {
         return
             interfaceId == type(IRewardVault).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return INativeCurrencyCheck(rewardRegistry).isNative(currency);
     }
 }

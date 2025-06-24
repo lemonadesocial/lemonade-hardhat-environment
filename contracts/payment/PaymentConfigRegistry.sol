@@ -6,11 +6,12 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "../utils/NativeCurrencyCheck.sol";
 import "../AccessRegistry.sol";
 
 bytes32 constant PAYMENT_ADMIN_ROLE = keccak256("PAYMENT_ADMIN_ROLE");
 
-contract PaymentConfigRegistry is OwnableUpgradeable {
+contract PaymentConfigRegistry is OwnableUpgradeable, NativeCurrencyCheck {
     using ECDSA for bytes;
     using ECDSA for bytes32;
 
@@ -21,7 +22,9 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
     address public accessRegistry;
     address public authorizedSigner;
     uint256 public feePPM;
-    uint256[20] __gap;
+    address public nativeCurrency;
+
+    uint256[19] __gap;
 
     event FeeCollected(string eventId, address token, uint256 amount);
 
@@ -48,6 +51,10 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         feePPM = ppm;
     }
 
+    function setNativeCurrency(address currency) external onlyAdmin {
+        nativeCurrency = currency;
+    }
+
     function withdraw(
         address token,
         uint256 amount,
@@ -55,7 +62,7 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
     ) external onlyAdmin {
         bool success;
 
-        if (token == address(0)) {
+        if (isNative(token)) {
             (success, ) = destination.call{value: amount}("");
         } else {
             success = IERC20(token).transfer(destination, amount);
@@ -108,7 +115,7 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         for (uint256 i = 0; i < length; ) {
             address currency = currencies[i];
 
-            if (currency == address(0)) {
+            if (isNative(currency)) {
                 balance_[i] = contractAddress.balance;
             } else {
                 balance_[i] = IERC20(currency).balanceOf(contractAddress);
@@ -120,6 +127,10 @@ contract PaymentConfigRegistry is OwnableUpgradeable {
         }
 
         return balance_;
+    }
+
+    function isNative(address currency) public view override returns (bool) {
+        return currency == nativeCurrency;
     }
 
     receive() external payable {}
