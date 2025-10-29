@@ -256,6 +256,12 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/megaeth-testnet'],
     },
+    'megaeth-testnet-v2': {
+      url: process.env.NETWORK_MEGAETH_TESTNET_V2_URL || 'https://timothy.megaeth.com/rpc',
+      chainId: 6343,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/megaeth-testnet-v2'],
+    },
     'moonbase': {
       url: process.env.NETWORK_MOONBASE_URL || 'https://moonbeam-alpha.api.onfinality.io/public',
       chainId: 1287,
