@@ -262,6 +262,24 @@ const config: HardhatUserConfig = {
       accounts,
       deploy: ['deploy/__all__', 'deploy/megaeth-testnet-v2'],
     },
+    'megaeth-mainnet': {
+      url: process.env.NETWORK_MEGAETH_MAINNET_URL || 'https://mainnet.megaeth.com/rpc',
+      chainId: 4326,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/megaeth-mainnet'],
+    },
+    'tempo-testnet': {
+      url: process.env.NETWORK_TEMPO_TESTNET_URL || 'https://rpc.moderato.tempo.xyz',
+      chainId: 42431,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/tempo-testnet'],
+    },
+    'tempo': {
+      url: process.env.NETWORK_TEMPO_URL || 'https://rpc.tempo.xyz',
+      chainId: 4217,
+      accounts,
+      deploy: ['deploy/__all__', 'deploy/tempo'],
+    },
     'moonbase': {
       url: process.env.NETWORK_MOONBASE_URL || 'https://moonbeam-alpha.api.onfinality.io/public',
       chainId: 1287,
